@@ -64,6 +64,26 @@ Guardrails:
 - `LIMIT` automático (configurável via `MAX_RESULT_ROWS`).
 - `statement_timeout` configurável via `STATEMENT_TIMEOUT_MS`.
 
+## Testando interativamente (CLI)
+Cliente interativo usando OpenRouter para fazer perguntas em linguagem natural:
+
+```bash
+# Configure OPENROUTER_API_KEY em .env primeiro
+./test.sh
+```
+
+Ou manualmente:
+```bash
+source .venv/bin/activate
+python client.py interactive
+```
+
+Exemplos de perguntas:
+- "Quantas escolas existem no dataset?"
+- "Qual é o bairro com mais escolas?"
+- "Liste todas as escolas de Boa Viagem"
+- "Qual é a escola com mais alunos?"
+
 ## Uso com clientes MCP / FastMCP Cloud
 - Endpoint/entrypoint: `server/main.py`.
 - Variáveis obrigatórias: `OPENROUTER_API_KEY`. O modelo padrão é `OPENROUTER_MODEL=openai/gpt-5.1-codex-max`.
@@ -72,8 +92,6 @@ Guardrails:
 ## Exemplo de pergunta
 Pergunta: "Quantas escolas existem no dataset?"  
 Fluxo: cliente MCP -> `schema_snapshot` -> LLM gera SQL `SELECT COUNT(*) FROM public.escolas LIMIT 1;` -> `answer_question` executa e devolve o total.
-
-## Troubleshooting
 - Postgres não sobe: verifique portas/arquivos de dados (`docker compose logs postgres`).
 - LLM falhou ou devolveu SQL inválido: `answer_question` faz retry com o erro; revise schema e dados. Ajuste `STATEMENT_TIMEOUT_MS` ou `MAX_RESULT_ROWS` se necessário.
 - Ingestão lenta: mantenha índices para consultas específicas após o load inicial, se precisar de performance adicional.
