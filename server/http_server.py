@@ -1,0 +1,294 @@
+"""
+HTTP Transport server for MCP using FastAPI and SSE.
+"""
+import asyncio
+import json
+import logging
+from typing import Any, Dict, List
+from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from sse_starlette.sse import EventSourceResponse
+from contextlib import asynccontextmanager
+
+from .config import Settings
+from .db import Database
+from .sql_guard import ensure_limit, ensure_read_only
+from .openrouter_client import OpenRouterClient
+
+
+# Global state
+settings = Settings.load()
+settings.require_api_key()
+db: Database = None
+llm: OpenRouterClient = None
+
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(name)s] %(message)s")
+logger = logging.getLogger("mcp.http")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize database connection on startup."""
+    global db, llm
+    logger.info("Starting MCP HTTP server with DB host=%s port=%s", settings.db_host, settings.db_port)
+    db = Database(settings)
+    await db.init()
+    llm = OpenRouterClient(settings)
+    logger.info("MCP HTTP server ready")
+    yield
+    await db.close()
+    logger.info("MCP HTTP server shutdown complete")
+
+
+app = FastAPI(
+    title="Recife Open Data MCP Server",
+    description="MCP server for querying Recife open datasets via HTTP/SSE",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+async def _run_sql(sql: str) -> Dict[str, Any]:
+    """Execute SQL with guardrails."""
+    logger.info("_run_sql called", extra={"sql_preview": sql[:200]})
+    ensure_read_only(sql)
+    limited = ensure_limit(sql, settings.max_result_rows)
+    rows = await db.fetch_rows(limited, timeout_ms=settings.statement_timeout_ms)
+    logger.info("SQL executed", extra={"row_count": len(rows)})
+    return {"sql": limited, "row_count": len(rows), "rows": rows}
+
+
+@app.get("/")
+async def root():
+    """Health check endpoint."""
+    return {"status": "ok", "service": "recife-open-data-mcp", "transport": "http"}
+
+
+@app.get("/health")
+async def health():
+    """Detailed health check."""
+    try:
+        # Test database connection
+        await db.fetch_schema_snapshot()
+        return {"status": "healthy", "database": "connected", "llm": "configured"}
+    except Exception as e:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "unhealthy", "error": str(e)}
+        )
+
+
+@app.get("/mcp/v1/capabilities")
+async def get_capabilities():
+    """Return MCP server capabilities."""
+    return {
+        "capabilities": {
+            "tools": True,
+            "resources": True,
+            "prompts": False,
+        },
+        "serverInfo": {
+            "name": "recife-open-data-mcp",
+            "version": "1.0.0",
+        },
+    }
+
+
+@app.get("/mcp/v1/tools")
+async def list_tools():
+    """List available MCP tools."""
+    return {
+        "tools": [
+            {
+                "name": "execute_sql",
+                "description": "Execute a read-only SQL query with timeout and row limit.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "sql": {
+                            "type": "string",
+                            "description": "SQL query to execute"
+                        }
+                    },
+                    "required": ["sql"],
+                },
+            },
+            {
+                "name": "answer_question",
+                "description": "Convert a natural language question into SQL, run it, and return formatted results.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "question": {
+                            "type": "string",
+                            "description": "Natural language question about the data"
+                        }
+                    },
+                    "required": ["question"],
+                },
+            },
+        ]
+    }
+
+
+@app.post("/mcp/v1/tools/execute")
+async def execute_tool(request: Request):
+    """Execute a tool and return results."""
+    body = await request.json()
+    tool_name = body.get("name")
+    arguments = body.get("arguments", {})
+
+    logger.info(
+        "Tool request",
+        extra={"tool": tool_name, "arguments_preview": json.dumps(arguments)[:500]},
+    )
+
+    try:
+        if tool_name == "execute_sql":
+            sql = arguments.get("sql")
+            if not sql:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": "SQL query is required"}
+                )
+            result = await _run_sql(sql)
+            return {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": json.dumps(result, indent=2, ensure_ascii=False)
+                    }
+                ]
+            }
+
+        elif tool_name == "answer_question":
+            question = arguments.get("question")
+            if not question:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": "Question is required"}
+                )
+            
+            schema_text = await db.fetch_schema_snapshot()
+            sql_first = await llm.generate_sql(question, schema_text)
+            logger.info("Generated SQL (first pass)", extra={"sql_preview": sql_first[:200]})
+            
+            try:
+                result = await _run_sql(sql_first)
+                # Format response nicely
+                formatted = {
+                    "question": question,
+                    "sql": result["sql"],
+                    "row_count": result["row_count"],
+                    "data": result["rows"]
+                }
+                logger.info(
+                    "answer_question succeeded",
+                    extra={"row_count": result["row_count"], "sql_preview": result["sql"][:200]},
+                )
+                return {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": json.dumps(formatted, indent=2, ensure_ascii=False)
+                        }
+                    ]
+                }
+            except Exception as first_error:
+                # Retry with error feedback
+                logger.warning("answer_question first attempt failed", extra={"error": str(first_error)})
+                sql_second = await llm.generate_sql(
+                    question, 
+                    schema_text, 
+                    previous_error=str(first_error)
+                )
+                logger.info("Generated SQL (retry)", extra={"sql_preview": sql_second[:200]})
+                result = await _run_sql(sql_second)
+                formatted = {
+                    "question": question,
+                    "sql": result["sql"],
+                    "row_count": result["row_count"],
+                    "data": result["rows"],
+                    "note": "Query was retried due to initial error"
+                }
+                logger.info(
+                    "answer_question succeeded on retry",
+                    extra={"row_count": result["row_count"], "sql_preview": result["sql"][:200]},
+                )
+                return {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": json.dumps(formatted, indent=2, ensure_ascii=False)
+                        }
+                    ]
+                }
+
+        else:
+            return JSONResponse(
+                status_code=404,
+                content={"error": f"Tool '{tool_name}' not found"}
+            )
+
+    except Exception as e:
+        logger.exception("Tool execution failed")
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e)}
+        )
+
+
+@app.get("/mcp/v1/resources")
+async def list_resources():
+    """List available MCP resources."""
+    return {
+        "resources": [
+            {
+                "uri": "database://schema",
+                "name": "Database Schema",
+                "description": "Complete schema snapshot of all tables and columns",
+                "mimeType": "text/plain",
+            }
+        ]
+    }
+
+
+@app.post("/mcp/v1/resources/read")
+async def read_resource(request: Request):
+    """Read a resource."""
+    body = await request.json()
+    uri = body.get("uri")
+
+    if uri == "database://schema":
+        schema_text = await db.fetch_schema_snapshot()
+        return {
+            "contents": [
+                {
+                    "uri": uri,
+                    "mimeType": "text/plain",
+                    "text": schema_text,
+                }
+            ]
+        }
+    else:
+        return JSONResponse(
+            status_code=404,
+            content={"error": f"Resource '{uri}' not found"}
+        )
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(settings.__dict__.get("http_port", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

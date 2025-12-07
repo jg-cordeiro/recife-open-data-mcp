@@ -16,6 +16,7 @@ class Settings:
     db_password: str
     statement_timeout_ms: int
     max_result_rows: int
+    http_port: int
 
     @classmethod
     def load(cls) -> "Settings":
@@ -29,6 +30,7 @@ class Settings:
             db_password=os.environ.get("POSTGRES_PASSWORD", "recife"),
             statement_timeout_ms=int(os.environ.get("STATEMENT_TIMEOUT_MS", "10000")),
             max_result_rows=int(os.environ.get("MAX_RESULT_ROWS", "200")),
+                    http_port=int(os.environ.get("HTTP_PORT", "8000")),
         )
 
     def require_api_key(self) -> None:
