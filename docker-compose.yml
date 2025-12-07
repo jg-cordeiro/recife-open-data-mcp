@@ -20,4 +20,27 @@ services:
       retries: 5
       start_period: 10s
 volumes:
+
+    mcp-server:
+      build: .
+      container_name: recife-mcp-server
+      restart: unless-stopped
+      environment:
+        OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+        OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-5.1-codex-max}
+        POSTGRES_HOST: postgres
+        POSTGRES_PORT: 5432
+        POSTGRES_DB: recife_open_data
+        POSTGRES_USER: recife
+        POSTGRES_PASSWORD: recife
+        HTTP_PORT: 8000
+        STATEMENT_TIMEOUT_MS: ${STATEMENT_TIMEOUT_MS:-10000}
+        MAX_RESULT_ROWS: ${MAX_RESULT_ROWS:-200}
+      ports:
+        - "8000:8000"
+      depends_on:
+        postgres:
+          condition: service_healthy
+      command: uvicorn server.http_server:app --host 0.0.0.0 --port 8000
+
   pgdata:
