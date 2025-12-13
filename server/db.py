@@ -53,3 +53,71 @@ class Database:
                 f"{table_schema}.{table_name} :: {column_name} ({data_type})"
             )
         return "\n".join(parts)
+
+    async def list_tables(self) -> List[Dict[str, str]]:
+        """List all tables with their schema."""
+        if self._conn is None:
+            await self.init()
+        assert self._conn is not None
+        query = """
+        SELECT table_schema, table_name
+        FROM information_schema.tables
+        WHERE table_schema NOT IN ('information_schema', 'pg_catalog', 'memory')
+        ORDER BY table_schema, table_name;
+        """
+        rows = self._conn.execute(query).fetchall()
+        return [{"schema": row[0], "table": row[1], "full_name": f'"{row[0]}"."{row[1]}"'} for row in rows]
+
+    async def describe_table(self, table_name: str) -> List[Dict[str, str]]:
+        """Get detailed column information for a specific table."""
+        if self._conn is None:
+            await self.init()
+        assert self._conn is not None
+        query = """
+        SELECT column_name, data_type, is_nullable
+        FROM information_schema.columns
+        WHERE table_name = ?
+        AND table_schema NOT IN ('information_schema', 'pg_catalog', 'memory')
+        ORDER BY ordinal_position;
+        """
+        rows = self._conn.execute(query, [table_name]).fetchall()
+        return [{"column": row[0], "type": row[1], "nullable": row[2]} for row in rows]
+
+    async def search_schema(self, search_term: str) -> List[Dict[str, str]]:
+        """Search for tables or columns matching a term."""
+        if self._conn is None:
+            await self.init()
+        assert self._conn is not None
+        query = """
+        SELECT table_schema, table_name, column_name, data_type
+        FROM information_schema.columns
+        WHERE table_schema NOT IN ('information_schema', 'pg_catalog', 'memory')
+        AND (LOWER(table_name) LIKE ? OR LOWER(column_name) LIKE ?)
+        ORDER BY table_schema, table_name, ordinal_position;
+        """
+        search_pattern = f"%{search_term.lower()}%"
+        rows = self._conn.execute(query, [search_pattern, search_pattern]).fetchall()
+        return [
+            {
+                "schema": row[0],
+                "table": row[1],
+                "column": row[2],
+                "type": row[3],
+                "full_reference": f'"{row[0]}"."{row[1]}"."{row[2]}"'
+            }
+            for row in rows
+        ]
+
+    async def list_databases(self) -> List[str]:
+        """List all database schemas."""
+        if self._conn is None:
+            await self.init()
+        assert self._conn is not None
+        query = """
+        SELECT DISTINCT table_schema
+        FROM information_schema.tables
+        WHERE table_schema NOT IN ('information_schema', 'pg_catalog', 'memory')
+        ORDER BY table_schema;
+        """
+        rows = self._conn.execute(query).fetchall()
+        return [row[0] for row in rows]

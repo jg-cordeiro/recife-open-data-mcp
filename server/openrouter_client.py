@@ -13,7 +13,21 @@ class OpenRouterClient:
         guidance = (
             "You are a SQL expert producing safe, read-only DuckDB SQL. "
             "Use only tables and columns from the schema. "
-            f"Never mutate data. Always add LIMIT {self.max_rows} unless the query already limits rows. "
+            f"Never mutate data. Always add LIMIT {self.max_rows} unless the query already limits rows. \n\n"
+            "IMPORTANT RULES:\n"
+            "1. Table names with hyphens MUST be quoted with double quotes\n"
+            "2. Schema names MUST be quoted with double quotes\n"
+            "3. Column names with special characters or capitals MUST be quoted\n"
+            "4. Format: \"schema\".\"table-name\".\"Column_Name\"\n\n"
+            "EXAMPLES:\n"
+            "Q: How many records in the civil defense table?\n"
+            'A: SELECT COUNT(*) FROM "public"."atendimentos-defesa-civil_consolidated" LIMIT 200;\n\n'
+            "Q: Show me the first 5 student records\n"
+            'A: SELECT * FROM "public"."situacao-final-estudantes_consolidated" LIMIT 5;\n\n'
+            "Q: How many distinct years in civil defense data?\n"
+            'A: SELECT COUNT(DISTINCT "Ano") AS distinct_years FROM "public"."atendimentos-defesa-civil_consolidated" LIMIT 200;\n\n'
+            "Q: List neighborhoods with most incidents\n"
+            'A: SELECT "Bairro", COUNT(*) as total FROM "public"."atendimentos-defesa-civil_consolidated" GROUP BY "Bairro" ORDER BY total DESC LIMIT 10;'
         )
         messages = [
             {"role": "system", "content": guidance},

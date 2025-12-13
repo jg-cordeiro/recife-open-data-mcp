@@ -1,6 +1,6 @@
 {
   "table": "atendimentos-defesa-civil_consolidated",
-  "description": "Registro de atendimentos da Defesa Civil do Recife, incluindo áreas de risco, vistorias realizadas e execução do serviço de colocação de lona",
+  "description": "Registro de atendimentos da Defesa Civil do Recife",
   "columns": [
     {
       "name": "Regional",

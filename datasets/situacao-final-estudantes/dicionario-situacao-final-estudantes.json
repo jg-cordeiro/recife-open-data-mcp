@@ -2,7 +2,7 @@
   "metadados": {
     "cabecalho": {
       "titulo": "situacao-final-estudantes",
-      "descricao": "Situação acadêmica dos alunos da rede pública de ensino da cidade do Recife ao final de um ano letivo, contendo informações de matrícula, escola, série, turno, idade, sexo e situação final (aprovado, reprovado, etc.).",
+      "descricao": "Situação Final dos Estudantes da Rede Municipal de Educação do Recife, abrangendo os anos de 2012 a 2024.",
       "categoria_vcge": "http://vocab.e.gov.br/2016/09/vcge#educacao",
       "fonte_dados": "http://dados.recife.pe.gov.br",
       "licenca": "Open Database License (ODbL)",
@@ -14,7 +14,7 @@
         "identificador": "http://dados.recife.pe.gov.br/dataset/situacao-final-estudantes",
         "titulo": "Consolidated situacao-final-estudantes",
         "formato": "csv",
-        "descricao": "Dados consolidados de unknown"
+        "descricao": "Dados consolidados de 2012-2024"
       }
     ],
     "campos": [
@@ -27,9 +27,9 @@
       },
       {
         "codigo": "codigo_escola",
-        "descricao": "Código identificador da escola",
-        "tipo": "Texto",
-        "tamanho": 10,
+        "descricao": "Código identificador da escola na base municipal",
+        "tipo": "Num",
+        "tamanho": 5,
         "valores_permitidos": ""
       },
       {
@@ -48,23 +48,23 @@
       },
       {
         "codigo": "endereco_logradouro",
-        "descricao": "Logradouro (rua, avenida) da escola",
+        "descricao": "Logradouro (rua, avenida etc.) da escola",
         "tipo": "Texto",
         "tamanho": 100,
         "valores_permitidos": ""
       },
       {
         "codigo": "endereco_numero",
-        "descricao": "Número do endereço da escola (pode conter 'S/N')",
+        "descricao": "Número do endereço da escola (ou S/N quando não houver número)",
         "tipo": "Texto",
         "tamanho": 10,
         "valores_permitidos": ""
       },
       {
         "codigo": "rpa",
-        "descricao": "Código da Região de Planejamento Administrativa",
-        "tipo": "Texto",
-        "tamanho": 5,
+        "descricao": "Região de Planejamento da Área (RPA) da escola",
+        "tipo": "Num",
+        "tamanho": 2,
         "valores_permitidos": ""
       },
       {
@@ -97,7 +97,7 @@
       },
       {
         "codigo": "serie",
-        "descricao": "Nome da série (ex.: 1º ANO)",
+        "descricao": "Descrição da série (ex.: 1º ANO)",
         "tipo": "Texto",
         "tamanho": 10,
         "valores_permitidos": ""
@@ -111,42 +111,42 @@
       },
       {
         "codigo": "turno",
-        "descricao": "Turno da aula (MANHÃ, TARDE, NOITE)",
+        "descricao": "Turno da aula (ex.: MANHÃ, TARDE, NOITE)",
         "tipo": "Texto",
         "tamanho": 10,
-        "valores_permitidos": "MANHÃ, TARDE, NOITE"
+        "valores_permitidos": ""
       },
       {
         "codigo": "matricula",
-        "descricao": "Número de matrícula do aluno",
-        "tipo": "Texto",
-        "tamanho": 15,
+        "descricao": "Número de matrícula do estudante",
+        "tipo": "Num",
+        "tamanho": 10,
         "valores_permitidos": ""
       },
       {
         "codigo": "sexo",
-        "descricao": "Sexo do aluno (1 = Masculino, 2 = Feminino)",
+        "descricao": "Sexo do estudante (1 = Masculino, 2 = Feminino)",
         "tipo": "Texto",
         "tamanho": 1,
-        "valores_permitidos": "1, 2"
+        "valores_permitidos": "1,2"
       },
       {
         "codigo": "idade",
-        "descricao": "Idade do aluno em anos",
+        "descricao": "Idade do estudante em anos completos",
         "tipo": "Num",
-        "tamanho": 3,
+        "tamanho": 2,
         "valores_permitidos": ""
       },
       {
         "codigo": "situacao_codigo",
-        "descricao": "Código da situação final do aluno (ex.: AP = Aprovado)",
+        "descricao": "Código da situação final (ex.: AP = Aprovado)",
         "tipo": "Texto",
-        "tamanho": 5,
-        "valores_permitidos": "AP, RP, TR, ... (códigos de situação)"
+        "tamanho": 2,
+        "valores_permitidos": "AP,RP,TR,CF"
       },
       {
         "codigo": "situacao_nome",
-        "descricao": "Descrição da situação final do aluno (ex.: APROVADO)",
+        "descricao": "Descrição da situação final (ex.: APROVADO)",
         "tipo": "Texto",
         "tamanho": 20,
         "valores_permitidos": ""
