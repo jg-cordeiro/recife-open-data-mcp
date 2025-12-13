@@ -4,12 +4,14 @@ HTTP-based MCP client for testing via OpenRouter.
 import asyncio
 import json
 import logging
+import os
 from typing import Any, Dict, List, Optional
 
 import httpx
 import typer
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
+from braintrust import current_span, init_logger, traced
 
 from server.config import Settings
 
@@ -33,6 +35,12 @@ class HTTPMCPClient:
         )
         self.model = settings.openrouter_model
         self.http_client = httpx.AsyncClient(timeout=60.0)
+        
+        # Initialize Braintrust logger
+        init_logger(
+            project="Recife Open Data MCP",
+            api_key=os.getenv("BRAINTRUST_API_KEY")
+        )
 
     async def close(self):
         """Close HTTP client."""
@@ -65,18 +73,27 @@ class HTTPMCPClient:
         # Use key 'tool_args' to avoid clashing with LogRecord 'args'
         logger.info("calling tool", extra={"tool": tool_name, "tool_args": arguments})
         
-        response = await self.http_client.post(
-            f"{self.mcp_base_url}/mcp/v1/tools/execute",
-            json={"name": tool_name, "arguments": arguments},
-        )
-        response.raise_for_status()
-        result = response.json()
-        logger.info("tool response", extra={"tool": tool_name, "result_preview": json.dumps(result)[:400]})
-        
-        # Extract text from MCP response format
-        if "content" in result and len(result["content"]) > 0:
-            return result["content"][0].get("text", str(result))
-        return str(result)
+        try:
+            response = await self.http_client.post(
+                f"{self.mcp_base_url}/mcp/v1/tools/execute",
+                json={"name": tool_name, "arguments": arguments},
+            )
+            response.raise_for_status()
+            result = response.json()
+            logger.info("tool response", extra={"tool": tool_name, "result_preview": json.dumps(result)[:400]})
+            
+            # Extract text from MCP response format
+            if "content" in result and len(result["content"]) > 0:
+                content = result["content"][0].get("text")
+                if content:
+                    return content
+            
+            # Fallback for empty or malformed responses
+            logger.warning("empty tool response", extra={"tool": tool_name})
+            return json.dumps({"message": "Tool executed but returned no data", "tool": tool_name})
+        except Exception as e:
+            logger.exception("tool call failed", extra={"tool": tool_name})
+            return json.dumps({"error": str(e), "tool": tool_name})
 
     def _convert_tools_to_openai_format(self, mcp_tools: List[Dict]) -> List[Dict]:
         """Convert MCP tool format to OpenAI function calling format."""
@@ -92,6 +109,7 @@ class HTTPMCPClient:
             })
         return openai_tools
 
+    @traced(type="llm", name="HTTP MCP Client Chat", notrace_io=True)
     async def chat(self, user_message: str) -> str:
         """Send a message to LLM and handle tool calls via MCP server."""
         typer.secho(f"\n👤 User: {user_message}", fg=typer.colors.CYAN)
@@ -111,10 +129,35 @@ class HTTPMCPClient:
             tool_choice="auto",
         )
         logger.info("llm response", extra={"finish_reason": response.choices[0].finish_reason})
+        
+        # Log initial LLM call
+        usage = response.usage or None
+        current_span().log(
+            input={"user_message": user_message, "tools_available": len(tools)},
+            metrics={
+                "prompt_tokens": usage.prompt_tokens if usage else 0,
+                "completion_tokens": usage.completion_tokens if usage else 0,
+                "total_tokens": usage.total_tokens if usage else 0,
+            },
+            metadata={
+                "model": self.model,
+                "finish_reason": response.choices[0].finish_reason,
+                "has_tool_calls": response.choices[0].finish_reason == "tool_calls"
+            }
+        )
 
-        # Tool use loop
-        while response.choices[0].finish_reason == "tool_calls":
+        # Tool use loop with max iterations
+        tool_call_count = 0
+        MAX_TOOL_ITERATIONS = 10
+        
+        while response.choices[0].finish_reason == "tool_calls" and tool_call_count < MAX_TOOL_ITERATIONS:
+            tool_call_count += 1
             tool_calls = response.choices[0].message.tool_calls
+            
+            if not tool_calls:
+                logger.warning("no tool calls found")
+                break
+                
             logger.info("llm requested tools", extra={"tool_names": [tc.function.name for tc in tool_calls]})
             
             # Add assistant message with tool calls
@@ -162,9 +205,46 @@ class HTTPMCPClient:
                 tool_choice="auto",
             )
             logger.info("llm response", extra={"finish_reason": response.choices[0].finish_reason})
+            
+            # Log follow-up LLM call
+            usage = response.usage or None
+            current_span().log(
+                metrics={
+                    "prompt_tokens": usage.prompt_tokens if usage else 0,
+                    "completion_tokens": usage.completion_tokens if usage else 0,
+                    "total_tokens": usage.total_tokens if usage else 0,
+                },
+                metadata={
+                    "tool_call_iteration": tool_call_count,
+                    "tools_called": [tc.function.name for tc in tool_calls],
+                    "finish_reason": response.choices[0].finish_reason,
+                }
+            )
 
-        # Extract final response
-        final_response = response.choices[0].message.content or ""
+        # Check if we hit max iterations
+        if tool_call_count >= MAX_TOOL_ITERATIONS:
+            typer.secho(f"\n⚠️  Reached max tool iterations ({MAX_TOOL_ITERATIONS})", fg=typer.colors.YELLOW)
+            logger.warning("max tool iterations reached", extra={"iterations": tool_call_count})
+            final_response = "Desculpe, precisei usar muitas ferramentas e não consegui completar a resposta. Tente fazer uma pergunta mais específica."
+        else:
+            # Extract final response
+            final_response = response.choices[0].message.content or ""
+        
+        # Handle empty final response
+        if not final_response or final_response.strip() == "":
+            final_response = "Desculpe, não consegui gerar uma resposta. Por favor, tente reformular sua pergunta."
+            logger.warning("empty final response from llm")
+        
+        # Log final output
+        current_span().log(
+            output={"final_response": final_response},
+            metadata={
+                "total_tool_calls": tool_call_count,
+                "success": bool(final_response),
+                "hit_max_iterations": tool_call_count >= MAX_TOOL_ITERATIONS
+            }
+        )
+        
         typer.secho(f"\n🤖 Assistant: {final_response}", fg=typer.colors.GREEN)
         logger.info("chat done", extra={"final_response_preview": final_response[:400]})
         return final_response
