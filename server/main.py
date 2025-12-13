@@ -15,7 +15,7 @@ app = FastMCP("recife-open-data-mcp")
 async def _run_sql(sql: str):
     ensure_read_only(sql)
     limited = ensure_limit(sql, settings.max_result_rows)
-    rows = await db.fetch_rows(limited, timeout_ms=settings.statement_timeout_ms)
+    rows = await db.fetch_rows(limited)
     return {"sql": limited, "row_count": len(rows), "rows": rows}
 
 

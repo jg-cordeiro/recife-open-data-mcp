@@ -14,3 +14,8 @@ __pycache__/
 *.log
 *.db
 node_modules/
+
+# Data files
+data/
+datasets/consolidated/*.csv
+datasets/*/*.csv

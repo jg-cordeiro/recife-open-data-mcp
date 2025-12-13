@@ -1,4 +1,4 @@
-import asyncpg
+import duckdb
 from typing import Any, Dict, List, Optional
 from .config import Settings
 
@@ -6,52 +6,50 @@ from .config import Settings
 class Database:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self._pool: Optional[asyncpg.Pool] = None
+        self._conn: Optional[duckdb.DuckDBPyConnection] = None
 
     async def init(self) -> None:
-        if self._pool is None:
-            self._pool = await asyncpg.create_pool(
-                user=self.settings.db_user,
-                password=self.settings.db_password,
-                database=self.settings.db_name,
-                host=self.settings.db_host,
-                port=self.settings.db_port,
-                min_size=1,
-                max_size=10,
-                command_timeout=self.settings.statement_timeout_ms / 1000,
-                statement_cache_size=0,
-            )
+        if self._conn is None:
+            self._conn = duckdb.connect(self.settings.db_path, read_only=False)
+            # Enable execution in read-only context where needed
+            self._conn.execute("SET threads = 4")
+            self._conn.execute("SET memory_limit = '4GB'")
 
     async def close(self) -> None:
-        if self._pool:
-            await self._pool.close()
-            self._pool = None
+        if self._conn:
+            self._conn.close()
+            self._conn = None
 
     async def fetch_rows(self, sql: str, timeout_ms: Optional[int] = None) -> List[Dict[str, Any]]:
-        if self._pool is None:
+        if self._conn is None:
             await self.init()
-        assert self._pool is not None
-        timeout_s = (timeout_ms or self.settings.statement_timeout_ms) / 1000
-        async with self._pool.acquire() as conn:
-            await conn.execute(f"SET LOCAL statement_timeout = {int(timeout_s * 1000)}")
-            records = await conn.fetch(sql, timeout=timeout_s)
-            return [dict(r) for r in records]
+        assert self._conn is not None
+        # DuckDB doesn't have per-statement timeout, so we just execute
+        result = self._conn.execute(sql).fetchall()
+        # Convert to list of dicts
+        columns = [desc[0] for desc in self._conn.description] if self._conn.description else []
+        rows = []
+        for row in result:
+            row_dict = {col: val for col, val in zip(columns, row)}
+            rows.append(row_dict)
+        return rows
 
     async def fetch_schema_snapshot(self) -> str:
-        if self._pool is None:
+        if self._conn is None:
             await self.init()
-        assert self._pool is not None
+        assert self._conn is not None
+        # Get all tables and their column info
         query = """
-        SELECT table_schema, table_name, column_name, data_type, is_nullable
+        SELECT table_schema, table_name, column_name, data_type
         FROM information_schema.columns
-        WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
+        WHERE table_schema NOT IN ('information_schema', 'pg_catalog', 'memory')
         ORDER BY table_schema, table_name, ordinal_position;
         """
-        async with self._pool.acquire() as conn:
-            rows = await conn.fetch(query)
+        rows = self._conn.execute(query).fetchall()
         parts: List[str] = []
         for row in rows:
+            table_schema, table_name, column_name, data_type = row
             parts.append(
-                f"{row['table_schema']}.{row['table_name']} :: {row['column_name']} ({row['data_type']}) null={row['is_nullable']}"
+                f"{table_schema}.{table_name} :: {column_name} ({data_type})"
             )
         return "\n".join(parts)

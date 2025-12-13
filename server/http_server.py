@@ -5,6 +5,7 @@ import asyncio
 import json
 import logging
 from typing import Any, Dict, List
+from decimal import Decimal
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,7 +33,7 @@ logger = logging.getLogger("mcp.http")
 async def lifespan(app: FastAPI):
     """Initialize database connection on startup."""
     global db, llm
-    logger.info("Starting MCP HTTP server with DB host=%s port=%s", settings.db_host, settings.db_port)
+    logger.info("Starting MCP HTTP server with DuckDB database at %s", settings.db_path)
     db = Database(settings)
     await db.init()
     llm = OpenRouterClient(settings)
@@ -64,9 +65,20 @@ async def _run_sql(sql: str) -> Dict[str, Any]:
     logger.info("_run_sql called", extra={"sql_preview": sql[:200]})
     ensure_read_only(sql)
     limited = ensure_limit(sql, settings.max_result_rows)
-    rows = await db.fetch_rows(limited, timeout_ms=settings.statement_timeout_ms)
+    rows = await db.fetch_rows(limited)
     logger.info("SQL executed", extra={"row_count": len(rows)})
     return {"sql": limited, "row_count": len(rows), "rows": rows}
+
+
+def _convert_to_serializable(obj: Any) -> Any:
+    """Convert Decimal and other non-JSON types to JSON-serializable types."""
+    if isinstance(obj, Decimal):
+        return float(obj)
+    elif isinstance(obj, dict):
+        return {k: _convert_to_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [_convert_to_serializable(item) for item in obj]
+    return obj
 
 
 @app.get("/")
@@ -163,6 +175,7 @@ async def execute_tool(request: Request):
                     content={"error": "SQL query is required"}
                 )
             result = await _run_sql(sql)
+            result = _convert_to_serializable(result)
             return {
                 "content": [
                     {
@@ -193,6 +206,7 @@ async def execute_tool(request: Request):
                     "row_count": result["row_count"],
                     "data": result["rows"]
                 }
+                formatted = _convert_to_serializable(formatted)
                 logger.info(
                     "answer_question succeeded",
                     extra={"row_count": result["row_count"], "sql_preview": result["sql"][:200]},
@@ -222,6 +236,7 @@ async def execute_tool(request: Request):
                     "data": result["rows"],
                     "note": "Query was retried due to initial error"
                 }
+                formatted = _convert_to_serializable(formatted)
                 logger.info(
                     "answer_question succeeded on retry",
                     extra={"row_count": result["row_count"], "sql_preview": result["sql"][:200]},
