@@ -1,6 +1,14 @@
+import os
 from typing import Tuple
 from openai import AsyncOpenAI
+from braintrust import current_span, init_logger, traced
 from .config import Settings
+
+# Initialize Braintrust logger
+logger = init_logger(
+    project="Recife Open Data MCP",
+    api_key=os.getenv("BRAINTRUST_API_KEY")
+)
 
 
 class OpenRouterClient:
@@ -9,6 +17,7 @@ class OpenRouterClient:
         self.model = settings.openrouter_model
         self.max_rows = settings.max_result_rows
 
+    @traced(type="llm", name="OpenRouter SQL Generation", notrace_io=True)
     async def generate_sql(self, question: str, schema_text: str, previous_error: str | None = None) -> str:
         guidance = (
             "You are a SQL expert producing safe, read-only DuckDB SQL. "
@@ -51,4 +60,24 @@ class OpenRouterClient:
             messages=messages,
         )
         content = resp.choices[0].message.content or ""
-        return content.strip().strip("` ")
+        sql_output = content.strip().strip("` ")
+        
+        # Log to Braintrust with structured input/output
+        usage = resp.usage or None
+        current_span().log(
+            input=messages,
+            output=sql_output,
+            metrics={
+                "prompt_tokens": usage.prompt_tokens if usage else 0,
+                "completion_tokens": usage.completion_tokens if usage else 0,
+                "total_tokens": usage.total_tokens if usage else 0,
+            },
+            metadata={
+                "model": self.model,
+                "temperature": 0,
+                "question": question,
+                "has_previous_error": previous_error is not None,
+            }
+        )
+        
+        return sql_output

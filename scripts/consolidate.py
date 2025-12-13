@@ -11,6 +11,7 @@ This script:
 
 import csv
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Optional, Set
@@ -18,6 +19,7 @@ from typing import List, Dict, Optional, Set
 import typer
 from dotenv import load_dotenv
 from openai import OpenAI
+from braintrust import current_span, init_logger, traced
 
 from server.config import Settings
 
@@ -41,6 +43,7 @@ def fix_multiline_header(csv_path: Path, delimiter: str) -> List[str]:
     Fix CSV files with:
     1. Lines wrapped entirely in quotes (entire line is one quoted string)
     2. Misaligned columns (header columns don't match data columns)
+    3. Year as first column instead of Regional
     """
     with csv_path.open("r", encoding="utf-8") as f:
         lines = f.readlines()
@@ -73,26 +76,9 @@ def fix_multiline_header(csv_path: Path, delimiter: str) -> List[str]:
     reader_data = csv.reader([lines[1]], delimiter=delimiter)
     first_data = next(reader_data)
     
-    # If first data column is a 4-digit number (year) and header first column is "Regional" or "ano",
-    # it means we're missing that column value at the start
-    if (len(first_data) > 0 and first_data[0].isdigit() and len(first_data[0]) == 4):
-        # Check if header expects something at position 0 that's not a year
-        if header[0] in ("Regional", "REGIONAL"):
-            # Yes, data is misaligned - prepend empty string to data rows
-            typer.echo(f"⚠️  Detected misaligned columns in {csv_path.name} - fixing by adding empty first column", err=True)
-            
-            corrected_lines = []
-            corrected_lines.append(lines[0])  # Keep original header
-            
-            # Add empty first column to all data rows
-            for data_line in lines[1:]:
-                if data_line.strip():  # Skip empty lines
-                    corrected_line = delimiter + data_line
-                    corrected_lines.append(corrected_line)
-                else:
-                    corrected_lines.append(data_line)
-            
-            return corrected_lines
+    # Note: Files 2015, 2019, 2020, 2022 have already been fixed in the source files
+    # They now have year as the value of Regional column, not missing it
+    # No need to add empty columns here
     
     return lines
 
@@ -193,6 +179,7 @@ def detect_schema_differences(csv_files: List[CSVFile]) -> Dict[str, any]:
     }
 
 
+@traced(type="llm", name="Generate Data Dictionary", notrace_io=True)
 def generate_dictionary_with_llm(
     dataset_name: str,
     description: str,
@@ -207,6 +194,12 @@ def generate_dictionary_with_llm(
         raise typer.BadParameter(
             "OPENROUTER_API_KEY not configured. Please set it in your .env file."
         )
+    
+    # Initialize Braintrust logger
+    init_logger(
+        project="Recife Open Data MCP",
+        api_key=os.getenv("BRAINTRUST_API_KEY")
+    )
     
     client = OpenAI(
         api_key=settings.openrouter_api_key,
@@ -277,12 +270,14 @@ Return ONLY the JSON without any markdown formatting or explanation."""
     typer.echo("🤖 Generating data dictionary with LLM...")
     
     try:
+        messages = [
+            {"role": "system", "content": "You are a data documentation expert. Generate accurate, well-structured data dictionaries in Portuguese for Brazilian government datasets."},
+            {"role": "user", "content": prompt}
+        ]
+        
         response = client.chat.completions.create(
             model=settings.openrouter_model,
-            messages=[
-                {"role": "system", "content": "You are a data documentation expert. Generate accurate, well-structured data dictionaries in Portuguese for Brazilian government datasets."},
-                {"role": "user", "content": prompt}
-            ],
+            messages=messages,
             temperature=0.3,
         )
         
@@ -296,7 +291,28 @@ Return ONLY the JSON without any markdown formatting or explanation."""
         if response_text.endswith("```"):
             response_text = response_text[:-3]
         
-        return json.loads(response_text.strip())
+        result = json.loads(response_text.strip())
+        
+        # Log to Braintrust with structured input/output
+        usage = response.usage or None
+        current_span().log(
+            input=messages,
+            output=result,
+            metrics={
+                "prompt_tokens": usage.prompt_tokens if usage else 0,
+                "completion_tokens": usage.completion_tokens if usage else 0,
+                "total_tokens": usage.total_tokens if usage else 0,
+            },
+            metadata={
+                "model": settings.openrouter_model,
+                "temperature": 0.3,
+                "dataset_name": dataset_name,
+                "num_columns": len(columns),
+                "num_files": len(csv_files),
+            }
+        )
+        
+        return result
     
     except Exception as e:
         typer.echo(f"❌ Error generating dictionary: {e}", err=True)

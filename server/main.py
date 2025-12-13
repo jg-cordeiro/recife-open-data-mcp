@@ -1,5 +1,7 @@
 import asyncio
+import json
 from fastmcp import FastMCP
+from braintrust import start_span
 from .config import Settings
 from .db import Database
 from .sql_guard import ensure_limit, ensure_read_only
@@ -55,7 +57,8 @@ async def list_tables() -> str:
     Returns a list of tables with their full quoted names for use in queries.
     """
     tables = await db.list_tables()
-    return str(tables)
+    import json
+    return json.dumps({"message": f"Found {len(tables)} tables", "tables": tables})
 
 
 @app.tool()
@@ -72,8 +75,11 @@ async def describe_table(table_name: str) -> str:
     
     Returns column names, types, and nullability information.
     """
+    import json
     columns = await db.describe_table(table_name)
-    return str(columns)
+    if not columns:
+        return json.dumps({"error": f"Table '{table_name}' not found", "columns": []})
+    return json.dumps({"table": table_name, "column_count": len(columns), "columns": columns})
 
 
 @app.tool()
@@ -90,8 +96,11 @@ async def search_schema(search_term: str) -> str:
     
     Returns matching tables and columns with their full quoted references.
     """
+    import json
     results = await db.search_schema(search_term)
-    return str(results)
+    if not results:
+        return json.dumps({"message": f"No tables or columns found matching '{search_term}'", "results": []})
+    return json.dumps({"message": f"Found {len(results)} matches", "results": results})
 
 
 @app.tool()
@@ -103,18 +112,19 @@ async def list_databases() -> str:
     
     Returns a list of schema names.
     """
+    import json
     schemas = await db.list_databases()
-    return str(schemas)
+    return json.dumps({"message": f"Found {len(schemas)} schemas", "schemas": schemas})
 
 
 @app.tool()
 async def answer_question(question: str) -> str:
-    """Convert a natural language question into SQL and execute it.
+    """RECOMMENDED: Answer questions about DATA content by generating and executing SQL.
     
-    Use this ONLY for:
-    - Analytical questions requiring data queries
-    - Questions about data content (not structure)
-    - Questions needing aggregations, filtering, or joins
+    Use this for:
+    - Questions about actual data (counts, statistics, aggregations)
+    - Analytical queries ("quantos", "qual a taxa de", "mostre os top 10")
+    - Filtering and data analysis
     
     Do NOT use for:
     - Asking what tables exist (use list_tables)
@@ -124,15 +134,43 @@ async def answer_question(question: str) -> str:
     The system will generate SQL with proper quoting for table/column names,
     validate it, execute it, and return results. Includes automatic retry on errors.
     """
-    schema_text = await db.fetch_schema_snapshot()
-    sql_first = await llm.generate_sql(question, schema_text)
-    try:
-        result = await _run_sql(sql_first)
-        return str(result)
-    except Exception as first_error:
-        sql_second = await llm.generate_sql(question, schema_text, previous_error=str(first_error))
-        result = await _run_sql(sql_second)
-        return str(result)
+    - Asking what tables exist (use list_tables)
+    - Asking what columns a table has (use describe_table)
+    - Searching for schema elements (use search_schema)
+    
+    The system will generate SQL with proper quoting for table/column names,
+    validate it, execute it, and return results. Includes automatic retry on errors.
+    """
+    with start_span(name="answer_question") as span:
+        span.log(input={"question": question})
+        
+        schema_text = await db.fetch_schema_snapshot()
+        sql_first = await llm.generate_sql(question, schema_text)
+        
+        try:
+            result = await _run_sql(sql_first)
+            span.log(
+                output=result,
+                metadata={
+                    "sql_generated": sql_first,
+                    "retry_attempted": False,
+                    "success": True
+                }
+            )
+            return str(result)
+        except Exception as first_error:
+            span.log(metadata={"first_error": str(first_error)})
+            sql_second = await llm.generate_sql(question, schema_text, previous_error=str(first_error))
+            result = await _run_sql(sql_second)
+            span.log(
+                output=result,
+                metadata={
+                    "sql_generated": sql_second,
+                    "retry_attempted": True,
+                    "success": True
+                }
+            )
+            return str(result)
 
 
 if __name__ == "__main__":

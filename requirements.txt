@@ -8,3 +8,4 @@ typer>=0.20.0
 openai>=2.9.0
 python-dotenv>=1.2.1
 sqlparse>=0.5.4
+braintrust>=0.0.1

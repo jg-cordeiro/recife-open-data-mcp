@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -7,6 +8,7 @@ from openai import AsyncOpenAI
 import asyncio
 import typer
 from dotenv import load_dotenv
+from braintrust import current_span, init_logger, traced
 from server.config import Settings
 
 load_dotenv()
@@ -26,6 +28,12 @@ class MCPClient:
         self.model = settings.openrouter_model
         self.tools = None
         self.schema_snapshot = None
+        
+        # Initialize Braintrust logger
+        init_logger(
+            project="Recife Open Data MCP",
+            api_key=os.getenv("BRAINTRUST_API_KEY")
+        )
 
     async def start_server(self) -> None:
         """Start the MCP server."""
@@ -112,13 +120,13 @@ class MCPClient:
                 "type": "function",
                 "function": {
                     "name": "answer_question",
-                    "description": "Convert a complex analytical question into SQL, run it, and return results. Use this ONLY for questions that require data analysis, aggregations, filtering, or complex queries. Do NOT use for schema exploration.",
+                    "description": "RECOMMENDED: Use this tool for questions about the actual DATA content - statistics, counts, aggregations, filtering, analysis, etc. This tool will generate SQL automatically and return results. Examples: 'quantos alunos', 'qual a taxa de aprovação', 'quais os top 10', etc. Do NOT use search_schema repeatedly - use answer_question directly for data questions.",
                     "parameters": {
                         "type": "object",
                         "properties": {
                             "question": {
                                 "type": "string",
-                                "description": "Analytical question requiring SQL generation and execution",
+                                "description": "Question about data content that needs SQL query to answer",
                             }
                         },
                         "required": ["question"],
@@ -140,21 +148,25 @@ class MCPClient:
             if tool_name == "list_tables":
                 typer.secho("📋 Listing all tables...", fg=typer.colors.BLUE)
                 tables = await db.list_tables()
-                return json.dumps(tables)
+                return json.dumps({"message": f"Found {len(tables)} tables", "tables": tables})
             elif tool_name == "describe_table":
                 table_name = tool_input.get("table_name", "")
                 typer.secho(f"📄 Describing table: {table_name}", fg=typer.colors.BLUE)
                 columns = await db.describe_table(table_name)
-                return json.dumps(columns)
+                if not columns:
+                    return json.dumps({"error": f"Table '{table_name}' not found", "columns": []})
+                return json.dumps({"table": table_name, "column_count": len(columns), "columns": columns})
             elif tool_name == "search_schema":
                 search_term = tool_input.get("search_term", "")
                 typer.secho(f"🔍 Searching schema for: {search_term}", fg=typer.colors.BLUE)
                 results = await db.search_schema(search_term)
-                return json.dumps(results)
+                if not results:
+                    return json.dumps({"message": f"No tables or columns found matching '{search_term}'", "results": []})
+                return json.dumps({"message": f"Found {len(results)} matches", "results": results})
             elif tool_name == "list_databases":
                 typer.secho("🗄️  Listing databases/schemas...", fg=typer.colors.BLUE)
                 schemas = await db.list_databases()
-                return json.dumps(schemas)
+                return json.dumps({"message": f"Found {len(schemas)} schemas", "schemas": schemas})
             elif tool_name == "execute_sql":
                 sql = tool_input.get("sql", "")
                 typer.secho(f"📊 Executing SQL: {sql[:80]}...", fg=typer.colors.BLUE)
@@ -190,6 +202,7 @@ class MCPClient:
         finally:
             await db.close()
 
+    @traced(type="llm", name="MCP Client Chat", notrace_io=True)
     async def chat(self, user_message: str) -> str:
         """Send a message to Claude via OpenRouter and process tool calls."""
         typer.secho(f"\n👤 User: {user_message}", fg=typer.colors.CYAN)
@@ -204,10 +217,34 @@ class MCPClient:
             tools=tools,
             tool_choice="auto",
         )
+        
+        # Log initial LLM call
+        usage = response.usage or None
+        current_span().log(
+            input={"user_message": user_message, "tools_available": len(tools)},
+            metrics={
+                "prompt_tokens": usage.prompt_tokens if usage else 0,
+                "completion_tokens": usage.completion_tokens if usage else 0,
+                "total_tokens": usage.total_tokens if usage else 0,
+            },
+            metadata={
+                "model": self.model,
+                "finish_reason": response.choices[0].finish_reason,
+                "has_tool_calls": response.choices[0].finish_reason == "tool_calls"
+            }
+        )
 
-        # Tool use loop
-        while response.choices[0].finish_reason == "tool_calls":
+        # Tool use loop with max iterations
+        tool_call_count = 0
+        MAX_TOOL_ITERATIONS = 10
+        
+        while response.choices[0].finish_reason == "tool_calls" and tool_call_count < MAX_TOOL_ITERATIONS:
+            tool_call_count += 1
             tool_calls = response.choices[0].message.tool_calls
+            
+            if not tool_calls:
+                typer.secho("⚠️  No tool calls found, breaking loop", fg=typer.colors.YELLOW)
+                break
             
             # Add assistant message with tool calls
             assistant_message = {
@@ -252,9 +289,45 @@ class MCPClient:
                 tools=tools,
                 tool_choice="auto",
             )
+            
+            # Log follow-up LLM call
+            usage = response.usage or None
+            current_span().log(
+                metrics={
+                    "prompt_tokens": usage.prompt_tokens if usage else 0,
+                    "completion_tokens": usage.completion_tokens if usage else 0,
+                    "total_tokens": usage.total_tokens if usage else 0,
+                },
+                metadata={
+                    "tool_call_iteration": tool_call_count,
+                    "tools_called": [tc.function.name for tc in tool_calls],
+                    "finish_reason": response.choices[0].finish_reason,
+                }
+            )
 
-        # Extract final response
-        final_response = response.choices[0].message.content or ""
+        # Check if we hit max iterations
+        if tool_call_count >= MAX_TOOL_ITERATIONS:
+            typer.secho(f"\n⚠️  Reached max tool iterations ({MAX_TOOL_ITERATIONS})", fg=typer.colors.YELLOW)
+            final_response = "Desculpe, precisei usar muitas ferramentas e não consegui completar a resposta. Tente fazer uma pergunta mais específica."
+        else:
+            # Extract final response
+            final_response = response.choices[0].message.content or ""
+        
+        # Handle empty final response
+        if not final_response or final_response.strip() == "":
+            final_response = "Desculpe, não consegui gerar uma resposta. Por favor, tente reformular sua pergunta."
+            typer.secho("⚠️  Empty response from LLM", fg=typer.colors.YELLOW)
+        
+        # Log final output
+        current_span().log(
+            output={"final_response": final_response},
+            metadata={
+                "total_tool_calls": tool_call_count,
+                "success": bool(final_response),
+                "hit_max_iterations": tool_call_count >= MAX_TOOL_ITERATIONS
+            }
+        )
+        
         typer.secho(f"\n🤖 Assistant: {final_response}", fg=typer.colors.GREEN)
         return final_response
 
