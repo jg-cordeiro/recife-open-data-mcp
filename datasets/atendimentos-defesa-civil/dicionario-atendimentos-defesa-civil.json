@@ -2,11 +2,11 @@
   "metadados": {
     "cabecalho": {
       "titulo": "atendimentos-defesa-civil",
-      "descricao": "Registro dos atendimentos realizados pela Defesa Civil do Recife entre 2014 e 2025, contendo informações sobre áreas de risco, vistorias, ações realizadas (como porta‑porta e mapeamento) e dados de execução de serviços como a colocação de lonas.",
-      "categoria_vcge": "http://vocab.e.gov.br/2016/09/vcge#servico-publico",
+      "descricao": "Registro de atendimentos realizados pela Defesa Civil do Recife no período de 2014 a 2025, contendo informações sobre a região, data, tipo de ocorrência, solicitações, endereços, bairros, localizações, grau de risco, ações realizadas e medidas associadas.",
+      "categoria_vcge": "http://vocab.e.gov.br/2016/09/vcge#servico",
       "fonte_dados": "http://dados.recife.pe.gov.br",
       "licenca": "Open Database License (ODbL)",
-      "responsavel_dados": "Defesa Civil de Recife",
+      "responsavel_dados": "Defesa Civil do Recife",
       "frequencia_atualizacao": "Anual"
     },
     "recursos": [
@@ -20,10 +20,10 @@
     "campos": [
       {
         "codigo": "Regional",
-        "descricao": "Região da cidade onde ocorreu o atendimento (ex.: Sul, Norte, Leste, Oeste, Centro).",
+        "descricao": "Região da cidade onde ocorreu o atendimento (ex.: Norte, Sul, Leste, Oeste, Centro).",
         "tipo": "Texto",
         "tamanho": 20,
-        "valores_permitidos": "Sul;Norte;Leste;Oeste;Centro"
+        "valores_permitidos": "Norte, Sul, Leste, Oeste, Centro"
       },
       {
         "codigo": "Ano",
@@ -34,100 +34,100 @@
       },
       {
         "codigo": "Mês",
-        "descricao": "Mês do registro, escrito por extenso (ex.: Janeiro, Fevereiro).",
+        "descricao": "Mês do registro do atendimento, escrito por extenso em português.",
         "tipo": "Texto",
-        "tamanho": 20,
-        "valores_permitidos": "Janeiro;Fevereiro;Março;Abril;Maio;Junho;Julho;Agosto;Setembro;Outubro;Novembro;Dezembro"
+        "tamanho": 10,
+        "valores_permitidos": "Janeiro, Fevereiro, Março, Abril, Maio, Junho, Julho, Agosto, Setembro, Outubro, Novembro, Dezembro"
       },
       {
         "codigo": "Data",
-        "descricao": "Data da ocorrência ou do registro do atendimento.",
+        "descricao": "Data completa do registro da ocorrência (formato AAAA-MM-DD).",
         "tipo": "Data",
         "tamanho": 10,
         "valores_permitidos": ""
       },
       {
         "codigo": "Ocorrencia",
-        "descricao": "Descrição breve da ocorrência que gerou o atendimento.",
+        "descricao": "Descrição da ocorrência ou evento que gerou o atendimento.",
         "tipo": "Texto",
         "tamanho": 255,
         "valores_permitidos": ""
       },
       {
         "codigo": "Solicitacao",
-        "descricao": "Tipo de solicitação feita à Defesa Civil (ex.: Vistoria, Ação de Emergência).",
+        "descricao": "Tipo de solicitação feita à Defesa Civil (ex.: Vistoria, Acompanhamento, Outro).",
         "tipo": "Texto",
         "tamanho": 50,
-        "valores_permitidos": "Vistoria;Ação de Emergência;Mapeamento de Área de Risco;Outros"
+        "valores_permitidos": "Vistoria, Acompanhamento, Outro"
       },
       {
         "codigo": "Endereco",
-        "descricao": "Endereço completo onde foi realizado o atendimento.",
+        "descricao": "Endereço completo onde ocorreu o atendimento.",
         "tipo": "Texto",
         "tamanho": 255,
         "valores_permitidos": ""
       },
       {
         "codigo": "Bairro",
-        "descricao": "Bairro da cidade onde ocorreu o atendimento.",
+        "descricao": "Bairro onde está localizado o endereço do atendimento.",
         "tipo": "Texto",
         "tamanho": 100,
         "valores_permitidos": ""
       },
       {
         "codigo": "Localidade",
-        "descricao": "Descrição da localidade ou ponto de referência dentro do bairro.",
+        "descricao": "Nome da localidade ou ponto de referência associado ao atendimento.",
         "tipo": "Texto",
         "tamanho": 100,
         "valores_permitidos": ""
       },
       {
         "codigo": "Grau_de_Risco",
-        "descricao": "Classificação de risco atribuída ao local (ex.: R1, R2, R3, R4).",
+        "descricao": "Classificação do grau de risco atribuído ao local (ex.: R1, R2, R3, R4).",
         "tipo": "Texto",
         "tamanho": 2,
-        "valores_permitidos": "R1;R2;R3;R4"
+        "valores_permitidos": "R1, R2, R3, R4"
       },
       {
         "codigo": "Data_da_Acao",
-        "descricao": "Data em que a ação da Defesa Civil foi executada.",
+        "descricao": "Data em que a ação da Defesa Civil foi executada (formato AAAA-MM-DD).",
         "tipo": "Data",
         "tamanho": 10,
         "valores_permitidos": ""
       },
       {
         "codigo": "Tipo_da_Acao",
-        "descricao": "Tipo de ação realizada (ex.: Ações de Porta‑Porta, Mapeamento de Área de Risco, Instalação de Lona).",
+        "descricao": "Descrição do tipo de ação realizada (ex.: Ações de Porta-Porta, Mapeamento de Área de Risco).",
         "tipo": "Texto",
         "tamanho": 100,
-        "valores_permitidos": "Ações de Porta-Porta;Mapeamento de Área de Risco;Instalação de Lona;Outros"
+        "valores_permitidos": "Ações de Porta-Porta, Mapeamento de Área de Risco, Outro"
       },
       {
         "codigo": "Quantidade",
-        "descricao": "Quantidade de unidades ou itens envolvidos na ação (ex.: número de lonas, equipes).",
+        "descricao": "Quantidade de unidades ou pessoas atendidas na ação.",
         "tipo": "Num",
         "tamanho": 10,
         "valores_permitidos": ""
       },
       {
         "codigo": "Altura",
-        "descricao": "Altura (em metros) da área ou estrutura atendida.",
+        "descricao": "Altura (em metros) da área ou estrutura analisada.",
         "tipo": "Num",
-        "tamanho": 8,
+        "tamanho": 10,
         "valores_permitidos": ""
       },
       {
         "codigo": "Largura",
-        "descricao": "Largura (em metros) da área ou estrutura atendida.",
+        "descricao": "Largura (em metros) da área ou estrutura analisada.",
         "tipo": "Num",
-        "tamanho": 8,
+        "tamanho": 10,
         "valores_permitidos": ""
       },
       {
         "codigo": "Area_m",
         "descricao": "Área total (em metros quadrados) calculada a partir da altura e largura.",
         "tipo": "Num",
-        "tamanho": 12,
+        "tamanho": 10,
         "valores_permitidos": ""
       }
     ]

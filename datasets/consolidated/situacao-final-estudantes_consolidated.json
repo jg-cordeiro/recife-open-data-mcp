@@ -1,6 +1,6 @@
 {
   "table": "situacao-final-estudantes_consolidated",
-  "description": "Situação acadêmica dos alunos da rede pública de ensino da cidade do Recife ao final de um ano letivo",
+  "description": "Situação Final dos Estudantes da Rede Municipal de Educação do Recife",
   "columns": [
     {
       "name": "ano",

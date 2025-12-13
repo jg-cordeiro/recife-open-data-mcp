@@ -36,14 +36,75 @@ class CSVFile:
     delimiter: str = ";"  # Track the delimiter used in this file
 
 
+def fix_multiline_header(csv_path: Path, delimiter: str) -> List[str]:
+    """
+    Fix CSV files with:
+    1. Lines wrapped entirely in quotes (entire line is one quoted string)
+    2. Misaligned columns (header columns don't match data columns)
+    """
+    with csv_path.open("r", encoding="utf-8") as f:
+        lines = f.readlines()
+    
+    if len(lines) < 2:
+        return lines
+    
+    # Check if entire lines are wrapped in quotes (e.g., "col1,col2,col3")
+    first_line_raw = lines[0].strip()
+    if (first_line_raw.startswith('"') and first_line_raw.endswith('"') and 
+        first_line_raw.count('"') == 2):
+        # This looks like the line is quoted - remove quotes and split
+        typer.echo(f"⚠️  Detected quoted CSV format in {csv_path.name} - fixing", err=True)
+        
+        corrected_lines = []
+        for line in lines:
+            line = line.rstrip('\r\n')
+            if line.startswith('"') and line.endswith('"') and line.count('"') == 2:
+                # Remove surrounding quotes
+                line = line[1:-1]
+            corrected_lines.append(line + "\n")
+        
+        lines = corrected_lines
+    
+    # Parse first line as header
+    reader = csv.reader([lines[0]], delimiter=delimiter)
+    header = next(reader)
+    
+    # Check if header and first data row are misaligned
+    reader_data = csv.reader([lines[1]], delimiter=delimiter)
+    first_data = next(reader_data)
+    
+    # If first data column is a 4-digit number (year) and header first column is "Regional" or "ano",
+    # it means we're missing that column value at the start
+    if (len(first_data) > 0 and first_data[0].isdigit() and len(first_data[0]) == 4):
+        # Check if header expects something at position 0 that's not a year
+        if header[0] in ("Regional", "REGIONAL"):
+            # Yes, data is misaligned - prepend empty string to data rows
+            typer.echo(f"⚠️  Detected misaligned columns in {csv_path.name} - fixing by adding empty first column", err=True)
+            
+            corrected_lines = []
+            corrected_lines.append(lines[0])  # Keep original header
+            
+            # Add empty first column to all data rows
+            for data_line in lines[1:]:
+                if data_line.strip():  # Skip empty lines
+                    corrected_line = delimiter + data_line
+                    corrected_lines.append(corrected_line)
+                else:
+                    corrected_lines.append(data_line)
+            
+            return corrected_lines
+    
+    return lines
+
+
 def detect_csv_files(dataset_dir: Path) -> List[CSVFile]:
     """Detect all CSV files in the dataset directory."""
     csv_files: List[CSVFile] = []
     
     for csv_path in sorted(dataset_dir.glob("*.csv")):
-        # Extract year from filename if present (e.g., atendimentos_2014.csv)
+        # Extract year from filename if present (e.g., atendimentos_2014.csv or situacaofinal2014.csv)
         year = None
-        for part in csv_path.stem.split("_"):
+        for part in csv_path.stem.replace("_", " ").replace("situacaofinal", "").split():
             if part.isdigit() and len(part) == 4:
                 year = int(part)
                 break
@@ -53,30 +114,32 @@ def detect_csv_files(dataset_dir: Path) -> List[CSVFile]:
             with csv_path.open("r", encoding="utf-8") as f:
                 first_line = f.readline().strip()
                 
-                # Check if entire line is wrapped in quotes (e.g., "col1,col2,col3")
-                if first_line.startswith('"') and first_line.endswith('"') and first_line.count('"') == 2:
-                    # Remove surrounding quotes and split by comma
+                # Remove surrounding quotes if present (entire line quoted)
+                if (first_line.startswith('"') and first_line.endswith('"') and 
+                    first_line.count('"') == 2):
                     first_line = first_line[1:-1]
-                    columns = [col.strip() for col in first_line.split(",")]
-                    delimiter = ","
-                else:
-                    # Normal CSV parsing
-                    f.seek(0)
-                    # Try semicolon delimiter first
-                    reader = csv.reader(f, delimiter=";")
-                    columns = next(reader)
-                    
-                    # If we got only 1 column with commas, the file uses comma delimiter
-                    delimiter = ";"
-                    if len(columns) == 1 and "," in columns[0]:
-                        # Reset and re-read with comma delimiter
-                        f.seek(0)
-                        reader = csv.reader(f, delimiter=",")
-                        columns = next(reader)
-                        delimiter = ","
                 
-                # Count remaining rows
-                row_count = sum(1 for _ in f)
+                # Detect delimiter by counting occurrences
+                # The correct delimiter will produce the right number of columns
+                delimiter = ";"
+                
+                if first_line.count(",") > first_line.count(";"):
+                    # More commas than semicolons = use comma
+                    delimiter = ","
+                elif first_line.count(",") == 0 and first_line.count(";") > 0:
+                    # Only semicolons
+                    delimiter = ";"
+                elif first_line.count(",") > 0 and first_line.count(";") == 0:
+                    # Only commas
+                    delimiter = ","
+                
+                # Now read the header with detected delimiter, handling special formats
+                fixed_lines = fix_multiline_header(csv_path, delimiter)
+                reader = csv.reader(fixed_lines, delimiter=delimiter)
+                columns = next(reader)
+                
+                # Count remaining rows (for progress reporting)
+                row_count = len(fixed_lines) - 1  # -1 for header
             
             csv_files.append(CSVFile(
                 path=csv_path,
@@ -255,14 +318,17 @@ def consolidate_csvs(
         for csv_file in csv_files:
             typer.echo(f"  📄 Processing {csv_file.path.name} ({csv_file.row_count} rows, delimiter: '{csv_file.delimiter}')...")
             
-            with csv_file.path.open("r", encoding="utf-8") as infile:
-                reader = csv.DictReader(infile, delimiter=csv_file.delimiter)
-                
-                for row in reader:
-                    # Auto-align: fill missing columns with empty strings
-                    aligned_row = {col: row.get(col, "") for col in unified_columns}
-                    writer.writerow(aligned_row)
-                    total_rows += 1
+            # Fix multiline header before reading
+            fixed_lines = fix_multiline_header(csv_file.path, csv_file.delimiter)
+            
+            # Parse fixed lines
+            reader = csv.DictReader(fixed_lines, delimiter=csv_file.delimiter)
+            
+            for row in reader:
+                # Auto-align: fill missing columns with empty strings
+                aligned_row = {col: row.get(col, "") for col in unified_columns}
+                writer.writerow(aligned_row)
+                total_rows += 1
     
     return total_rows
 

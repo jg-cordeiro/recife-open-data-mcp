@@ -4,7 +4,7 @@ Camada MCP em Python/FastMCP para consultar datasets públicos do Recife via lin
 
 ## Pré-requisitos
 - Docker + Docker Compose (opcional, para deploy containerizado)
-- Python 3.11+
+- Python 3.12+
 - Chave de API do OpenRouter (`OPENROUTER_API_KEY`), com acesso ao modelo `openai/gpt-5.1-codex-max` (Preview)
 
 ## Configuração
@@ -16,7 +16,9 @@ Camada MCP em Python/FastMCP para consultar datasets públicos do Recife via lin
 
 2. Instale dependências Python (recomendado usar venv):
    ```bash
-   python -m venv .venv
+   # macOS com Homebrew
+   brew install python@3.12
+   /opt/homebrew/bin/python3.12 -m venv .venv
    source .venv/bin/activate
    pip install -r requirements.txt
    ```
@@ -116,10 +118,20 @@ Ou via FastAPI HTTP:
 OPENROUTER_API_KEY=... uvicorn server.http_server:app --reload
 ```
 
+## Ferramentas MCP Disponíveis
+
+Para guia completo com exemplos de uso, veja [FERRAMENTAS_MCP.md](FERRAMENTAS_MCP.md).
+
 Exposição principal (via MCP):
 - `schema_snapshot` (resource): entrega esquema completo.
+- `list_tables()`: lista todas as tabelas disponíveis com seus schemas.
+- `describe_table(table_name)`: retorna detalhes das colunas de uma tabela específica.
+- `search_schema(search_term)`: busca tabelas e colunas que correspondem a um termo.
+- `list_databases()`: lista todos os schemas disponíveis no banco.
 - `execute_sql(sql)`: executa SELECT com LIMIT automático.
 - `answer_question(question)`: gera SQL com o LLM (dois estágios de retry), valida, executa e retorna o resultado.
+
+**Recomendação:** Use `list_tables()` ou `search_schema()` antes de `answer_question()` para garantir que a LLM tenha contexto preciso sobre nomes de tabelas e colunas (especialmente quando há hífens ou caracteres especiais).
 
 Guardrails:
 - Somente SELECT/WITH/EXPLAIN são aceitos; DDL/DML são bloqueados.
