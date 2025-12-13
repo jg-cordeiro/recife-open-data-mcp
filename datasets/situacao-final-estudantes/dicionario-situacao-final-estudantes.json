@@ -1,0 +1,156 @@
+{
+  "metadados": {
+    "cabecalho": {
+      "titulo": "situacao-final-estudantes",
+      "descricao": "Situação acadêmica dos alunos da rede pública de ensino da cidade do Recife ao final de um ano letivo, contendo informações de matrícula, escola, série, turno, idade, sexo e situação final (aprovado, reprovado, etc.).",
+      "categoria_vcge": "http://vocab.e.gov.br/2016/09/vcge#educacao",
+      "fonte_dados": "http://dados.recife.pe.gov.br",
+      "licenca": "Open Database License (ODbL)",
+      "responsavel_dados": "Secretaria Municipal de Educação de Recife",
+      "frequencia_atualizacao": "Anual"
+    },
+    "recursos": [
+      {
+        "identificador": "http://dados.recife.pe.gov.br/dataset/situacao-final-estudantes",
+        "titulo": "Consolidated situacao-final-estudantes",
+        "formato": "csv",
+        "descricao": "Dados consolidados de unknown"
+      }
+    ],
+    "campos": [
+      {
+        "codigo": "ano",
+        "descricao": "Ano de referência dos dados",
+        "tipo": "Num",
+        "tamanho": 4,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "codigo_escola",
+        "descricao": "Código identificador da escola",
+        "tipo": "Texto",
+        "tamanho": 10,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "escola",
+        "descricao": "Nome da escola",
+        "tipo": "Texto",
+        "tamanho": 100,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "endereco_bairro",
+        "descricao": "Bairro onde a escola está localizada",
+        "tipo": "Texto",
+        "tamanho": 50,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "endereco_logradouro",
+        "descricao": "Logradouro (rua, avenida) da escola",
+        "tipo": "Texto",
+        "tamanho": 100,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "endereco_numero",
+        "descricao": "Número do endereço da escola (pode conter 'S/N')",
+        "tipo": "Texto",
+        "tamanho": 10,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "rpa",
+        "descricao": "Código da Região de Planejamento Administrativa",
+        "tipo": "Texto",
+        "tamanho": 5,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "ano_ensino",
+        "descricao": "Ano de ensino (ex.: 1º ANO, 2º ANO)",
+        "tipo": "Texto",
+        "tamanho": 10,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "modalidade_ensino_codigo",
+        "descricao": "Código da modalidade de ensino",
+        "tipo": "Num",
+        "tamanho": 2,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "serie_codigo",
+        "descricao": "Código da série ou turma",
+        "tipo": "Num",
+        "tamanho": 3,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "modalidade_ensino",
+        "descricao": "Descrição da modalidade de ensino (ex.: ENSINO FUNDAMENTAL)",
+        "tipo": "Texto",
+        "tamanho": 50,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "serie",
+        "descricao": "Nome da série (ex.: 1º ANO)",
+        "tipo": "Texto",
+        "tamanho": 10,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "turma",
+        "descricao": "Identificador da turma (ex.: A, B, C)",
+        "tipo": "Texto",
+        "tamanho": 5,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "turno",
+        "descricao": "Turno da aula (MANHÃ, TARDE, NOITE)",
+        "tipo": "Texto",
+        "tamanho": 10,
+        "valores_permitidos": "MANHÃ, TARDE, NOITE"
+      },
+      {
+        "codigo": "matricula",
+        "descricao": "Número de matrícula do aluno",
+        "tipo": "Texto",
+        "tamanho": 15,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "sexo",
+        "descricao": "Sexo do aluno (1 = Masculino, 2 = Feminino)",
+        "tipo": "Texto",
+        "tamanho": 1,
+        "valores_permitidos": "1, 2"
+      },
+      {
+        "codigo": "idade",
+        "descricao": "Idade do aluno em anos",
+        "tipo": "Num",
+        "tamanho": 3,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "situacao_codigo",
+        "descricao": "Código da situação final do aluno (ex.: AP = Aprovado)",
+        "tipo": "Texto",
+        "tamanho": 5,
+        "valores_permitidos": "AP, RP, TR, ... (códigos de situação)"
+      },
+      {
+        "codigo": "situacao_nome",
+        "descricao": "Descrição da situação final do aluno (ex.: APROVADO)",
+        "tipo": "Texto",
+        "tamanho": 20,
+        "valores_permitidos": ""
+      }
+    ]
+  }
+}

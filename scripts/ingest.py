@@ -5,15 +5,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
-import psycopg
+import duckdb
 import typer
-from psycopg import sql
 from dotenv import load_dotenv
 
 from server.config import Settings
 
 load_dotenv()
-app = typer.Typer(help="Ingest CSV datasets into Postgres for the MCP server.")
+app = typer.Typer(help="Ingest CSV datasets into DuckDB for the MCP server.")
 
 
 @dataclass
@@ -62,16 +61,16 @@ def infer_columns(csv_path: Path, sample_rows: int) -> List[ColumnSpec]:
     for col in columns:
         values = [row[col] for row in samples if row[col] not in ("", None)]
         if values and all(_looks_int(v) for v in values):
-            pg_type = "integer"
+            duck_type = "INTEGER"
         elif values and all(_looks_float(v) for v in values):
-            pg_type = "double precision"
+            duck_type = "DOUBLE"
         elif values and all(_looks_bool(v) for v in values):
-            pg_type = "boolean"
+            duck_type = "BOOLEAN"
         elif values and all(_looks_date(v) for v in values):
-            pg_type = "timestamp"
+            duck_type = "TIMESTAMP"
         else:
-            pg_type = "text"
-        specs.append(ColumnSpec(name=col, type=pg_type))
+            duck_type = "VARCHAR"
+        specs.append(ColumnSpec(name=col, type=duck_type))
     return specs
 
 
@@ -86,30 +85,22 @@ def read_descriptor(descriptor: Path) -> tuple[str, Optional[List[ColumnSpec]]]:
     return table, None
 
 
-def create_table(conn: psycopg.Connection, schema: str, table: str, columns: List[ColumnSpec], replace: bool) -> None:
-    with conn.cursor() as cur:
-        if replace:
-            cur.execute(
-                sql.SQL("DROP TABLE IF EXISTS {}.{} CASCADE;").format(
-                    sql.Identifier(schema), sql.Identifier(table)
-                )
-            )
-        columns_sql = [sql.SQL("{} {}").format(sql.Identifier(c.name), sql.SQL(c.type)) for c in columns]
-        create_stmt = sql.SQL("CREATE TABLE IF NOT EXISTS {}.{} ({})").format(
-            sql.Identifier(schema), sql.Identifier(table), sql.SQL(", ").join(columns_sql)
-        )
-        cur.execute(create_stmt)
-        conn.commit()
+def create_table(conn: duckdb.DuckDBPyConnection, schema: str, table: str, columns: List[ColumnSpec], replace: bool) -> None:
+    if replace:
+        try:
+            conn.execute(f'DROP TABLE IF EXISTS "{schema}"."{table}"')
+        except Exception:
+            pass
+    
+    columns_sql = [f'"{c.name}" {c.type}' for c in columns]
+    create_stmt = f'CREATE TABLE IF NOT EXISTS "{schema}"."{table}" ({", ".join(columns_sql)})'
+    conn.execute(create_stmt)
 
 
-def copy_csv(conn: psycopg.Connection, schema: str, table: str, csv_path: Path) -> None:
-    with conn.cursor() as cur:
-        copy_sql = sql.SQL("COPY {}.{} FROM STDIN WITH CSV HEADER").format(
-            sql.Identifier(schema), sql.Identifier(table)
-        )
-        with cur.copy(copy_sql) as copy, csv_path.open("r", encoding="utf-8") as fh:
-            copy.write(fh.read())
-        conn.commit()
+def copy_csv(conn: duckdb.DuckDBPyConnection, schema: str, table: str, csv_path: Path) -> None:
+    # Use DuckDB's read_csv_auto and insert
+    csv_path_str = str(csv_path)
+    conn.execute(f'INSERT INTO "{schema}"."{table}" SELECT * FROM read_csv_auto(\'{csv_path_str}\')')
 
 
 @app.command()
@@ -120,22 +111,104 @@ def load(
     replace: bool = typer.Option(True, help="Drop and recreate the table before loading."),
     sample_rows: int = typer.Option(1000, help="Rows to sample for type inference if columns missing."),
 ):
+    """Load a single CSV file into DuckDB based on a descriptor JSON."""
     settings = Settings.load()
-    conninfo = psycopg.conninfo.make_conninfo(
-        host=settings.db_host,
-        port=settings.db_port,
-        dbname=settings.db_name,
-        user=settings.db_user,
-        password=settings.db_password,
-    )
     table, columns = read_descriptor(descriptor)
     if columns is None:
         columns = infer_columns(csv_file, sample_rows)
-    conn = psycopg.connect(conninfo)
+    
+    conn = duckdb.connect(settings.db_path)
+    
+    # Ensure schema exists
+    conn.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema}"')
+    
     create_table(conn, schema, table, columns, replace)
     copy_csv(conn, schema, table, csv_file)
     conn.close()
-    typer.echo(f"Loaded {csv_file} into {schema}.{table}")
+    typer.echo(f"✅ Loaded {csv_file} into {schema}.{table}")
+
+
+@app.command()
+def batch(
+    consolidated_dir: Path = typer.Option(
+        Path("datasets/consolidated"),
+        help="Directory containing consolidated CSV files and their descriptors"
+    ),
+    schema: str = typer.Option("public", help="Target schema."),
+    replace: bool = typer.Option(True, help="Drop and recreate tables before loading."),
+):
+    """
+    Batch load all consolidated datasets from the consolidated directory.
+    
+    Scans for pairs of .json descriptor and .csv files with matching names.
+    Example: dataset_consolidated.json + dataset_consolidated.csv
+    """
+    if not consolidated_dir.exists():
+        typer.echo(f"❌ Consolidated directory not found: {consolidated_dir}", err=True)
+        raise typer.Exit(1)
+    
+    # Find all descriptor JSON files
+    descriptors = list(consolidated_dir.glob("*.json"))
+    
+    if not descriptors:
+        typer.echo(f"❌ No descriptor JSON files found in {consolidated_dir}", err=True)
+        raise typer.Exit(1)
+    
+    settings = Settings.load()
+    conn = duckdb.connect(settings.db_path)
+    
+    # Ensure schema exists
+    conn.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema}"')
+    
+    typer.echo(f"\n📦 Batch ingestion from {consolidated_dir}")
+    typer.echo(f"   Found {len(descriptors)} descriptor(s)\n")
+    
+    success_count = 0
+    failed_count = 0
+    
+    for descriptor_path in sorted(descriptors):
+        # Find matching CSV file
+        csv_path = descriptor_path.with_suffix('.csv')
+        
+        if not csv_path.exists():
+            typer.echo(f"⚠️  Skipping {descriptor_path.name}: matching CSV not found", err=True)
+            failed_count += 1
+            continue
+        
+        try:
+            table, columns = read_descriptor(descriptor_path)
+            
+            if columns is None:
+                typer.echo(f"⚠️  Skipping {descriptor_path.name}: no columns defined", err=True)
+                failed_count += 1
+                continue
+            
+            typer.echo(f"📄 Loading {table}...")
+            typer.echo(f"   Descriptor: {descriptor_path.name}")
+            typer.echo(f"   CSV: {csv_path.name}")
+            
+            create_table(conn, schema, table, columns, replace)
+            copy_csv(conn, schema, table, csv_path)
+            
+            # Get row count
+            result = conn.execute(f'SELECT COUNT(*) FROM "{schema}"."{table}"').fetchone()
+            row_count = result[0] if result else 0
+            
+            typer.echo(f"   ✅ Success: {row_count:,} rows loaded into {schema}.{table}\n")
+            success_count += 1
+            
+        except Exception as e:
+            typer.echo(f"   ❌ Error: {e}\n", err=True)
+            failed_count += 1
+    
+    conn.close()
+    
+    typer.echo(f"\n📊 Batch ingestion complete:")
+    typer.echo(f"   ✅ Successful: {success_count}")
+    typer.echo(f"   ❌ Failed: {failed_count}")
+    
+    if failed_count > 0:
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":

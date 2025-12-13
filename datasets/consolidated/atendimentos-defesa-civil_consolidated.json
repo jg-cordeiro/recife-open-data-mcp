@@ -1,0 +1,70 @@
+{
+  "table": "atendimentos-defesa-civil_consolidated",
+  "description": "Registro de atendimentos da Defesa Civil do Recife, incluindo áreas de risco, vistorias realizadas e execução do serviço de colocação de lona",
+  "columns": [
+    {
+      "name": "Regional",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Ano",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Mês",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Data",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Ocorrencia",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Solicitacao",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Endereco",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Bairro",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Localidade",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Grau_de_Risco",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Data_da_Acao",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Tipo_da_Acao",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Quantidade",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Altura",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Largura",
+      "type": "VARCHAR"
+    },
+    {
+      "name": "Area_m",
+      "type": "VARCHAR"
+    }
+  ]
+}

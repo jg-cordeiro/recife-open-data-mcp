@@ -11,7 +11,7 @@ class OpenRouterClient:
 
     async def generate_sql(self, question: str, schema_text: str, previous_error: str | None = None) -> str:
         guidance = (
-            "You are a SQL expert producing safe, read-only PostgreSQL. "
+            "You are a SQL expert producing safe, read-only DuckDB SQL. "
             "Use only tables and columns from the schema. "
             f"Never mutate data. Always add LIMIT {self.max_rows} unless the query already limits rows. "
         )
