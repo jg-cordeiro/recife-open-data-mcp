@@ -29,6 +29,14 @@ O script aceita dois formatos de descritor JSON:
 
 ---
 
+## Reiniciar o banco DuckDB
+
+Para recomeçar as cargas do zero:
+- Remova o arquivo `data/recife.duckdb`. **Não** crie um arquivo vazio com `touch`: o DuckDB cria o arquivo automaticamente na próxima conexão.
+- Se quiser trocar o diretório, defina `DUCKDB_DATA_DIR=/caminho` antes de rodar os comandos; o padrão é `./data`.
+
+---
+
 ## Ingestão individual
 
 Use para um único par descritor/CSV, preservando o arquivo original:
@@ -90,6 +98,7 @@ datasets/
 - **"Column has X columns but Y values were supplied"**: verifique se o cabeçalho bate com as linhas do CSV e se o descritor lista todas as colunas. Se usar inferência, aumente `--sample-rows` para capturar mais casos.
 - **CSV com delimitadores mistos ou aspas na linha inteira**: tente primeiro com `load` ou `batch`; o DuckDB costuma normalizar. Só ajuste o arquivo se o erro persistir.
 - **Tipos incompatíveis**: prefira `VARCHAR` no descritor para preservar os dados; converta tipos apenas quando houver certeza sobre o domínio.
+- **"not a valid DuckDB database file" logo ao conectar**: apague o arquivo `data/recife.duckdb` (se foi criado vazio) e rode o comando de ingestão novamente; o DuckDB recria o arquivo válido.
 
 ---
 
