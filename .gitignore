@@ -17,5 +17,4 @@ node_modules/
 
 # Data files
 data/
-datasets/consolidated/*.csv
 datasets/*/*.csv

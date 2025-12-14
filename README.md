@@ -23,6 +23,14 @@ Camada MCP em Python/FastMCP para consultar datasets públicos do Recife via lin
    pip install -r requirements.txt
    ```
 
+### Ambiente de desenvolvimento mais rápido (uv)
+- Instale o gerenciador `uv` (mais rápido que pip): `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Crie/ative o ambiente e sincronize as dependências em uma linha: 
+  ```bash
+  uv venv && source .venv/bin/activate && uv pip sync requirements.txt
+  ```
+- Sincronizar novamente não reinstala tudo, só aplica diffs — resolve a necessidade de refazer installs toda hora.
+
 3. (Opcional) Configure o diretório de dados do DuckDB:
    ```bash
    export DUCKDB_DATA_DIR=./data  # padrão; cria a pasta automaticamente
@@ -105,11 +113,6 @@ docker compose up -d
 
 ## Testando interativamente (CLI)
 Cliente interativo usando OpenRouter para fazer perguntas em linguagem natural:
-
-```bash
-# Configure OPENROUTER_API_KEY em .env primeiro
-./test.sh
-```
 
 Ou manualmente:
 ```bash

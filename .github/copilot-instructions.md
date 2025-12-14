@@ -1,4 +1,4 @@
-<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
+Use this file to provide workspace-specific custom instructions to Copilot.
  - [x] Verify that the copilot-instructions.md file in the .github directory is created.
 
  - [x] Clarify Project Requirements
@@ -52,8 +52,7 @@
 	Verify that README.md and the copilot-instructions.md file in the .github directory exists and contains current project information.
 	Clean up the copilot-instructions.md file in the .github directory by removing all HTML comments.
 	 -->
-
-<!--
+ 
 ## Execution Guidelines
 PROGRESS TRACKING:
 - If any tools are available to manage the above todo list, use it to track progress through this checklist.
@@ -93,13 +92,12 @@ PROJECT CONTENT RULES:
 
 TASK COMPLETION RULES:
 - Your task is complete when:
-  - Project is successfully scaffolded and compiled without errors
-  - copilot-instructions.md file in the .github directory exists in the project
-  - README.md file exists and is up to date
-  - User is provided with clear instructions to debug/launch the project
+	- Project is successfully scaffolded and compiled without errors
+	- copilot-instructions.md file in the .github directory exists in the project
+	- README.md file exists and is up to date
+	- User is provided with clear instructions to debug/launch the project
 
 Before starting a new task in the above plan, update progress in the plan.
--->
 - Work through each checklist item systematically.
 - Keep communication concise and focused.
 - Follow development best practices.
