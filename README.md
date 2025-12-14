@@ -30,62 +30,11 @@ Camada MCP em Python/FastMCP para consultar datasets públicos do Recife via lin
 
 ## Ingestão de dados
 
-### Fluxo Recomendado: Consolidação + Ingestão em Lote
+Os CSVs não são consolidados ou alterados neste repositório. Para carregar dados no DuckDB, mantenha os arquivos originais e forneça um descriptor JSON com o esquema esperado (nome da tabela e colunas). Toda a lógica necessária para ingestão está em `scripts/ingest.py`.
 
-O projeto inclui um workflow automatizado para consolidar múltiplos arquivos CSV (ex: dados anuais) e carregá-los no DuckDB.
+### Ingestão individual
 
-#### 1. Consolidar Datasets
-
-Use `scripts/consolidate.py` para unificar múltiplos CSVs em um único arquivo:
-
-```bash
-python -m scripts.consolidate <pasta-dataset> "<descrição-breve>"
-```
-
-**Exemplo:**
-```bash
-python -m scripts.consolidate \
-  datasets/atendimentos-defesa-civil \
-  "Registro de atendimentos da Defesa Civil do Recife"
-```
-
-O script irá:
-- Detectar automaticamente o delimitador (`;` ou `,`)
-- Unificar esquemas mesmo com colunas diferentes entre anos
-- Gerar dicionário de dados via LLM se não existir
-- Criar arquivo consolidado em `datasets/consolidated/`
-
-#### 2. Ingestão em Lote
-
-Carregue todos os datasets consolidados de uma vez:
-
-```bash
-python -m scripts.ingest batch
-```
-
-Isso escaneia `datasets/consolidated/` e carrega todos os pares `*.json` + `*.csv` no DuckDB.
-
-**Saída esperada:**
-```
-📦 Batch ingestion from datasets/consolidated
-   Found 2 descriptor(s)
-
-📄 Loading atendimentos-defesa-civil_consolidated...
-   ✅ Success: 795,839 rows loaded
-
-📄 Loading situacao-final-estudantes_consolidated...
-   ✅ Success: 1,278,609 rows loaded
-
-📊 Batch ingestion complete:
-   ✅ Successful: 2
-   ❌ Failed: 0
-```
-
-### Ingestão Individual (Método Alternativo)
-
-Para carregar um único CSV manualmente, use `scripts/ingest.py`:
-
-Exemplo de descriptor (`datasets/escolas.json`):
+Crie um descriptor para cada CSV, apontando para os nomes e tipos das colunas. Exemplo (`datasets/escolas.json`):
 ```json
 {
   "table": "escolas",
@@ -99,14 +48,24 @@ Exemplo de descriptor (`datasets/escolas.json`):
 }
 ```
 
-Comando para ingerir:
+Ingerir um arquivo:
 ```bash
 python -m scripts.ingest load datasets/escolas.json datasets/escolas.csv --schema public --replace
 ```
 
-- Se `columns` não for fornecido no JSON, o script infere tipos a partir das primeiras linhas do CSV.
+- Se `columns` não for fornecido no JSON, o script infere os tipos a partir das primeiras linhas do CSV.
 - `--replace` recria a tabela; remova a flag ou use `--replace False` para anexar.
 - Tipos suportados: `INTEGER`, `DOUBLE`, `BOOLEAN`, `TIMESTAMP`, `VARCHAR`.
+
+### Ingestão em lote
+
+Para carregar vários arquivos de uma vez, mantenha cada par `<nome>.json` + `<nome>.csv` no mesmo diretório (por exemplo, `datasets/`). O comando abaixo varre esse diretório sem modificar os CSVs:
+
+```bash
+python -m scripts.ingest batch --input-dir datasets --schema public --replace
+```
+
+O script cria tabelas com base nos descritores e insere os dados exatamente como estão nos CSVs originais.
 
 ## Executando o servidor MCP localmente
 ```bash
