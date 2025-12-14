@@ -3,7 +3,6 @@
 Camada MCP em Python/FastMCP para consultar datasets públicos do Recife via linguagem natural. Os dados são armazenados em um banco DuckDB embutido (arquivo local) e expostos a um LLM via OpenRouter para gerar e executar SQL com limites e guardrails.
 
 ## Pré-requisitos
-- Docker + Docker Compose (opcional, para deploy containerizado)
 - Python 3.12+
 - Chave de API do OpenRouter (`OPENROUTER_API_KEY`), com acesso ao modelo `openai/gpt-5.1-codex-max` (Preview)
 
@@ -104,12 +103,6 @@ Guardrails:
 - Somente SELECT/WITH/EXPLAIN são aceitos; DDL/DML são bloqueados.
 - `LIMIT` automático (configurável via `MAX_RESULT_ROWS`).
 - Sem timeout por statement (DuckDB executa rapidamente localmente).
-
-## Executando com Docker
-```bash
-docker compose up -d
-# Servidor disponível em http://localhost:8000
-```
 
 ## Testando interativamente (CLI)
 Cliente interativo usando OpenRouter para fazer perguntas em linguagem natural:

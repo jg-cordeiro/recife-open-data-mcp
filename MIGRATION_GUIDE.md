@@ -188,73 +188,14 @@ conn.execute(f'INSERT INTO "{schema}"."{table}" SELECT * FROM read_csv_auto(...)
 
 ---
 
-### 9. **Docker Compose (`docker-compose.yml`)**
-
-**Antes:**
-```yaml
-services:
-  postgres:
-    image: postgres:16
-    container_name: recife-open-data-postgres
-    environment:
-      POSTGRES_DB: recife_open_data
-      POSTGRES_USER: recife
-      POSTGRES_PASSWORD: recife
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U recife -d recife_open_data"]
-
-  mcp-server:
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: recife_open_data
-      POSTGRES_USER: recife
-      POSTGRES_PASSWORD: recife
-      STATEMENT_TIMEOUT_MS: 10000
-```
-
-**Depois:**
-```yaml
-services:
-  mcp-server:
-    environment:
-      DUCKDB_DATA_DIR: /data
-    volumes:
-      - duckdb_data:/data
-
-volumes:
-  duckdb_data:
-```
-
-**Mudanças:**
-- ✅ Remover serviço `postgres` inteiro
-- ✅ Remover dependência de healthcheck do postgres
-- ✅ Remover variáveis de ambiente Postgres
-- ✅ Adicionar volume DuckDB para persistência
-- ✅ Configurar `DUCKDB_DATA_DIR`
+### 9. **Containerização**
+- Docker Compose removido (execução focada em ambiente local/venv).
+- Persistência via arquivo DuckDB em `${DUCKDB_DATA_DIR:-./data}` (backup com cópia do arquivo).
 
 ---
 
 ### 10. **Dockerfile**
-
-**Antes:**
-```dockerfile
-RUN apt-get install -y gcc postgresql-client
-```
-
-**Depois:**
-```dockerfile
-RUN apt-get install -y gcc
-```
-
-**Mudança:** Remover client PostgreSQL (não necessário).
+- Dockerfile removido; deploy previsto via processo Python/uvicorn local.
 
 ---
 
@@ -262,11 +203,16 @@ RUN apt-get install -y gcc
 
 #### `README.md`
 - Remover menção ao PostgreSQL
-- Atualizar pré-requisitos (remover Docker Compose se opcional)
-- Substituir `docker compose up -d` por setup direto do venv
+- Atualizar pré-requisitos (sem Docker Compose)
+- Remover seção de Docker/Compose e documentar setup direto no venv
 - Atualizar tipos de coluna (INTEGER, VARCHAR, etc.)
 - Remover referências a `STATEMENT_TIMEOUT_MS`
 - Atualizar troubleshooting (banco local vs remoto)
+
+#### `README_HTTP.md`
+- Atualizar arquitetura para DuckDB local
+- Remover instruções de Docker e Postgres
+- Manter exemplos de ingestão e chamadas HTTP
 
 #### `INGESTAO_DATASETS.md`
 - Atualizar tipos PostgreSQL para DuckDB
@@ -302,8 +248,8 @@ RUN apt-get install -y gcc
 - [x] `scripts/ingest.py` - Migrado para DuckDB
 - [x] `requirements.txt` - Dependências atualizadas
 - [x] `pyproject.toml` - Dependências atualizadas
-- [x] `Dockerfile` - PostgreSQL client removido
-- [x] `docker-compose.yml` - Postgres service removido
+- [x] `Dockerfile` - Removido
+- [x] `docker-compose.yml` - Removido
 - [x] `README.md` - Documentação atualizada
 - [x] `INGESTAO_DATASETS.md` - Instruções atualizadas
 
@@ -328,15 +274,8 @@ uvicorn server.http_server:app --reload  # Inicia HTTP server
 python scripts/ingest.py datasets/descriptor.json datasets/data.csv --schema public --replace
 ```
 
-### Docker
-```bash
-docker compose up -d
-# Servidor em http://localhost:8000
-```
-
 ### Persistência
 - Arquivo DuckDB: `./data/recife.duckdb`
-- Em Docker: Volume `duckdb_data:/data`
 - Fazer backup: `cp data/recife.duckdb data/recife.duckdb.backup`
 
 ---
