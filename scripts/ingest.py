@@ -130,83 +130,83 @@ def load(
 
 @app.command()
 def batch(
-    consolidated_dir: Path = typer.Option(
-        Path("datasets/consolidated"),
-        help="Directory containing consolidated CSV files and their descriptors"
+    input_dir: Path = typer.Option(
+        Path("datasets"),
+        help="Directory containing CSV files alongside their descriptors",
     ),
     schema: str = typer.Option("public", help="Target schema."),
     replace: bool = typer.Option(True, help="Drop and recreate tables before loading."),
 ):
     """
-    Batch load all consolidated datasets from the consolidated directory.
-    
+    Batch load CSVs using descriptor + CSV pairs located in a directory.
+
     Scans for pairs of .json descriptor and .csv files with matching names.
-    Example: dataset_consolidated.json + dataset_consolidated.csv
+    Example: escolas.json + escolas.csv
     """
-    if not consolidated_dir.exists():
-        typer.echo(f"❌ Consolidated directory not found: {consolidated_dir}", err=True)
+    if not input_dir.exists():
+        typer.echo(f"❌ Input directory not found: {input_dir}", err=True)
         raise typer.Exit(1)
-    
+
     # Find all descriptor JSON files
-    descriptors = list(consolidated_dir.glob("*.json"))
-    
+    descriptors = list(input_dir.glob("*.json"))
+
     if not descriptors:
-        typer.echo(f"❌ No descriptor JSON files found in {consolidated_dir}", err=True)
+        typer.echo(f"❌ No descriptor JSON files found in {input_dir}", err=True)
         raise typer.Exit(1)
-    
+
     settings = Settings.load()
     conn = duckdb.connect(settings.db_path)
-    
+
     # Ensure schema exists
     conn.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema}"')
-    
-    typer.echo(f"\n📦 Batch ingestion from {consolidated_dir}")
+
+    typer.echo(f"\n📦 Batch ingestion from {input_dir}")
     typer.echo(f"   Found {len(descriptors)} descriptor(s)\n")
-    
+
     success_count = 0
     failed_count = 0
-    
+
     for descriptor_path in sorted(descriptors):
         # Find matching CSV file
         csv_path = descriptor_path.with_suffix('.csv')
-        
+
         if not csv_path.exists():
             typer.echo(f"⚠️  Skipping {descriptor_path.name}: matching CSV not found", err=True)
             failed_count += 1
             continue
-        
+
         try:
             table, columns = read_descriptor(descriptor_path)
-            
+
             if columns is None:
                 typer.echo(f"⚠️  Skipping {descriptor_path.name}: no columns defined", err=True)
                 failed_count += 1
                 continue
-            
+
             typer.echo(f"📄 Loading {table}...")
             typer.echo(f"   Descriptor: {descriptor_path.name}")
             typer.echo(f"   CSV: {csv_path.name}")
-            
+
             create_table(conn, schema, table, columns, replace)
             copy_csv(conn, schema, table, csv_path)
-            
+
             # Get row count
             result = conn.execute(f'SELECT COUNT(*) FROM "{schema}"."{table}"').fetchone()
             row_count = result[0] if result else 0
-            
+
             typer.echo(f"   ✅ Success: {row_count:,} rows loaded into {schema}.{table}\n")
             success_count += 1
-            
+
         except Exception as e:
             typer.echo(f"   ❌ Error: {e}\n", err=True)
             failed_count += 1
-    
+
     conn.close()
-    
+
     typer.echo(f"\n📊 Batch ingestion complete:")
     typer.echo(f"   ✅ Successful: {success_count}")
     typer.echo(f"   ❌ Failed: {failed_count}")
-    
+
     if failed_count > 0:
         raise typer.Exit(1)
 
