@@ -21,7 +21,6 @@ from .openrouter_client import OpenRouterClient
 
 # Global state
 settings = Settings.load()
-settings.require_api_key()
 db: Database = None
 llm: OpenRouterClient = None
 
@@ -34,6 +33,7 @@ logger = logging.getLogger("mcp.http")
 async def lifespan(app: FastAPI):
     """Initialize database connection on startup."""
     global db, llm
+    settings.require_api_key()
     logger.info("Starting MCP HTTP server with DuckDB database at %s", settings.db_path)
     db = Database(settings)
     await db.init()
@@ -124,6 +124,52 @@ async def list_tools():
     return {
         "tools": [
             {
+                "name": "list_tables",
+                "description": "List all available tables in the database with their schemas.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {},
+                    "required": [],
+                },
+            },
+            {
+                "name": "describe_table",
+                "description": "Get detailed column information for a specific table including column names, types, and nullability.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "table_name": {
+                            "type": "string",
+                            "description": "Name of the table to describe (without schema)"
+                        }
+                    },
+                    "required": ["table_name"],
+                },
+            },
+            {
+                "name": "search_schema",
+                "description": "Search for tables or columns matching a keyword.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "search_term": {
+                            "type": "string",
+                            "description": "Keyword to search for in table and column names"
+                        }
+                    },
+                    "required": ["search_term"],
+                },
+            },
+            {
+                "name": "list_databases",
+                "description": "List all database schemas available.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {},
+                    "required": [],
+                },
+            },
+            {
                 "name": "execute_sql",
                 "description": "Execute a read-only SQL query with timeout and row limit.",
                 "inputSchema": {
@@ -168,6 +214,61 @@ async def execute_tool(request: Request):
     )
 
     try:
+        if tool_name == "list_tables":
+            tables = await db.list_tables()
+            payload = _convert_to_serializable({
+                "message": f"Found {len(tables)} tables",
+                "tables": tables,
+            })
+            return {
+                "content": [
+                    {"type": "text", "text": json.dumps(payload, indent=2, ensure_ascii=False)}
+                ]
+            }
+
+        elif tool_name == "describe_table":
+            table_name = arguments.get("table_name")
+            if not table_name:
+                return JSONResponse(status_code=400, content={"error": "table_name is required"})
+            columns = await db.describe_table(table_name)
+            payload = _convert_to_serializable({
+                "table": table_name,
+                "column_count": len(columns) if columns else 0,
+                "columns": columns or [],
+            })
+            return {
+                "content": [
+                    {"type": "text", "text": json.dumps(payload, indent=2, ensure_ascii=False)}
+                ]
+            }
+
+        elif tool_name == "search_schema":
+            search_term = arguments.get("search_term")
+            if not search_term:
+                return JSONResponse(status_code=400, content={"error": "search_term is required"})
+            results = await db.search_schema(search_term)
+            payload = _convert_to_serializable({
+                "message": f"Found {len(results)} matches" if results else f"No matches for '{search_term}'",
+                "results": results or [],
+            })
+            return {
+                "content": [
+                    {"type": "text", "text": json.dumps(payload, indent=2, ensure_ascii=False)}
+                ]
+            }
+
+        elif tool_name == "list_databases":
+            schemas = await db.list_databases()
+            payload = _convert_to_serializable({
+                "message": f"Found {len(schemas)} schemas",
+                "schemas": schemas,
+            })
+            return {
+                "content": [
+                    {"type": "text", "text": json.dumps(payload, indent=2, ensure_ascii=False)}
+                ]
+            }
+
         if tool_name == "execute_sql":
             sql = arguments.get("sql")
             if not sql:

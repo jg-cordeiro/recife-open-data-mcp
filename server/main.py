@@ -8,10 +8,18 @@ from .sql_guard import ensure_limit, ensure_read_only
 from .openrouter_client import OpenRouterClient
 
 settings = Settings.load()
-settings.require_api_key()
 db = Database(settings)
-llm = OpenRouterClient(settings)
+llm: OpenRouterClient | None = None
 app = FastMCP("recife-open-data-mcp")
+
+
+def _require_llm() -> OpenRouterClient:
+    """Instantiate the LLM client only when needed and after validating secrets."""
+    global llm
+    if llm is None:
+        settings.require_api_key()
+        llm = OpenRouterClient(settings)
+    return llm
 
 
 async def _run_sql(sql: str):
@@ -134,18 +142,12 @@ async def answer_question(question: str) -> str:
     The system will generate SQL with proper quoting for table/column names,
     validate it, execute it, and return results. Includes automatic retry on errors.
     """
-    - Asking what tables exist (use list_tables)
-    - Asking what columns a table has (use describe_table)
-    - Searching for schema elements (use search_schema)
-    
-    The system will generate SQL with proper quoting for table/column names,
-    validate it, execute it, and return results. Includes automatic retry on errors.
-    """
     with start_span(name="answer_question") as span:
         span.log(input={"question": question})
         
         schema_text = await db.fetch_schema_snapshot()
-        sql_first = await llm.generate_sql(question, schema_text)
+        llm_client = _require_llm()
+        sql_first = await llm_client.generate_sql(question, schema_text)
         
         try:
             result = await _run_sql(sql_first)
@@ -160,7 +162,7 @@ async def answer_question(question: str) -> str:
             return str(result)
         except Exception as first_error:
             span.log(metadata={"first_error": str(first_error)})
-            sql_second = await llm.generate_sql(question, schema_text, previous_error=str(first_error))
+            sql_second = await llm_client.generate_sql(question, schema_text, previous_error=str(first_error))
             result = await _run_sql(sql_second)
             span.log(
                 output=result,

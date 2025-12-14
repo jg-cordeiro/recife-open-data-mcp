@@ -65,12 +65,7 @@ python scripts/ingest.py datasets/escolas.json datasets/escolas.csv --schema pub
 
 ## Testando via HTTP
 
-### Opção 1: Script de teste automático
-```bash
-./test_http.sh
-```
-
-### Opção 2: Cliente manual
+### Cliente manual
 ```bash
 source .venv/bin/activate
 python http_client.py interactive

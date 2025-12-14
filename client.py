@@ -346,6 +346,12 @@ async def interactive():
     typer.secho("  - List all schools in Santo Amaro", fg=typer.colors.CYAN)
     typer.secho("  - What's the total number of students?", fg=typer.colors.CYAN)
     typer.secho("Type 'exit' to quit.\n", fg=typer.colors.CYAN)
+    typer.secho("Commands:", fg=typer.colors.CYAN)
+    typer.secho("  :tools             - list available tools", fg=typer.colors.CYAN)
+    typer.secho("  :tables            - list database tables", fg=typer.colors.CYAN)
+    typer.secho("  :schemas           - list database schemas", fg=typer.colors.CYAN)
+    typer.secho("  :describe <table>  - describe columns of a table", fg=typer.colors.CYAN)
+    typer.secho("  :search <keyword>  - search tables/columns by keyword\n", fg=typer.colors.CYAN)
 
     while True:
         try:
@@ -355,6 +361,42 @@ async def interactive():
                 break
             if not user_input:
                 continue
+            # Built-in commands to exercise local tools directly
+            if user_input.startswith(":"):
+                parts = user_input.split()
+                cmd = parts[0]
+                arg = " ".join(parts[1:]) if len(parts) > 1 else ""
+
+                if cmd == ":tools":
+                    tools = await client.fetch_tools()
+                    typer.echo(json.dumps({"tools": [t["function"]["name"] for t in tools]}, indent=2, ensure_ascii=False))
+                    continue
+                if cmd == ":tables":
+                    res = await client.call_mcp_tool("list_tables", {})
+                    typer.echo(res)
+                    continue
+                if cmd == ":schemas":
+                    res = await client.call_mcp_tool("list_databases", {})
+                    typer.echo(res)
+                    continue
+                if cmd == ":describe":
+                    if not arg:
+                        typer.secho("Usage: :describe <table>", fg=typer.colors.YELLOW)
+                    else:
+                        res = await client.call_mcp_tool("describe_table", {"table_name": arg})
+                        typer.echo(res)
+                    continue
+                if cmd == ":search":
+                    if not arg:
+                        typer.secho("Usage: :search <keyword>", fg=typer.colors.YELLOW)
+                    else:
+                        res = await client.call_mcp_tool("search_schema", {"search_term": arg})
+                        typer.echo(res)
+                    continue
+
+                typer.secho("Unknown command. Try :tools, :tables, :schemas, :describe, :search", fg=typer.colors.YELLOW)
+                continue
+
             await client.chat(user_input)
         except KeyboardInterrupt:
             typer.secho("\n\n👋 Goodbye!", fg=typer.colors.CYAN)
