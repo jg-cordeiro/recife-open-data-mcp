@@ -76,9 +76,27 @@ def infer_columns(csv_path: Path, sample_rows: int) -> List[ColumnSpec]:
 
 def read_descriptor(descriptor: Path) -> tuple[str, Optional[List[ColumnSpec]]]:
     data = json.loads(descriptor.read_text(encoding="utf-8"))
+    
+    # Check if it's a metadata structure (new format with "metadados" key)
+    if "metadados" in data:
+        # New format: single descriptor for multiple CSVs
+        metadata = data["metadados"]
+        cabecalho = metadata.get("cabecalho", {})
+        table = cabecalho.get("titulo", "").lower().replace(" ", "_")
+        if not table:
+            raise typer.BadParameter("Descriptor with 'metadados' must include 'cabecalho.titulo'.")
+        
+        # Extract columns from "campos" if available
+        campos = metadata.get("campos", [])
+        if campos:
+            cols = [ColumnSpec(name=c["codigo"], type="VARCHAR") for c in campos]
+            return table, cols
+        return table, None
+    
+    # Old format: simple descriptor with "table" or "name"
     table = data.get("table") or data.get("name")
     if not table:
-        raise typer.BadParameter("Descriptor must include 'table' or 'name'.")
+        raise typer.BadParameter("Descriptor must include 'table' or 'name' or 'metadados'.")
     cols = data.get("columns")
     if cols:
         return table, [ColumnSpec(name=c["name"], type=c["type"]) for c in cols]
@@ -138,10 +156,12 @@ def batch(
     replace: bool = typer.Option(True, help="Drop and recreate tables before loading."),
 ):
     """
-    Batch load CSVs using descriptor + CSV pairs located in a directory.
+    Batch load CSVs using descriptors located in a directory.
 
-    Scans for pairs of .json descriptor and .csv files with matching names.
-    Example: escolas.json + escolas.csv
+    Supports two patterns:
+    1. Matching pairs: descriptor.json + descriptor.csv (e.g., escolas.json + escolas.csv)
+    2. Single descriptor for multiple CSVs: descriptor.json describes all *.csv in the directory
+       (identified by 'metadados' key in the JSON)
     """
     if not input_dir.exists():
         typer.echo(f"❌ Input directory not found: {input_dir}", err=True)
@@ -167,38 +187,78 @@ def batch(
     failed_count = 0
 
     for descriptor_path in sorted(descriptors):
-        # Find matching CSV file
-        csv_path = descriptor_path.with_suffix('.csv')
-
-        if not csv_path.exists():
-            typer.echo(f"⚠️  Skipping {descriptor_path.name}: matching CSV not found", err=True)
-            failed_count += 1
-            continue
-
         try:
-            table, columns = read_descriptor(descriptor_path)
-
-            if columns is None:
-                typer.echo(f"⚠️  Skipping {descriptor_path.name}: no columns defined", err=True)
-                failed_count += 1
-                continue
-
-            typer.echo(f"📄 Loading {table}...")
-            typer.echo(f"   Descriptor: {descriptor_path.name}")
-            typer.echo(f"   CSV: {csv_path.name}")
-
-            create_table(conn, schema, table, columns, replace)
-            copy_csv(conn, schema, table, csv_path)
-
-            # Get row count
-            result = conn.execute(f'SELECT COUNT(*) FROM "{schema}"."{table}"').fetchone()
-            row_count = result[0] if result else 0
-
-            typer.echo(f"   ✅ Success: {row_count:,} rows loaded into {schema}.{table}\n")
-            success_count += 1
-
+            descriptor_data = json.loads(descriptor_path.read_text(encoding="utf-8"))
+            
+            # Check if this is a "metadados" descriptor (describes multiple CSVs)
+            if "metadados" in descriptor_data:
+                typer.echo(f"📄 Processing metadata descriptor: {descriptor_path.name}")
+                table, columns = read_descriptor(descriptor_path)
+                
+                if columns is None:
+                    typer.echo(f"⚠️  Skipping {descriptor_path.name}: no columns defined", err=True)
+                    failed_count += 1
+                    continue
+                
+                # Find all CSV files in this directory
+                csv_files = sorted(input_dir.glob("*.csv"))
+                
+                if not csv_files:
+                    typer.echo(f"⚠️  Skipping {descriptor_path.name}: no CSV files found in directory", err=True)
+                    failed_count += 1
+                    continue
+                
+                for csv_path in csv_files:
+                    try:
+                        typer.echo(f"   📊 Loading {csv_path.name} into {table}...")
+                        
+                        # For the first CSV, create the table; for others, append
+                        is_first = (csv_path == csv_files[0])
+                        create_table(conn, schema, table, columns, replace and is_first)
+                        copy_csv(conn, schema, table, csv_path)
+                        
+                        result = conn.execute(f'SELECT COUNT(*) FROM "{schema}"."{table}"').fetchone()
+                        row_count = result[0] if result else 0
+                        
+                        typer.echo(f"      ✅ {csv_path.name}: {row_count:,} total rows in {schema}.{table}")
+                        success_count += 1
+                    except Exception as e:
+                        typer.echo(f"      ❌ Error loading {csv_path.name}: {e}", err=True)
+                        failed_count += 1
+                
+                typer.echo()
+            
+            else:
+                # Old pattern: matching pairs
+                csv_path = descriptor_path.with_suffix('.csv')
+                
+                if not csv_path.exists():
+                    typer.echo(f"⚠️  Skipping {descriptor_path.name}: matching CSV not found", err=True)
+                    failed_count += 1
+                    continue
+                
+                table, columns = read_descriptor(descriptor_path)
+                
+                if columns is None:
+                    typer.echo(f"⚠️  Skipping {descriptor_path.name}: no columns defined", err=True)
+                    failed_count += 1
+                    continue
+                
+                typer.echo(f"📄 Loading {table}...")
+                typer.echo(f"   Descriptor: {descriptor_path.name}")
+                typer.echo(f"   CSV: {csv_path.name}")
+                
+                create_table(conn, schema, table, columns, replace)
+                copy_csv(conn, schema, table, csv_path)
+                
+                result = conn.execute(f'SELECT COUNT(*) FROM "{schema}"."{table}"').fetchone()
+                row_count = result[0] if result else 0
+                
+                typer.echo(f"   ✅ Success: {row_count:,} rows loaded into {schema}.{table}\n")
+                success_count += 1
+        
         except Exception as e:
-            typer.echo(f"   ❌ Error: {e}\n", err=True)
+            typer.echo(f"❌ Error processing {descriptor_path.name}: {e}\n", err=True)
             failed_count += 1
 
     conn.close()
