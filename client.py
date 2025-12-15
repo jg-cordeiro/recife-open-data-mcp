@@ -208,7 +208,7 @@ class MCPClient:
         typer.secho(f"\n👤 User: {user_message}", fg=typer.colors.CYAN)
 
         system_prompt = (
-            "Você é um assistente MCP que responde em português e decide o uso de ferramentas para acessar dados no DuckDB.\n"
+            "Você é um assistente MCP que responde em português e decide o uso de ferramentas para acessar dados públicos da Prefeitura do Recife no DuckDB.\n"
             "- Sempre comece obtendo a lista de tabelas com list_tables antes de escolher o que consultar.\n"
             "- Depois de decidir uma tabela, use describe_table para ver colunas; use search_schema só se não souber onde encontrar um campo.\n"
             "- Para perguntas sobre dados (contagens, filtros, agregações), prefira answer_question; use execute_sql apenas se o usuário fornecer SQL completo e válido.\n"
