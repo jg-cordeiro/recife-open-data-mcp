@@ -18,3 +18,7 @@ node_modules/
 # Data files
 data/
 datasets/*/*.csv
+
+# Eval outputs
+eval_runs/
+!eval_runs/.gitkeep
