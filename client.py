@@ -207,7 +207,19 @@ class MCPClient:
         """Send a message to Claude via OpenRouter and process tool calls."""
         typer.secho(f"\n👤 User: {user_message}", fg=typer.colors.CYAN)
 
-        messages = [{"role": "user", "content": user_message}]
+        system_prompt = (
+            "Você é um assistente MCP que responde em português e decide o uso de ferramentas para acessar dados no DuckDB.\n"
+            "- Sempre comece obtendo a lista de tabelas com list_tables antes de escolher o que consultar.\n"
+            "- Depois de decidir uma tabela, use describe_table para ver colunas; use search_schema só se não souber onde encontrar um campo.\n"
+            "- Para perguntas sobre dados (contagens, filtros, agregações), prefira answer_question; use execute_sql apenas se o usuário fornecer SQL completo e válido.\n"
+            "- Não invente tabelas ou colunas; siga exatamente os nomes retornados pelas ferramentas.\n"
+            "- Se nenhuma ferramenta for necessária, responda direto, mas mantenha as respostas concisas."
+        )
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message},
+        ]
         tools = await self.fetch_tools()
 
         # First request with tools
