@@ -30,13 +30,13 @@ class OpenRouterClient:
             "4. Format: \"schema\".\"table-name\".\"Column_Name\"\n\n"
             "EXAMPLES:\n"
             "Q: How many records in the civil defense table?\n"
-            'A: SELECT COUNT(*) FROM "public"."atendimentos-defesa-civil_consolidated" LIMIT 200;\n\n'
+            'A: SELECT COUNT(*) FROM "public"."atendimentos-defesa-civil" LIMIT 200;\n\n'
             "Q: Show me the first 5 student records\n"
-            'A: SELECT * FROM "public"."situacao-final-estudantes_consolidated" LIMIT 5;\n\n'
+            'A: SELECT * FROM "public"."situação_final_dos_alunos_por_período_letivo" LIMIT 5;\n\n'
             "Q: How many distinct years in civil defense data?\n"
-            'A: SELECT COUNT(DISTINCT "Ano") AS distinct_years FROM "public"."atendimentos-defesa-civil_consolidated" LIMIT 200;\n\n'
+            'A: SELECT COUNT(DISTINCT "Ano") AS distinct_years FROM "public"."atendimentos-defesa-civil" LIMIT 200;\n\n'
             "Q: List neighborhoods with most incidents\n"
-            'A: SELECT "Bairro", COUNT(*) as total FROM "public"."atendimentos-defesa-civil_consolidated" GROUP BY "Bairro" ORDER BY total DESC LIMIT 10;'
+            'A: SELECT "Bairro", COUNT(*) as total FROM "public"."atendimentos-defesa-civil" GROUP BY "Bairro" ORDER BY total DESC LIMIT 10;'
         )
         user_content = f"Question: {question}\nReturn ONLY SQL, no markdown fences or commentary."
         if schema_text:

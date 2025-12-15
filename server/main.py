@@ -72,7 +72,7 @@ async def describe_table(table_name: str) -> str:
     - Before writing queries to ensure correct column names
     
     Args:
-        table_name: The table name without schema (e.g., 'atendimentos-defesa-civil_consolidated')
+        table_name: The table name without schema (e.g., 'atendimentos-defesa-civil')
     
     Returns column names, types, and nullability information.
     """

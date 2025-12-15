@@ -15,8 +15,8 @@
 [
   {
     "schema": "public",
-    "table": "atendimentos-defesa-civil_consolidated",
-    "full_name": "\"public\".\"atendimentos-defesa-civil_consolidated\""
+    "table": "atendimentos-defesa-civil",
+    "full_name": "\"public\".\"atendimentos-defesa-civil\""
   }
 ]
 ```
@@ -30,7 +30,7 @@
 - "Mostre os campos da tabela Z"
 
 **Parâmetros:**
-- `table_name`: Nome da tabela SEM schema (ex: "atendimentos-defesa-civil_consolidated")
+- `table_name`: Nome da tabela SEM schema (ex: "atendimentos-defesa-civil")
 
 **Retorna:** Lista de colunas com tipo e nullable
 
@@ -61,10 +61,10 @@
 [
   {
     "schema": "public",
-    "table": "atendimentos-defesa-civil_consolidated",
+    "table": "atendimentos-defesa-civil",
     "column": "Ano",
     "type": "VARCHAR",
-    "full_reference": "\"public\".\"atendimentos-defesa-civil_consolidated\".\"Ano\""
+    "full_reference": "\"public\".\"atendimentos-defesa-civil\".\"Ano\""
   }
 ]
 ```
@@ -97,7 +97,7 @@
 
 **Exemplo:**
 ```sql
-SELECT COUNT(*) FROM "public"."atendimentos-defesa-civil_consolidated"
+SELECT COUNT(*) FROM "public"."atendimentos-defesa-civil"
 ```
 
 ---
@@ -160,14 +160,14 @@ User: "Quais tabelas temos disponíveis?"
 → Chama: list_tables()
 
 User: "Que colunas tem a tabela de defesa civil?"
-→ Chama: describe_table("atendimentos-defesa-civil_consolidated")
+→ Chama: describe_table("atendimentos-defesa-civil")
 ```
 
 ### Exemplo 2: Análise de dados
 ```
 User: "Quantos anos diferentes temos de dados da defesa civil?"
 → Chama: answer_question("Quantos anos diferentes temos de dados da defesa civil?")
-→ Gera SQL: SELECT COUNT(DISTINCT "Ano") FROM "public"."atendimentos-defesa-civil_consolidated"
+→ Gera SQL: SELECT COUNT(DISTINCT "Ano") FROM "public"."atendimentos-defesa-civil"
 ```
 
 ### Exemplo 3: Busca e análise

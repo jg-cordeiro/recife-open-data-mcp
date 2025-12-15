@@ -70,7 +70,7 @@ class MCPClient:
                         "properties": {
                             "table_name": {
                                 "type": "string",
-                                "description": "Name of the table to describe (without schema, e.g., 'atendimentos-defesa-civil_consolidated')",
+                                "description": "Name of the table to describe (without schema, e.g., 'atendimentos-defesa-civil')",
                             }
                         },
                         "required": ["table_name"],
