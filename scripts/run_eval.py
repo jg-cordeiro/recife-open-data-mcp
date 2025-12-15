@@ -168,7 +168,7 @@ def format_markdown(run_id: str, model: str, results: List[Dict[str, Any]]) -> s
 async def evaluate_case(
     db: Database,
     llm: OpenRouterClient,
-    schema_text: str,
+    schema_text: Optional[str],
     case: EvalCase,
     max_rows: int,
 ) -> Dict[str, Any]:
@@ -236,7 +236,7 @@ def run(
 
     async def _run_all() -> List[Dict[str, Any]]:
         await db.init()
-        schema_text = await db.fetch_schema_snapshot()
+        schema_text = None  # LLM deve descobrir schema via ferramentas MCP
         results: List[Dict[str, Any]] = []
         for case in cases:
             typer.secho(f"→ Caso {case.id}: {case.question}", fg=typer.colors.BLUE)

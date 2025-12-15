@@ -179,8 +179,7 @@ class MCPClient:
                 question = tool_input.get("question", "")
                 typer.secho(f"❓ Question: {question}", fg=typer.colors.BLUE)
                 llm = OpenRouterClient(self.settings)
-                schema_text = await db.fetch_schema_snapshot()
-                sql_first = await llm.generate_sql(question, schema_text)
+                sql_first = await llm.generate_sql(question)
                 typer.secho(f"🔍 Generated SQL: {sql_first[:100]}...", fg=typer.colors.YELLOW)
                 try:
                     ensure_read_only(sql_first)
@@ -190,7 +189,7 @@ class MCPClient:
                     return json.dumps(result)
                 except Exception as first_error:
                     typer.secho(f"⚠️  First SQL attempt failed: {first_error}", fg=typer.colors.YELLOW)
-                    sql_second = await llm.generate_sql(question, schema_text, previous_error=str(first_error))
+                    sql_second = await llm.generate_sql(question, previous_error=str(first_error))
                     typer.secho(f"🔄 Retrying with revised SQL: {sql_second[:100]}...", fg=typer.colors.YELLOW)
                     ensure_read_only(sql_second)
                     limited = ensure_limit(sql_second, self.settings.max_result_rows)

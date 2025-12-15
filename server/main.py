@@ -29,13 +29,6 @@ async def _run_sql(sql: str):
     return {"sql": limited, "row_count": len(rows), "rows": rows}
 
 
-@app.resource("database://schema")
-async def schema_snapshot():
-    """Get the schema snapshot of all tables and columns."""
-    text = await db.fetch_schema_snapshot()
-    return text
-
-
 @app.tool()
 async def execute_sql(sql: str) -> str:
     """Execute a pre-written SQL query directly.
@@ -145,9 +138,8 @@ async def answer_question(question: str) -> str:
     with start_span(name="answer_question") as span:
         span.log(input={"question": question})
         
-        schema_text = await db.fetch_schema_snapshot()
         llm_client = _require_llm()
-        sql_first = await llm_client.generate_sql(question, schema_text)
+        sql_first = await llm_client.generate_sql(question)
         
         try:
             result = await _run_sql(sql_first)
@@ -162,7 +154,7 @@ async def answer_question(question: str) -> str:
             return str(result)
         except Exception as first_error:
             span.log(metadata={"first_error": str(first_error)})
-            sql_second = await llm_client.generate_sql(question, schema_text, previous_error=str(first_error))
+            sql_second = await llm_client.generate_sql(question, previous_error=str(first_error))
             result = await _run_sql(sql_second)
             span.log(
                 output=result,
@@ -177,4 +169,3 @@ async def answer_question(question: str) -> str:
 
 if __name__ == "__main__":
     app.run()
-

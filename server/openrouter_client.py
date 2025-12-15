@@ -18,7 +18,7 @@ class OpenRouterClient:
         self.max_rows = settings.max_result_rows
 
     @traced(type="llm", name="OpenRouter SQL Generation", notrace_io=True)
-    async def generate_sql(self, question: str, schema_text: str, previous_error: str | None = None) -> str:
+    async def generate_sql(self, question: str, schema_text: str | None = None, previous_error: str | None = None) -> str:
         guidance = (
             "You are a SQL expert producing safe, read-only DuckDB SQL. "
             "Use only tables and columns from the schema. "
@@ -38,15 +38,13 @@ class OpenRouterClient:
             "Q: List neighborhoods with most incidents\n"
             'A: SELECT "Bairro", COUNT(*) as total FROM "public"."atendimentos-defesa-civil_consolidated" GROUP BY "Bairro" ORDER BY total DESC LIMIT 10;'
         )
+        user_content = f"Question: {question}\nReturn ONLY SQL, no markdown fences or commentary."
+        if schema_text:
+            user_content = f"Schema:\n{schema_text}\n\n{user_content}"
+
         messages = [
             {"role": "system", "content": guidance},
-            {
-                "role": "user",
-                "content": (
-                    f"Schema:\n{schema_text}\n\nQuestion: {question}\n"
-                    "Return ONLY SQL, no markdown fences or commentary."
-                ),
-            },
+            {"role": "user", "content": user_content},
         ]
         if previous_error:
             messages.append({

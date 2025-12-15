@@ -93,7 +93,7 @@ async def health():
     """Detailed health check."""
     try:
         # Test database connection
-        await db.fetch_schema_snapshot()
+        await db.list_tables()
         return {"status": "healthy", "database": "connected", "llm": "configured"}
     except Exception as e:
         return JSONResponse(
@@ -298,8 +298,7 @@ async def execute_tool(request: Request):
             with start_span(name="answer_question_http") as span:
                 span.log(input={"question": question})
                 
-                schema_text = await db.fetch_schema_snapshot()
-                sql_first = await llm.generate_sql(question, schema_text)
+                sql_first = await llm.generate_sql(question)
                 logger.info("Generated SQL (first pass)", extra={"sql_preview": sql_first[:200]})
                 
                 try:
@@ -339,11 +338,7 @@ async def execute_tool(request: Request):
                     logger.warning("answer_question first attempt failed", extra={"error": str(first_error)})
                     span.log(metadata={"first_error": str(first_error)})
                     
-                    sql_second = await llm.generate_sql(
-                        question, 
-                        schema_text, 
-                        previous_error=str(first_error)
-                    )
+                    sql_second = await llm.generate_sql(question, previous_error=str(first_error))
                     logger.info("Generated SQL (retry)", extra={"sql_preview": sql_second[:200]})
                     result = await _run_sql(sql_second)
                     formatted = {
@@ -394,40 +389,16 @@ async def execute_tool(request: Request):
 @app.get("/mcp/v1/resources")
 async def list_resources():
     """List available MCP resources."""
-    return {
-        "resources": [
-            {
-                "uri": "database://schema",
-                "name": "Database Schema",
-                "description": "Complete schema snapshot of all tables and columns",
-                "mimeType": "text/plain",
-            }
-        ]
-    }
+    return {"resources": []}
 
 
 @app.post("/mcp/v1/resources/read")
 async def read_resource(request: Request):
     """Read a resource."""
-    body = await request.json()
-    uri = body.get("uri")
-
-    if uri == "database://schema":
-        schema_text = await db.fetch_schema_snapshot()
-        return {
-            "contents": [
-                {
-                    "uri": uri,
-                    "mimeType": "text/plain",
-                    "text": schema_text,
-                }
-            ]
-        }
-    else:
-        return JSONResponse(
-            status_code=404,
-            content={"error": f"Resource '{uri}' not found"}
-        )
+    return JSONResponse(
+        status_code=404,
+        content={"error": "No resources exposed"}
+    )
 
 
 if __name__ == "__main__":
