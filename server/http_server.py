@@ -65,6 +65,9 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+# Aliases for runtimes that expect standard names
+server = app
+mcp = app
 
 # CORS middleware
 app.add_middleware(
