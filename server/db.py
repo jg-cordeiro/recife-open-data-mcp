@@ -1,4 +1,5 @@
 import duckdb
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from .config import Settings
 
