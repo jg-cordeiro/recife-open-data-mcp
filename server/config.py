@@ -17,7 +17,11 @@ class Settings:
     @classmethod
     def load(cls) -> "Settings":
         db_dir = Path(os.environ.get("DUCKDB_DATA_DIR", "./data"))
-        db_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            db_dir.mkdir(parents=True, exist_ok=True)
+        except PermissionError:
+            # Read-only filesystems (e.g., managed runtimes) may block mkdir; continue using the path
+            pass
         db_path = str(db_dir / "recife.duckdb")
         return cls(
             openrouter_api_key=os.environ.get("OPENROUTER_API_KEY", ""),

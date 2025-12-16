@@ -9,11 +9,34 @@ class Database:
         self._conn: Optional[duckdb.DuckDBPyConnection] = None
 
     async def init(self) -> None:
-        if self._conn is None:
-            self._conn = duckdb.connect(self.settings.db_path, read_only=False)
-            # Enable execution in read-only context where needed
-            self._conn.execute("SET threads = 4")
-            self._conn.execute("SET memory_limit = '4GB'")
+        if self._conn is not None:
+            return
+
+        db_path = Path(self.settings.db_path)
+
+        def _connect(path: Path):
+            # Using read_only=False after copying to a writable location to avoid lock issues
+            return duckdb.connect(str(path), read_only=False)
+
+        try:
+            self._conn = _connect(db_path)
+        except Exception as exc:  # pragma: no cover - runtime fallback
+            # Fallback for read-only filesystems (e.g., FastMCP/Lambda layers)
+            if "Read-only file system" in str(exc) or "read-only" in str(exc).lower():
+                fallback_dir = Path("/tmp/recife-duckdb")
+                fallback_dir.mkdir(parents=True, exist_ok=True)
+                fallback_path = fallback_dir / "recife.duckdb"
+                if db_path.exists():
+                    import shutil
+                    shutil.copyfile(db_path, fallback_path)
+                self.settings.db_path = str(fallback_path)
+                self._conn = _connect(fallback_path)
+            else:
+                raise
+
+        # Enable execution in read-only context where needed
+        self._conn.execute("SET threads = 4")
+        self._conn.execute("SET memory_limit = '4GB'")
 
     async def close(self) -> None:
         if self._conn:
