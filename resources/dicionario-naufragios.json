@@ -1,0 +1,71 @@
+{
+  "metadados": {
+    "cabecalho": {
+      "titulo": "Naufrágios do Recife",
+      "descricao": "A cidade do Recife é considerada a 'Meca do mergulho'. Essa é uma base de embarcações que naufragaram de forma natural ou artificial no Recife e que hoje podem ser visitados através de mergulho com cilindro.",
+      "categoria_vcge": "http://vocab.e.gov.br/id/governo#turismo",
+      "fonte_dados": "http://dados.recife.pe.gov.br",
+      "licenca": "Open Database License (ODbL)",
+      "responsavel_dados": "Secretaria de Transformação Digital Ciência e Tecnologia",
+      "responsavel_disponibilizar": "Emprel",
+      "frequencia_atualizacao": "finalizado",
+      "endereco_dataset": "http://dados.recife.pe.gov.br/dataset/naufragios-do-recife",
+      "status": "ativo",
+      "endereco_dataset_substituto": "",
+      "granularidade": "Por naufrágio",
+      "etiquetas": "naufrágio,mar,mergulho,embarcação"
+    },
+    "recursos": [
+      {
+        "identificador": "http://dados.recife.pe.gov.br/dataset/naufragios-do-recife/resource/791c0a6c-bf09-41c1-beb5-1cb5cdcebe8a",
+        "titulo": "Naufrágios do Recife",
+        "formato": "csv",
+        "descricao": "Este recursos apresenta a base de embarcações que naufragaram de forma natural ou artificial no Recife e que hoje podem ser visitados através de mergulho com cilindro."
+      }
+    ],
+    "campos": [
+      {
+        "codigo": "nome",
+        "descricao": "nome do naufrágio",
+        "tipo": "CHAR",
+        "tamanho": 50,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "data_naufragio",
+        "descricao": "Data do naufrágio",
+        "tipo": "DATE",
+        "tamanho": 10,
+        "valores_permitidos": "data formato yyyy-mm-dd"
+      },
+      {
+        "codigo": "latitude",
+        "descricao": "Coordenada geografica",
+        "tipo": "num",
+        "tamanho": 20,
+        "valores_permitidos": ""
+      },
+        {
+        "codigo": "longitude",
+        "descricao": "Coordenada geografica",
+        "tipo": "num",
+        "tamanho": 20,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "profundidade_maxima",
+        "descricao": "profundidade_maxima do naufrágio",
+        "tipo": "CHAR",
+        "tamanho": 10,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "historia detalhada",
+        "descricao": "link para história detalhada do naufrágio",
+        "tipo": "CHAR",
+        "tamanho": 200,
+        "valores_permitidos": ""
+      }
+    ]
+  }
+}

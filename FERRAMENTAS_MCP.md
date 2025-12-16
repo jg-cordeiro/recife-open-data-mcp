@@ -8,7 +8,7 @@ Retorna: lista de tabelas com schema e nome completo.
 
 ### 2. `describe_table(table_name)` - Descrever Tabela
 Quando usar: saber colunas e tipos antes de gerar SQL.  
-Parâmetros: `table_name` sem schema (ex.: `situação_final_dos_alunos_por_período_letivo` ou `registro_das_infrações_de_trânsito_-_cttu`).
+Parâmetros: `table_name` sem schema (ex.: `situação_final_dos_alunos_por_período_letivo`, `registro_das_infrações_de_trânsito_-_cttu` ou `naufrágios_do_recife`).
 
 ### 3. `search_schema(search_term)` - Buscar no Schema
 Quando usar: localizar tabelas/colunas por palavra‑chave.
@@ -34,6 +34,8 @@ Para contagens, agregações, filtros. Não usar para descobrir estrutura.
   `SELECT COUNT(*) AS total FROM "public"."registro_das_infrações_de_trânsito_-_cttu" WHERE substr("dataimplantacao",1,4) = '2024';`
 - Top 5 anos com mais registros de alunos:  
   `SELECT "ano", COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" GROUP BY "ano" ORDER BY total DESC LIMIT 5;`
+- Listar naufrágios com profundidade máxima conhecida:  
+  `SELECT "nome", "profundidade_maxima" FROM "public"."naufrágios_do_recife" WHERE "profundidade_maxima" IS NOT NULL;`
 
 ## Dicas
 - Sempre use `describe_table` para pegar os nomes corretos (ex.: `situacao_nome`, `ano`, `dataInfracao`, `agenteequipamento`).  

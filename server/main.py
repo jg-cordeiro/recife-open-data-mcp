@@ -135,6 +135,14 @@ async def resource_dicionario_infracoes():
     return path.read_text(encoding="utf-8")
 
 
+@app.resource("resource://dicionario-naufragios")
+async def resource_dicionario_naufragios():
+    """Descriptor JSON for naufrágios do Recife (metadata/campos)."""
+    from pathlib import Path
+    path = Path("resources/dicionario-naufragios.json")
+    return path.read_text(encoding="utf-8")
+
+
 @app.tool()
 async def answer_question(question: str) -> str:
     """RECOMMENDED: Answer questions about DATA content by generating and executing SQL.

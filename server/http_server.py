@@ -430,6 +430,12 @@ async def list_resources():
                 "description": "Descriptor JSON com metadados/campos das infrações de trânsito (CTTU)",
                 "mimeType": "application/json",
             },
+            {
+                "uri": "resource://dicionario-naufragios",
+                "name": "Dicionário naufrágios do Recife",
+                "description": "Descriptor JSON com metadados/campos dos naufrágios do Recife",
+                "mimeType": "application/json",
+            },
         ]
     }
 
@@ -453,6 +459,17 @@ async def read_resource(request: Request):
             }
         if uri == "resource://dicionario-infracoes":
             text = Path("resources/dicionario-de-dados-das-infracoes-de-transito.json").read_text(encoding="utf-8")
+            return {
+                "contents": [
+                    {
+                        "uri": uri,
+                        "mimeType": "application/json",
+                        "text": text,
+                    }
+                ]
+            }
+        if uri == "resource://dicionario-naufragios":
+            text = Path("resources/dicionario-naufragios.json").read_text(encoding="utf-8")
             return {
                 "contents": [
                     {
