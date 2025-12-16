@@ -21,22 +21,22 @@ class OpenRouterClient:
     async def generate_sql(self, question: str, schema_text: str | None = None, previous_error: str | None = None) -> str:
         guidance = f"""You are a SQL expert producing safe, read-only DuckDB SQL for Recife open data.
 BEFORE any SQL:
-- Call list_tables to see exact table names (no guesses). NEVER put tool calls inside SQL.
+- Always call list_tables to see exact table names (no guesses). NEVER put tool calls inside SQL.
 - Pick the table and call describe_table to get exact column names; use search_schema only to locate fields. This is required before generating SQL.
-- You can consult dataset dictionaries via MCP resources: resource://dicionario-atendimentos and resource://dicionario-situacao-final to confirm naming.
-- Use ONLY the names returned by the tools. Do not invent columns (e.g., no Ano_Letivo, no Ocorrência; use Ano, Ocorrencia, Grau_de_Risco, situacao_nome, ano, escola, sexo, etc.).
-- Treat year fields as text; do not cast. Quote schema/table/column with double quotes.
+- You can consult dataset dictionaries via MCP resources: resource://dicionario-situacao-final, resource://dicionario-infracoes, resource://dicionario-naufragios.
+- Use ONLY names returned by the tools. Do not invent columns (e.g., use "situacao_nome", "ano", "dataimplantacao", "dataInfracao", "profundidade_maxima", "historia detalhada").
+- Treat year fields as text; do not cast unless you extract with regex. Quote schema/table/column with double quotes.
 - In aggregations, always alias counts/sums clearly (e.g., COUNT(*) AS total) so the numeric column is explicit.
-- For text filters with variants (ex.: R3), use LOWER + LIKE/regex as needed, but only on existing columns.
-- Never mutate data. Do NOT add LIMIT automatically.
+- For text filters, use LOWER + LIKE/regex as needed, but only on existing columns.
+- Never mutate data. Do NOT add LIMIT automatically (only when the question asks for top-k).
 
 IMPORTANT RULES:
-1. Table names with hyphens MUST be quoted with double quotes
-2. Schema names MUST be quoted with double quotes
-3. Column names with special characters or capitals MUST be quoted
-4. Format: "schema"."table-name"."Column_Name"
+1. Table names with hyphens MUST be quoted with double quotes.
+2. Schema names MUST be quoted with double quotes.
+3. Column names with special characters, spaces, or capitals MUST be quoted.
+4. Format: "schema"."table-name"."Column_Name".
 
-EXAMPLES (real tables/columns, sem LIMIT):
+EXAMPLES (real tables/columns, sem LIMIT, only top-k when asked):
 Q: Contagem total de registros de infrações
 A: SELECT COUNT(*) AS total FROM "public"."registro_das_infrações_de_trânsito_-_cttu";
 
@@ -52,8 +52,8 @@ A: SELECT "ano", COUNT(*) AS total FROM "public"."situação_final_dos_alunos_po
 Q: Quantos registros de alunos em 2024
 A: SELECT COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" WHERE "ano" = '2024';
 
-Q: Quantos alunos aprovados em 2023
-A: SELECT COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" WHERE "ano" = '2023' AND "situacao_nome" = 'APROVADO';
+Q: Top 3 naufrágios mais profundos (profundidade_maxima)
+A: SELECT "nome", "profundidade_maxima" FROM "public"."naufrágios_do_recife" ORDER BY CAST(regexp_extract("profundidade_maxima", '(\\\\d+)') AS INTEGER) DESC LIMIT 3;
 
 If a column error occurs, STOP and call describe_table (and check resources), then regenerate SQL with the exact names. Do not retry with guessed names."""
         user_content = f"Question: {question}\nReturn ONLY SQL, no markdown fences or commentary."

@@ -1,6 +1,6 @@
 {
   "version": "3.0",
-  "description": "Casos de avaliação para o MCP com os datasets atuais: situação final de alunos e infrações de trânsito (CTTU).",
+  "description": "Casos de avaliação para o MCP com os datasets atuais: situação final de alunos, infrações de trânsito (CTTU) e naufrágios do Recife.",
   "cases": [
     {
       "id": "alunos_total_all",
@@ -121,6 +121,30 @@
       "question": "Quantas multas foram implantadas em 2015?",
       "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataimplantacao\", '(20\\\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2015';",
       "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "naufragios_total",
+      "question": "Quantos naufrágios estão listados no dataset?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"naufrágios_do_recife\";",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "naufragios_top_profundidade",
+      "question": "Quais são os 3 naufrágios com maior profundidade máxima informada?",
+      "reference_sql": "SELECT \"nome\", \"profundidade_maxima\" FROM \"public\".\"naufrágios_do_recife\" ORDER BY CAST(regexp_extract(\"profundidade_maxima\", '(\\\\d+)') AS INTEGER) DESC LIMIT 3;",
+      "comparison": { "type": "ranking", "key_columns": ["nome"], "value_column": "profundidade_maxima", "top_k": 3 }
+    },
+    {
+      "id": "naufragios_por_ano",
+      "question": "Quantos naufrágios têm ano informado (por ano)?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"data_naufragio\", '(\\\\d{4})') AS ano FROM \"public\".\"naufrágios_do_recife\") SELECT \"ano\", COUNT(*) AS total FROM base WHERE \"ano\" IS NOT NULL GROUP BY \"ano\" ORDER BY \"ano\";",
+      "comparison": { "type": "ranking", "key_columns": ["ano"], "value_column": "total" }
+    },
+    {
+      "id": "naufragios_sample",
+      "question": "Liste 5 naufrágios com profundidade máxima e coordenadas.",
+      "reference_sql": "SELECT \"nome\", \"profundidade_maxima\", \"latitude\", \"longitude\" FROM \"public\".\"naufrágios_do_recife\" LIMIT 5;",
+      "comparison": { "type": "list", "sample_columns": ["nome", "profundidade_maxima", "latitude", "longitude"], "sample_size": 5 }
     }
   ]
 }

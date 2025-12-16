@@ -4,6 +4,7 @@ Camada MCP em Python/FastMCP para consultar datasets públicos do Recife via lin
 
 ## Pré-requisitos
 - Python 3.12+
+- Git LFS instalado (para baixar o `data/recife.duckdb`): `brew install git-lfs` e `git lfs install`
 - Chave de API do OpenRouter (`OPENROUTER_API_KEY`), com acesso ao modelo `openai/gpt-5.1-codex-max` (Preview)
 
 ## Configuração
@@ -89,15 +90,15 @@ OPENROUTER_API_KEY=... uvicorn server.http_server:app --reload
 Para guia completo com exemplos de uso, veja [FERRAMENTAS_MCP.md](FERRAMENTAS_MCP.md).
 
 Exposição principal (via MCP):
-- `schema_snapshot` (resource): entrega esquema completo.
 - `list_tables()`: lista todas as tabelas disponíveis com seus schemas.
 - `describe_table(table_name)`: retorna detalhes das colunas de uma tabela específica.
 - `search_schema(search_term)`: busca tabelas e colunas que correspondem a um termo.
 - `list_databases()`: lista todos os schemas disponíveis no banco.
 - `execute_sql(sql)`: executa SELECT com LIMIT automático.
 - `answer_question(question)`: gera SQL com o LLM (dois estágios de retry), valida, executa e retorna o resultado.
+- Resources: dicionários dos datasets (`resource://dicionario-situacao-final`, `resource://dicionario-infracoes`, `resource://dicionario-naufragios`).
 
-**Recomendação:** Use `list_tables()` ou `search_schema()` antes de `answer_question()` para garantir que a LLM tenha contexto preciso sobre nomes de tabelas e colunas (especialmente quando há hífens ou caracteres especiais).
+**Recomendação:** Sempre use `list_tables()` e, em seguida, `describe_table("<tabela>")` antes de gerar SQL para garantir que a LLM use nomes exatos (há hífens, acentos e espaços em colunas como `historia detalhada`).
 
 Guardrails:
 - Somente SELECT/WITH/EXPLAIN são aceitos; DDL/DML são bloqueados.
@@ -114,10 +115,9 @@ python client.py interactive
 ```
 
 Exemplos de perguntas:
-- "Quantas escolas existem no dataset?"
-- "Qual é o bairro com mais escolas?"
-- "Liste todas as escolas de Boa Viagem"
-- "Qual é a escola com mais alunos?"
+- "Quantos registros de alunos há em 2024?"
+- "Quais são os 5 códigos de infração mais comuns?"
+- "Liste 3 naufrágios com profundidade máxima informada"
 
 ## Uso com clientes MCP / FastMCP Cloud
 - Endpoint/entrypoint: `server/main.py`.
