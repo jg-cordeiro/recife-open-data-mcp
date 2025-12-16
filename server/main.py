@@ -123,7 +123,7 @@ async def list_databases() -> str:
 async def resource_dicionario_situacao_final():
     """Descriptor JSON for situação_final_dos_alunos_por_período_letivo (metadata/campos)."""
     from pathlib import Path
-    path = Path("datasets/situacao-final-estudantes/dicionario-situacao-final.json")
+    path = Path("resources/dicionario-situacao-final.json")
     return path.read_text(encoding="utf-8")
 
 
@@ -131,7 +131,7 @@ async def resource_dicionario_situacao_final():
 async def resource_dicionario_infracoes():
     """Descriptor JSON for registro das infrações de trânsito (metadata/campos)."""
     from pathlib import Path
-    path = Path("datasets/registro-das-infracoes-de-transito/dicionario-de-dados-das-infracoes-de-transito.json")
+    path = Path("resources/dicionario-de-dados-das-infracoes-de-transito.json")
     return path.read_text(encoding="utf-8")
 
 

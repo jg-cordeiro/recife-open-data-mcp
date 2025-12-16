@@ -441,7 +441,7 @@ async def read_resource(request: Request):
     uri = body.get("uri")
     try:
         if uri == "resource://dicionario-situacao-final":
-            text = Path("datasets/situacao-final-estudantes/dicionario-situacao-final.json").read_text(encoding="utf-8")
+            text = Path("resources/dicionario-situacao-final.json").read_text(encoding="utf-8")
             return {
                 "contents": [
                     {
@@ -452,7 +452,7 @@ async def read_resource(request: Request):
                 ]
             }
         if uri == "resource://dicionario-infracoes":
-            text = Path("datasets/registro-das-infracoes-de-transito/dicionario-de-dados-das-infracoes-de-transito.json").read_text(encoding="utf-8")
+            text = Path("resources/dicionario-de-dados-das-infracoes-de-transito.json").read_text(encoding="utf-8")
             return {
                 "contents": [
                     {

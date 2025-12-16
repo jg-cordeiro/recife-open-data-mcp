@@ -15,9 +15,12 @@ __pycache__/
 *.db
 node_modules/
 
-# Data files
-data/
-datasets/*/*.csv
+# Data files (keep the DuckDB database, ignore raw CSVs)
+data/*
+!data/recife.duckdb
+
+# Ignore all raw datasets; MCP should not depend on this folder
+datasets/
 
 # Eval outputs
 eval_runs/
