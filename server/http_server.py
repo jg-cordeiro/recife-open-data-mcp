@@ -14,10 +14,24 @@ from contextlib import asynccontextmanager
 from braintrust import start_span
 from pathlib import Path
 
-from server.config import Settings
-from server.db import Database
-from server.sql_guard import ensure_limit, ensure_read_only
-from server.openrouter_client import OpenRouterClient
+import sys
+from pathlib import Path
+
+# Allow running as module or script in environments without package install
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
+
+try:
+    from .config import Settings
+    from .db import Database
+    from .sql_guard import ensure_limit, ensure_read_only
+    from .openrouter_client import OpenRouterClient
+except ImportError:  # pragma: no cover
+    from server.config import Settings
+    from server.db import Database
+    from server.sql_guard import ensure_limit, ensure_read_only
+    from server.openrouter_client import OpenRouterClient
 
 
 # Global state
