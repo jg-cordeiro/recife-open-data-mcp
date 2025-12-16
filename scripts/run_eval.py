@@ -37,7 +37,7 @@ class ComparisonSpec:
 class EvalCase:
     id: str
     question: str
-    gold_sql: str
+    reference_sql: str
     comparison: ComparisonSpec
 
 
@@ -46,7 +46,17 @@ def load_cases(cases_path: Path) -> List[EvalCase]:
     cases: List[EvalCase] = []
     for item in data.get("cases", []):
         comp = ComparisonSpec(**item["comparison"])
-        cases.append(EvalCase(id=item["id"], question=item["question"], gold_sql=item["gold_sql"], comparison=comp))
+        reference_sql = item.get("reference_sql") or item.get("gold_sql")
+        if not reference_sql:
+            raise ValueError(f"Caso {item.get('id')} sem reference_sql")
+        cases.append(
+            EvalCase(
+                id=item["id"],
+                question=item["question"],
+                reference_sql=reference_sql,
+                comparison=comp,
+            )
+        )
     return cases
 
 
@@ -125,16 +135,16 @@ def format_markdown(run_id: str, model: str, results: List[Dict[str, Any]]) -> s
         f"- Data/Hora: {datetime.now(timezone.utc).isoformat()}",
         f"- Casos: {len(results)}",
         "",
-        "| Caso | Status | Pergunta | Gold SQL | SQL Gerado | Comparação | Duração (ms) | Linhas retornadas | Detalhes |",
+        "| Caso | Status | Pergunta | SQL Referência | SQL Gerado | Comparação | Duração (ms) | Linhas retornadas | Detalhes |",
         "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for r in results:
         lines.append(
-            "| {id} | {status} | {question} | `{gold}` | `{sql}` | {cmp} | {duration} | {row_count} | {details} |".format(
+            "| {id} | {status} | {question} | `{reference}` | `{sql}` | {cmp} | {duration} | {row_count} | {details} |".format(
                 id=r["id"],
                 status="✅" if r["passed"] else "❌",
                 question=r["question"].replace("|", "\\|"),
-                gold=r["gold_sql"].replace("|", "\\|"),
+                reference=r["reference_sql"].replace("|", "\\|"),
                 sql=(r.get("generated_sql") or "").replace("|", "\\|"),
                 cmp=r.get("comparison_result", "").replace("|", "\\|"),
                 duration=int(r.get("duration_ms", 0)),
@@ -148,7 +158,7 @@ def format_markdown(run_id: str, model: str, results: List[Dict[str, Any]]) -> s
         lines.append(f"### {r['id']} ({'✅' if r['passed'] else '❌'})")
         lines.append(f"- Pergunta: {r['question']}")
         lines.append(f"- SQL gerado: `{r.get('generated_sql', '')}`")
-        lines.append(f"- SQL esperado: `{r['gold_sql']}`")
+        lines.append(f"- SQL referência: `{r['reference_sql']}`")
         lines.append(f"- Comparação: {r.get('comparison_result', '')}")
         lines.append(f"- Linhas retornadas: {len(r.get('rows', []))}")
         lines.append(f"- Ferramentas chamadas: {', '.join(r.get('tools_called', [])) if r.get('tools_called') else 'N/A'}")
@@ -176,13 +186,13 @@ async def evaluate_case(
     result: Dict[str, Any] = {
         "id": case.id,
         "question": case.question,
-        "gold_sql": case.gold_sql,
+        "reference_sql": case.reference_sql,
     }
     try:
         # Gold result
-        ensure_read_only(case.gold_sql)
-        gold_sql_limited = ensure_limit(case.gold_sql, max_rows)
-        gold_rows = await db.fetch_rows(gold_sql_limited)
+        ensure_read_only(case.reference_sql)
+        reference_sql_limited = ensure_limit(case.reference_sql, max_rows)
+        reference_rows = await db.fetch_rows(reference_sql_limited)
 
         generated_sql = await llm.generate_sql(case.question, schema_text)
         ensure_read_only(generated_sql)
@@ -192,17 +202,17 @@ async def evaluate_case(
             {
                 "generated_sql": limited_sql,
                 "rows": rows,
-                "gold_rows": gold_rows,
+                "reference_rows": reference_rows,
                 "tools_called": [],  # sem toolcalls explícitos nesta via
             }
         )
         spec = case.comparison
         if spec.type == "numeric":
-            passed, cmp_msg = compare_numeric(rows, gold_rows, spec)
+            passed, cmp_msg = compare_numeric(rows, reference_rows, spec)
         elif spec.type == "ranking":
-            passed, cmp_msg = compare_ranking(rows, gold_rows, spec)
+            passed, cmp_msg = compare_ranking(rows, reference_rows, spec)
         elif spec.type == "list":
-            passed, cmp_msg = compare_list(rows, gold_rows, spec)
+            passed, cmp_msg = compare_list(rows, reference_rows, spec)
         else:
             passed, cmp_msg = False, f"Tipo de comparação desconhecido: {spec.type}"
         result["passed"] = passed

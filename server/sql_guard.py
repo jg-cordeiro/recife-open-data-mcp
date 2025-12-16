@@ -24,7 +24,5 @@ def ensure_read_only(sql: str) -> None:
 
 
 def ensure_limit(sql: str, max_rows: int) -> str:
-    sql = sql.rstrip().rstrip(';')
-    if re.search(r"\bLIMIT\b", sql, re.IGNORECASE):
-        return sql
-    return f"{sql} LIMIT {max_rows};"
+    # Limite removido a pedido: apenas normaliza removendo ';'
+    return sql.rstrip().rstrip(';')

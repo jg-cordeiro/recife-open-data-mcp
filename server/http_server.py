@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
 from contextlib import asynccontextmanager
 from braintrust import start_span
+from pathlib import Path
 
 from .config import Settings
 from .db import Database
@@ -128,8 +129,13 @@ async def list_tools():
                 "description": "List all available tables in the database with their schemas.",
                 "inputSchema": {
                     "type": "object",
-                    "properties": {},
-                    "required": [],
+                    "properties": {
+                        "required": {
+                            "type": "boolean",
+                            "description": "Must be true; this tool is required before generating SQL."
+                        }
+                    },
+                    "required": ["required"],
                 },
             },
             {
@@ -141,9 +147,13 @@ async def list_tools():
                         "table_name": {
                             "type": "string",
                             "description": "Name of the table to describe (without schema)"
+                        },
+                        "required": {
+                            "type": "boolean",
+                            "description": "Must be true; this tool is required before generating SQL."
                         }
                     },
-                    "required": ["table_name"],
+                    "required": ["table_name", "required"],
                 },
             },
             {
@@ -370,7 +380,7 @@ async def execute_tool(request: Request):
                                 "text": json.dumps(formatted, indent=2, ensure_ascii=False)
                             }
                         ]
-                }
+                    }
 
         else:
             return JSONResponse(
@@ -389,15 +399,59 @@ async def execute_tool(request: Request):
 @app.get("/mcp/v1/resources")
 async def list_resources():
     """List available MCP resources."""
-    return {"resources": []}
+    return {
+        "resources": [
+            {
+                "uri": "resource://dicionario-atendimentos",
+                "name": "Dicionário atendimentos-defesa-civil",
+                "description": "Descriptor JSON com metadados/campos dos atendimentos da Defesa Civil",
+                "mimeType": "application/json",
+            },
+            {
+                "uri": "resource://dicionario-situacao-final",
+                "name": "Dicionário situação final dos alunos",
+                "description": "Descriptor JSON com metadados/campos da situação final dos alunos por período letivo",
+                "mimeType": "application/json",
+            },
+        ]
+    }
 
 
 @app.post("/mcp/v1/resources/read")
 async def read_resource(request: Request):
     """Read a resource."""
+    body = await request.json()
+    uri = body.get("uri")
+    try:
+        if uri == "resource://dicionario-atendimentos":
+            text = Path("datasets/atendimentos-defesa-civil/dicionario-atendimentos-defesa-civil.json").read_text(encoding="utf-8")
+            return {
+                "contents": [
+                    {
+                        "uri": uri,
+                        "mimeType": "application/json",
+                        "text": text,
+                    }
+                ]
+            }
+        if uri == "resource://dicionario-situacao-final":
+            text = Path("datasets/situacao-final-estudantes/dicionario-situacao-final.json").read_text(encoding="utf-8")
+            return {
+                "contents": [
+                    {
+                        "uri": uri,
+                        "mimeType": "application/json",
+                        "text": text,
+                    }
+                ]
+            }
+    except Exception as exc:  # pylint: disable=broad-except
+        logger.exception("read_resource failed")
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
     return JSONResponse(
         status_code=404,
-        content={"error": "No resources exposed"}
+        content={"error": f"Resource '{uri}' not found"}
     )
 
 

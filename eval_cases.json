@@ -5,122 +5,122 @@
     {
       "id": "atend_total_all",
       "question": "Quantos atendimentos da Defesa Civil existem no período inteiro?",
-      "gold_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\";",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\";",
       "comparison": { "type": "numeric" }
     },
     {
       "id": "atend_2024_total",
       "question": "Quantos atendimentos da Defesa Civil ocorreram em 2024?",
-      "gold_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Ano\" = '2024';",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Ano\" = '2024';",
       "comparison": { "type": "numeric" }
     },
     {
       "id": "atend_top_anos",
       "question": "Quais são os 3 anos com mais atendimentos da Defesa Civil?",
-      "gold_sql": "SELECT \"Ano\", COUNT(*) AS total FROM \"public\".\"atendimentos-defesa-civil\" GROUP BY \"Ano\" ORDER BY total DESC LIMIT 3;",
+      "reference_sql": "SELECT \"Ano\", COUNT(*) AS total FROM \"public\".\"atendimentos-defesa-civil\" GROUP BY \"Ano\" ORDER BY total DESC LIMIT 3;",
       "comparison": { "type": "ranking", "key_columns": ["Ano"], "value_column": "total", "top_k": 3 }
     },
     {
       "id": "atend_top_bairros",
       "question": "Quais são os 5 bairros com mais atendimentos acumulados?",
-      "gold_sql": "SELECT \"Bairro\", COUNT(*) AS total FROM \"public\".\"atendimentos-defesa-civil\" GROUP BY \"Bairro\" ORDER BY total DESC LIMIT 5;",
+      "reference_sql": "SELECT \"Bairro\", COUNT(*) AS total FROM \"public\".\"atendimentos-defesa-civil\" GROUP BY \"Bairro\" ORDER BY total DESC LIMIT 5;",
       "comparison": { "type": "ranking", "key_columns": ["Bairro"], "value_column": "total", "top_k": 5 }
     },
     {
       "id": "atend_top_bairros_2018",
       "question": "Quais foram os 3 bairros com mais atendimentos em 2018?",
-      "gold_sql": "SELECT \"Bairro\", COUNT(*) AS total FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Ano\" = '2018' GROUP BY \"Bairro\" ORDER BY total DESC LIMIT 3;",
+      "reference_sql": "SELECT \"Bairro\", COUNT(*) AS total FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Ano\" = '2018' GROUP BY \"Bairro\" ORDER BY total DESC LIMIT 3;",
       "comparison": { "type": "ranking", "key_columns": ["Bairro"], "value_column": "total", "top_k": 3 }
     },
     {
       "id": "atend_monitoramento_total",
       "question": "Quantos atendimentos têm ocorrência de Monitoramento?",
-      "gold_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Ocorrencia\" = 'Monitoramento';",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Ocorrencia\" = 'Monitoramento';",
       "comparison": { "type": "numeric" }
     },
     {
       "id": "atend_risco_r3_total",
       "question": "Quantos atendimentos têm grau de risco R3 (ou variantes de escrita)?",
-      "gold_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE LOWER(\"Grau_de_Risco\") LIKE 'r3%';",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE LOWER(\"Grau_de_Risco\") LIKE 'r3%';",
       "comparison": { "type": "numeric" }
     },
     {
       "id": "atend_top_regionais",
       "question": "Quais são as 3 regionais com mais atendimentos?",
-      "gold_sql": "SELECT \"Regional\", COUNT(*) AS total FROM \"public\".\"atendimentos-defesa-civil\" GROUP BY \"Regional\" ORDER BY total DESC LIMIT 3;",
+      "reference_sql": "SELECT \"Regional\", COUNT(*) AS total FROM \"public\".\"atendimentos-defesa-civil\" GROUP BY \"Regional\" ORDER BY total DESC LIMIT 3;",
       "comparison": { "type": "ranking", "key_columns": ["Regional"], "value_column": "total", "top_k": 3 }
     },
     {
       "id": "atend_sem_ocorrencia",
       "question": "Quantos atendimentos não têm ocorrência informada (valor nulo)?",
-      "gold_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Ocorrencia\" IS NULL;",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Ocorrencia\" IS NULL;",
       "comparison": { "type": "numeric" }
     },
     {
       "id": "atend_total_cohab",
       "question": "Quantos atendimentos ocorreram no bairro Cohab?",
-      "gold_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Bairro\" = 'Cohab';",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Bairro\" = 'Cohab';",
       "comparison": { "type": "numeric" }
     },
 
     {
       "id": "alunos_total_all",
       "question": "Quantos registros de situação final de alunos existem no período inteiro?",
-      "gold_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\";",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\";",
       "comparison": { "type": "numeric" }
     },
     {
       "id": "alunos_2024_total",
       "question": "Quantos registros de alunos existem em 2024?",
-      "gold_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2024';",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2024';",
       "comparison": { "type": "numeric" }
     },
     {
       "id": "alunos_aprovados_2023",
       "question": "Quantos alunos foram aprovados em 2023?",
-      "gold_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2023' AND \"situacao_nome\" = 'APROVADO';",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2023' AND \"situacao_nome\" = 'APROVADO';",
       "comparison": { "type": "numeric" }
     },
     {
       "id": "alunos_top_escolas",
       "question": "Quais são as 5 escolas com mais registros de alunos no período?",
-      "gold_sql": "SELECT \"escola\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"escola\" ORDER BY total DESC LIMIT 5;",
+      "reference_sql": "SELECT \"escola\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"escola\" ORDER BY total DESC LIMIT 5;",
       "comparison": { "type": "ranking", "key_columns": ["escola"], "value_column": "total", "top_k": 5 }
     },
     {
       "id": "alunos_top_situacoes",
       "question": "Quais são as 5 situações mais frequentes dos alunos?",
-      "gold_sql": "SELECT \"situacao_nome\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"situacao_nome\" ORDER BY total DESC LIMIT 5;",
+      "reference_sql": "SELECT \"situacao_nome\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"situacao_nome\" ORDER BY total DESC LIMIT 5;",
       "comparison": { "type": "ranking", "key_columns": ["situacao_nome"], "value_column": "total", "top_k": 5 }
     },
     {
       "id": "alunos_retidos_2024_total",
       "question": "Quantos alunos foram retidos em 2024?",
-      "gold_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2024' AND \"situacao_nome\" = 'RETIDO';",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2024' AND \"situacao_nome\" = 'RETIDO';",
       "comparison": { "type": "numeric" }
     },
     {
       "id": "alunos_por_sexo",
       "question": "Quantos registros existem por sexo?",
-      "gold_sql": "SELECT \"sexo\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"sexo\" ORDER BY total DESC;",
+      "reference_sql": "SELECT \"sexo\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"sexo\" ORDER BY total DESC;",
       "comparison": { "type": "ranking", "key_columns": ["sexo"], "value_column": "total" }
     },
     {
       "id": "alunos_top_anos",
       "question": "Quais são os 5 anos com mais registros de alunos?",
-      "gold_sql": "SELECT \"ano\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"ano\" ORDER BY total DESC LIMIT 5;",
+      "reference_sql": "SELECT \"ano\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"ano\" ORDER BY total DESC LIMIT 5;",
       "comparison": { "type": "ranking", "key_columns": ["ano"], "value_column": "total", "top_k": 5 }
     },
     {
       "id": "alunos_top_rpa",
       "question": "Quais são as 3 RPAs com mais registros de alunos?",
-      "gold_sql": "SELECT \"rpa\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"rpa\" IS NOT NULL GROUP BY \"rpa\" ORDER BY total DESC LIMIT 3;",
+      "reference_sql": "SELECT \"rpa\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"rpa\" IS NOT NULL GROUP BY \"rpa\" ORDER BY total DESC LIMIT 3;",
       "comparison": { "type": "ranking", "key_columns": ["rpa"], "value_column": "total", "top_k": 3 }
     },
     {
       "id": "alunos_retidos_2024_lista",
       "question": "Qual a taxa de aprovação dos alunos em 2014?",
-      "gold_sql": "SELECT CAST(SUM(CASE WHEN \"situacao_nome\" = 'APROVADO' THEN 1 ELSE 0 END) AS DOUBLE) / COUNT(*) AS taxa_aprovacao FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2014';",
+      "reference_sql": "SELECT CAST(SUM(CASE WHEN \"situacao_nome\" = 'APROVADO' THEN 1 ELSE 0 END) AS DOUBLE) / COUNT(*) AS taxa_aprovacao FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2014';",
       "comparison": { "type": "numeric", "field_name": "taxa_aprovacao", "tolerance": 0.0001 }
     }
   ]

@@ -57,7 +57,16 @@ class MCPClient:
                 "function": {
                     "name": "list_tables",
                     "description": "List all available tables in the database with their schemas. Use this when the user asks what tables exist, what data is available, or wants to know the database structure.",
-                    "parameters": {"type": "object", "properties": {}, "required": []},
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "required": {
+                                "type": "boolean",
+                                "description": "Must be true; this tool is required before generating SQL."
+                            }
+                        },
+                        "required": ["required"],
+                    },
                 },
             },
             {
@@ -71,9 +80,13 @@ class MCPClient:
                             "table_name": {
                                 "type": "string",
                                 "description": "Name of the table to describe (without schema, e.g., 'atendimentos-defesa-civil')",
+                            },
+                            "required": {
+                                "type": "boolean",
+                                "description": "Must be true; this tool is required before generating SQL."
                             }
                         },
-                        "required": ["table_name"],
+                        "required": ["table_name", "required"],
                     },
                 },
             },
@@ -206,19 +219,42 @@ class MCPClient:
         """Send a message to Claude via OpenRouter and process tool calls."""
         typer.secho(f"\n👤 User: {user_message}", fg=typer.colors.CYAN)
 
+        # Pré-busca: obter tabelas e descrições para dar contexto imediato à LLM
+        tables = await self.fetch_tools()
+        messages: list = []
+
         system_prompt = (
             "Você é um assistente MCP que responde em português e decide o uso de ferramentas para acessar dados públicos da Prefeitura do Recife no DuckDB.\n"
-            "- Sempre comece obtendo a lista de tabelas com list_tables antes de escolher o que consultar.\n"
-            "- Depois de decidir uma tabela, use describe_table para ver colunas; use search_schema só se não souber onde encontrar um campo.\n"
-            "- Para perguntas sobre dados (contagens, filtros, agregações), prefira answer_question; use execute_sql apenas se o usuário fornecer SQL completo e válido.\n"
-            "- Não invente tabelas ou colunas; siga exatamente os nomes retornados pelas ferramentas.\n"
-            "- Se nenhuma ferramenta for necessária, responda direto, mas mantenha as respostas concisas."
+            "- SEMPRE comece chamando list_tables. Não gere SQL antes de listar.\n"
+            "- Escolha a tabela e chame describe_table para pegar os nomes exatos de colunas. Não invente colunas ou acentos; use os nomes retornados (ex.: Ano, Ocorrencia, Grau_de_Risco, situacao_nome, ano, escola, sexo).\n"
+            "- Use search_schema apenas se precisar achar onde está um campo.\n"
+            "- Consulte os dicionários via resources (resource://dicionario-atendimentos e resource://dicionario-situacao-final) quando precisar confirmar nomes/colunas.\n"
+            "- Para perguntas de dados (contagens, filtros, agregações), prefira answer_question; use execute_sql só se o usuário já deu a query.\n"
+            "- Trate campos de ano como texto (sem casts) e mantenha aspas duplas em tabelas/colunas com hífen ou acentuação.\n"
+            "- Siga exatamente os nomes retornados pelas ferramentas; se uma coluna faltar, chame describe_table e refaça o SQL."
         )
 
-        messages = [
+        messages.extend([
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message},
-        ]
+        ])
+
+        # Adiciona contexto de schema curto (list_tables + describe_table de cada tabela encontrada)
+        try:
+            tables_list = json.loads(await self.call_mcp_tool("list_tables", {"required": True}))
+            table_names = [t.get("table") for t in tables_list.get("tables", []) if t.get("table")]
+            schema_context = {"tables": tables_list.get("tables", [])}
+            for tname in table_names:
+                desc_raw = await self.call_mcp_tool("describe_table", {"table_name": tname, "required": True})
+                try:
+                    desc_json = json.loads(desc_raw)
+                except Exception:
+                    desc_json = {"error": desc_raw}
+                schema_context[tname] = desc_json
+            messages.append({"role": "user", "content": f"Contexto de schema (não invente nada além disto):\n{json.dumps(schema_context, ensure_ascii=False)}"})
+        except Exception as e:  # pylint: disable=broad-except
+            typer.secho(f"⚠️ Falha ao obter contexto de schema: {e}", fg=typer.colors.YELLOW)
+
         tools = await self.fetch_tools()
 
         # First request with tools

@@ -19,25 +19,46 @@ class OpenRouterClient:
 
     @traced(type="llm", name="OpenRouter SQL Generation", notrace_io=True)
     async def generate_sql(self, question: str, schema_text: str | None = None, previous_error: str | None = None) -> str:
-        guidance = (
-            "You are a SQL expert producing safe, read-only DuckDB SQL. "
-            "Use only tables and columns from the schema. "
-            f"Never mutate data. Always add LIMIT {self.max_rows} unless the query already limits rows. \n\n"
-            "IMPORTANT RULES:\n"
-            "1. Table names with hyphens MUST be quoted with double quotes\n"
-            "2. Schema names MUST be quoted with double quotes\n"
-            "3. Column names with special characters or capitals MUST be quoted\n"
-            "4. Format: \"schema\".\"table-name\".\"Column_Name\"\n\n"
-            "EXAMPLES:\n"
-            "Q: How many records in the civil defense table?\n"
-            'A: SELECT COUNT(*) FROM "public"."atendimentos-defesa-civil" LIMIT 200;\n\n'
-            "Q: Show me the first 5 student records\n"
-            'A: SELECT * FROM "public"."situação_final_dos_alunos_por_período_letivo" LIMIT 5;\n\n'
-            "Q: How many distinct years in civil defense data?\n"
-            'A: SELECT COUNT(DISTINCT "Ano") AS distinct_years FROM "public"."atendimentos-defesa-civil" LIMIT 200;\n\n'
-            "Q: List neighborhoods with most incidents\n"
-            'A: SELECT "Bairro", COUNT(*) as total FROM "public"."atendimentos-defesa-civil" GROUP BY "Bairro" ORDER BY total DESC LIMIT 10;'
-        )
+        guidance = f"""You are a SQL expert producing safe, read-only DuckDB SQL for Recife open data.
+BEFORE any SQL:
+- Call list_tables to see exact table names (no guesses). NEVER put tool calls inside SQL.
+- Pick the table and call describe_table to get exact column names; use search_schema only to locate fields. This is required before generating SQL.
+- You can consult dataset dictionaries via MCP resources: resource://dicionario-atendimentos and resource://dicionario-situacao-final to confirm naming.
+- Use ONLY the names returned by the tools. Do not invent columns (e.g., no Ano_Letivo, no Ocorrência; use Ano, Ocorrencia, Grau_de_Risco, situacao_nome, ano, escola, sexo, etc.).
+- Treat year fields as text; do not cast. Quote schema/table/column with double quotes.
+- In aggregations, always alias counts/sums clearly (e.g., COUNT(*) AS total) so the numeric column is explicit.
+- For text filters with variants (ex.: R3), use LOWER + LIKE/regex as needed, but only on existing columns.
+- Never mutate data. Do NOT add LIMIT automatically.
+
+IMPORTANT RULES:
+1. Table names with hyphens MUST be quoted with double quotes
+2. Schema names MUST be quoted with double quotes
+3. Column names with special characters or capitals MUST be quoted
+4. Format: "schema"."table-name"."Column_Name"
+
+EXAMPLES (real tables/columns, sem LIMIT):
+Q: Contagem total de atendimentos
+A: SELECT COUNT(*) AS total FROM "public"."atendimentos-defesa-civil";
+
+Q: Atendimentos de 2024
+A: SELECT COUNT(*) AS total FROM "public"."atendimentos-defesa-civil" WHERE "Ano" = '2024';
+
+Q: Top 5 bairros com mais atendimentos
+A: SELECT "Bairro", COUNT(*) AS total FROM "public"."atendimentos-defesa-civil" GROUP BY "Bairro" ORDER BY total DESC LIMIT 5;
+
+Q: Atendimentos de Monitoramento
+A: SELECT COUNT(*) AS total FROM "public"."atendimentos-defesa-civil" WHERE "Ocorrencia" = 'Monitoramento';
+
+Q: Quantos registros de alunos em 2024
+A: SELECT COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" WHERE "ano" = '2024';
+
+Q: Quantos alunos aprovados em 2023
+A: SELECT COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" WHERE "ano" = '2023' AND "situacao_nome" = 'APROVADO';
+
+Q: Top 5 anos com mais registros de alunos
+A: SELECT "ano", COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" GROUP BY "ano" ORDER BY total DESC LIMIT 5;
+
+If a column error occurs, STOP and call describe_table (and check resources), then regenerate SQL with the exact names. Do not retry with guessed names."""
         user_content = f"Question: {question}\nReturn ONLY SQL, no markdown fences or commentary."
         if schema_text:
             user_content = f"Schema:\n{schema_text}\n\n{user_content}"

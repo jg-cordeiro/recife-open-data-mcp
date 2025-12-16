@@ -24,7 +24,12 @@ class Database:
         if self._conn is None:
             await self.init()
         assert self._conn is not None
-        # DuckDB doesn't have per-statement timeout, so we just execute
+        # Validação de schema: EXPLAIN detecta tabela/coluna inexistente antes de executar
+        try:
+            self._conn.execute(f"EXPLAIN {sql}")
+        except Exception as exc:
+            raise ValueError(f"SQL inválido (tabela/coluna não encontrada). Use list_tables/describe_table e corrija os nomes. Erro: {exc}") from exc
+
         result = self._conn.execute(sql).fetchall()
         # Convert to list of dicts
         columns = [desc[0] for desc in self._conn.description] if self._conn.description else []
