@@ -11,6 +11,7 @@ settings = Settings.load()
 db = Database(settings)
 llm: OpenRouterClient | None = None
 app = FastMCP("recife-open-data-mcp")
+mcp = app  # alias for runtimes expecting 'mcp'
 
 
 def _require_llm() -> OpenRouterClient:
