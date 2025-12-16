@@ -1,68 +1,7 @@
 {
-  "version": "2.0",
-  "description": "Casos de avaliação para o MCP (dados abertos do Recife). Avaliação compara resultados gerados com resultados de referência executados no DuckDB.",
+  "version": "3.0",
+  "description": "Casos de avaliação para o MCP com os datasets atuais: situação final de alunos e infrações de trânsito (CTTU).",
   "cases": [
-    {
-      "id": "atend_total_all",
-      "question": "Quantos atendimentos da Defesa Civil existem no período inteiro?",
-      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\";",
-      "comparison": { "type": "numeric" }
-    },
-    {
-      "id": "atend_2024_total",
-      "question": "Quantos atendimentos da Defesa Civil ocorreram em 2024?",
-      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Ano\" = '2024';",
-      "comparison": { "type": "numeric" }
-    },
-    {
-      "id": "atend_top_anos",
-      "question": "Quais são os 3 anos com mais atendimentos da Defesa Civil?",
-      "reference_sql": "SELECT \"Ano\", COUNT(*) AS total FROM \"public\".\"atendimentos-defesa-civil\" GROUP BY \"Ano\" ORDER BY total DESC LIMIT 3;",
-      "comparison": { "type": "ranking", "key_columns": ["Ano"], "value_column": "total", "top_k": 3 }
-    },
-    {
-      "id": "atend_top_bairros",
-      "question": "Quais são os 5 bairros com mais atendimentos acumulados?",
-      "reference_sql": "SELECT \"Bairro\", COUNT(*) AS total FROM \"public\".\"atendimentos-defesa-civil\" GROUP BY \"Bairro\" ORDER BY total DESC LIMIT 5;",
-      "comparison": { "type": "ranking", "key_columns": ["Bairro"], "value_column": "total", "top_k": 5 }
-    },
-    {
-      "id": "atend_top_bairros_2018",
-      "question": "Quais foram os 3 bairros com mais atendimentos em 2018?",
-      "reference_sql": "SELECT \"Bairro\", COUNT(*) AS total FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Ano\" = '2018' GROUP BY \"Bairro\" ORDER BY total DESC LIMIT 3;",
-      "comparison": { "type": "ranking", "key_columns": ["Bairro"], "value_column": "total", "top_k": 3 }
-    },
-    {
-      "id": "atend_monitoramento_total",
-      "question": "Quantos atendimentos têm ocorrência de Monitoramento?",
-      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Ocorrencia\" = 'Monitoramento';",
-      "comparison": { "type": "numeric" }
-    },
-    {
-      "id": "atend_risco_r3_total",
-      "question": "Quantos atendimentos têm grau de risco R3 (ou variantes de escrita)?",
-      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE LOWER(\"Grau_de_Risco\") LIKE 'r3%';",
-      "comparison": { "type": "numeric" }
-    },
-    {
-      "id": "atend_top_regionais",
-      "question": "Quais são as 3 regionais com mais atendimentos?",
-      "reference_sql": "SELECT \"Regional\", COUNT(*) AS total FROM \"public\".\"atendimentos-defesa-civil\" GROUP BY \"Regional\" ORDER BY total DESC LIMIT 3;",
-      "comparison": { "type": "ranking", "key_columns": ["Regional"], "value_column": "total", "top_k": 3 }
-    },
-    {
-      "id": "atend_sem_ocorrencia",
-      "question": "Quantos atendimentos não têm ocorrência informada (valor nulo)?",
-      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Ocorrencia\" IS NULL;",
-      "comparison": { "type": "numeric" }
-    },
-    {
-      "id": "atend_total_cohab",
-      "question": "Quantos atendimentos ocorreram no bairro Cohab?",
-      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"atendimentos-defesa-civil\" WHERE \"Bairro\" = 'Cohab';",
-      "comparison": { "type": "numeric" }
-    },
-
     {
       "id": "alunos_total_all",
       "question": "Quantos registros de situação final de alunos existem no período inteiro?",
@@ -118,10 +57,70 @@
       "comparison": { "type": "ranking", "key_columns": ["rpa"], "value_column": "total", "top_k": 3 }
     },
     {
-      "id": "alunos_retidos_2024_lista",
+      "id": "alunos_taxa_aprovacao_2014",
       "question": "Qual a taxa de aprovação dos alunos em 2014?",
       "reference_sql": "SELECT CAST(SUM(CASE WHEN \"situacao_nome\" = 'APROVADO' THEN 1 ELSE 0 END) AS DOUBLE) / COUNT(*) AS taxa_aprovacao FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2014';",
       "comparison": { "type": "numeric", "field_name": "taxa_aprovacao", "tolerance": 0.0001 }
+    },
+    {
+      "id": "transito_total_all",
+      "question": "Quantos registros existem no dataset de infrações de trânsito?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\";",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "transito_total_2019",
+      "question": "Quantas infrações foram registradas em 2019?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataInfracao\", '(20\\\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2019';",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "transito_top_anos",
+      "question": "Quais são os 5 anos com mais infrações registradas (pela data da infração)?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataInfracao\", '(20\\\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT ano, COUNT(*) AS total FROM base GROUP BY ano ORDER BY total DESC LIMIT 5;",
+      "comparison": { "type": "ranking", "key_columns": ["ano"], "value_column": "total", "top_k": 5 }
+    },
+    {
+      "id": "transito_top_infracoes",
+      "question": "Quais são os 5 códigos de infração mais frequentes?",
+      "reference_sql": "SELECT \"infracao\", COUNT(*) AS total FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" GROUP BY \"infracao\" ORDER BY total DESC LIMIT 5;",
+      "comparison": { "type": "ranking", "key_columns": ["infracao"], "value_column": "total", "top_k": 5 }
+    },
+    {
+      "id": "transito_top_locais",
+      "question": "Quais são os 5 locais de cometimento com mais registros?",
+      "reference_sql": "SELECT \"localcometimento\", COUNT(*) AS total FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" GROUP BY \"localcometimento\" ORDER BY total DESC LIMIT 5;",
+      "comparison": { "type": "ranking", "key_columns": ["localcometimento"], "value_column": "total", "top_k": 5 }
+    },
+    {
+      "id": "transito_implantacao_2024",
+      "question": "Quantas multas foram implantadas em 2024?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataimplantacao\", '(20\\\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2024';",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "transito_top_agentes",
+      "question": "Quais são os 3 agentes/equipamentos com mais registros?",
+      "reference_sql": "SELECT \"agenteequipamento\", COUNT(*) AS total FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" GROUP BY \"agenteequipamento\" ORDER BY total DESC LIMIT 3;",
+      "comparison": { "type": "ranking", "key_columns": ["agenteequipamento"], "value_column": "total", "top_k": 3 }
+    },
+    {
+      "id": "transito_infracoes_2024_amparo",
+      "question": "Quais são os 3 amparos legais mais comuns nas multas implantadas em 2024?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataimplantacao\", '(20\\\\d{2})') AS ano, \"amparolegal\" FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT \"amparolegal\", COUNT(*) AS total FROM base WHERE ano = '2024' GROUP BY \"amparolegal\" ORDER BY total DESC LIMIT 3;",
+      "comparison": { "type": "ranking", "key_columns": ["amparolegal"], "value_column": "total", "top_k": 3 }
+    },
+    {
+      "id": "transito_sample_lista",
+      "question": "Liste 3 registros de infração com data, hora e código de infração.",
+      "reference_sql": "SELECT \"dataInfracao\", \"horainfracao\", \"infracao\", \"descricaoinfracao\" FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" LIMIT 3;",
+      "comparison": { "type": "list", "sample_columns": ["dataInfracao", "horainfracao", "infracao", "descricaoinfracao"], "sample_size": 3 }
+    },
+    {
+      "id": "transito_total_2015_implantacao",
+      "question": "Quantas multas foram implantadas em 2015?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataimplantacao\", '(20\\\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2015';",
+      "comparison": { "type": "numeric" }
     }
   ]
 }

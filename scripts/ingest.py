@@ -118,7 +118,46 @@ def create_table(conn: duckdb.DuckDBPyConnection, schema: str, table: str, colum
 def copy_csv(conn: duckdb.DuckDBPyConnection, schema: str, table: str, csv_path: Path) -> None:
     # Use DuckDB's read_csv_auto and insert
     csv_path_str = str(csv_path)
-    conn.execute(f'INSERT INTO "{schema}"."{table}" SELECT * FROM read_csv_auto(\'{csv_path_str}\')')
+    try:
+        conn.execute(f'INSERT INTO "{schema}"."{table}" SELECT * FROM read_csv_auto(\'{csv_path_str}\')')
+    except Exception:
+        # Fallback with explicit options
+        try:
+            conn.execute(
+                f'''INSERT INTO "{schema}"."{table}"
+                    SELECT * FROM read_csv_auto(
+                        '{csv_path_str}',
+                        header=True,
+                        delim=',',
+                        quote='"',
+                        ignore_errors=True,
+                        all_varchar=True,
+                        sample_size=-1
+                    )'''
+            )
+        except Exception:
+            # Last resort: clean outer quotes and double quotes into a temp file, then load
+            import tempfile
+            tmp = Path(tempfile.mkstemp(suffix=csv_path.name)[1])
+            with csv_path.open("r", encoding="utf-8", errors="ignore") as src, tmp.open("w", encoding="utf-8") as dst:
+                for line in src:
+                    stripped = line.strip()
+                    if stripped.startswith('"') and stripped.endswith('"') and len(stripped) >= 2:
+                        stripped = stripped[1:-1]
+                    stripped = stripped.replace('""', '"')
+                    dst.write(stripped + "\n")
+            conn.execute(
+                f'''INSERT INTO "{schema}"."{table}"
+                    SELECT * FROM read_csv_auto(
+                        '{tmp}',
+                        header=True,
+                        delim=',',
+                        quote='"',
+                        ignore_errors=True,
+                        all_varchar=True,
+                        sample_size=-1
+                    )'''
+            )
 
 
 @app.command()

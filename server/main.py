@@ -72,7 +72,7 @@ async def describe_table(table_name: str) -> str:
     - Before writing queries to ensure correct column names
     
     Args:
-        table_name: The table name without schema (e.g., 'atendimentos-defesa-civil')
+        table_name: The table name without schema (e.g., 'situação_final_dos_alunos_por_período_letivo')
     
     Returns column names, types, and nullability information.
     """
@@ -118,19 +118,19 @@ async def list_databases() -> str:
     return json.dumps({"message": f"Found {len(schemas)} schemas", "schemas": schemas})
 
 
-@app.resource("resource://dicionario-atendimentos")
-async def resource_dicionario_atendimentos():
-    """Descriptor JSON for atendimentos-defesa-civil (metadata/campos)."""
-    from pathlib import Path
-    path = Path("datasets/atendimentos-defesa-civil/dicionario-atendimentos-defesa-civil.json")
-    return path.read_text(encoding="utf-8")
-
-
 @app.resource("resource://dicionario-situacao-final")
 async def resource_dicionario_situacao_final():
     """Descriptor JSON for situação_final_dos_alunos_por_período_letivo (metadata/campos)."""
     from pathlib import Path
     path = Path("datasets/situacao-final-estudantes/dicionario-situacao-final.json")
+    return path.read_text(encoding="utf-8")
+
+
+@app.resource("resource://dicionario-infracoes")
+async def resource_dicionario_infracoes():
+    """Descriptor JSON for registro das infrações de trânsito (metadata/campos)."""
+    from pathlib import Path
+    path = Path("datasets/registro-das-infracoes-de-transito/dicionario-de-dados-das-infracoes-de-transito.json")
     return path.read_text(encoding="utf-8")
 
 

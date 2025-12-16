@@ -37,26 +37,23 @@ IMPORTANT RULES:
 4. Format: "schema"."table-name"."Column_Name"
 
 EXAMPLES (real tables/columns, sem LIMIT):
-Q: Contagem total de atendimentos
-A: SELECT COUNT(*) AS total FROM "public"."atendimentos-defesa-civil";
+Q: Contagem total de registros de infrações
+A: SELECT COUNT(*) AS total FROM "public"."registro_das_infrações_de_trânsito_-_cttu";
 
-Q: Atendimentos de 2024
-A: SELECT COUNT(*) AS total FROM "public"."atendimentos-defesa-civil" WHERE "Ano" = '2024';
+Q: Infrações registradas em 2019
+A: SELECT COUNT(*) AS total FROM "public"."registro_das_infrações_de_trânsito_-_cttu" WHERE substr("dataInfracao",1,4) = '2019';
 
-Q: Top 5 bairros com mais atendimentos
-A: SELECT "Bairro", COUNT(*) AS total FROM "public"."atendimentos-defesa-civil" GROUP BY "Bairro" ORDER BY total DESC LIMIT 5;
+Q: Top 5 códigos de infração
+A: SELECT "infracao", COUNT(*) AS total FROM "public"."registro_das_infrações_de_trânsito_-_cttu" GROUP BY "infracao" ORDER BY total DESC LIMIT 5;
 
-Q: Atendimentos de Monitoramento
-A: SELECT COUNT(*) AS total FROM "public"."atendimentos-defesa-civil" WHERE "Ocorrencia" = 'Monitoramento';
+Q: Top 5 anos com mais alunos
+A: SELECT "ano", COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" GROUP BY "ano" ORDER BY total DESC LIMIT 5;
 
 Q: Quantos registros de alunos em 2024
 A: SELECT COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" WHERE "ano" = '2024';
 
 Q: Quantos alunos aprovados em 2023
 A: SELECT COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" WHERE "ano" = '2023' AND "situacao_nome" = 'APROVADO';
-
-Q: Top 5 anos com mais registros de alunos
-A: SELECT "ano", COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" GROUP BY "ano" ORDER BY total DESC LIMIT 5;
 
 If a column error occurs, STOP and call describe_table (and check resources), then regenerate SQL with the exact names. Do not retry with guessed names."""
         user_content = f"Question: {question}\nReturn ONLY SQL, no markdown fences or commentary."

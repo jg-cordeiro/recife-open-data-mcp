@@ -79,7 +79,7 @@ class MCPClient:
                         "properties": {
                             "table_name": {
                                 "type": "string",
-                                "description": "Name of the table to describe (without schema, e.g., 'atendimentos-defesa-civil')",
+                                "description": "Name of the table to describe (without schema, e.g., 'situação_final_dos_alunos_por_período_letivo')",
                             },
                             "required": {
                                 "type": "boolean",

@@ -402,15 +402,15 @@ async def list_resources():
     return {
         "resources": [
             {
-                "uri": "resource://dicionario-atendimentos",
-                "name": "Dicionário atendimentos-defesa-civil",
-                "description": "Descriptor JSON com metadados/campos dos atendimentos da Defesa Civil",
-                "mimeType": "application/json",
-            },
-            {
                 "uri": "resource://dicionario-situacao-final",
                 "name": "Dicionário situação final dos alunos",
                 "description": "Descriptor JSON com metadados/campos da situação final dos alunos por período letivo",
+                "mimeType": "application/json",
+            },
+            {
+                "uri": "resource://dicionario-infracoes",
+                "name": "Dicionário infrações de trânsito",
+                "description": "Descriptor JSON com metadados/campos das infrações de trânsito (CTTU)",
                 "mimeType": "application/json",
             },
         ]
@@ -423,8 +423,8 @@ async def read_resource(request: Request):
     body = await request.json()
     uri = body.get("uri")
     try:
-        if uri == "resource://dicionario-atendimentos":
-            text = Path("datasets/atendimentos-defesa-civil/dicionario-atendimentos-defesa-civil.json").read_text(encoding="utf-8")
+        if uri == "resource://dicionario-situacao-final":
+            text = Path("datasets/situacao-final-estudantes/dicionario-situacao-final.json").read_text(encoding="utf-8")
             return {
                 "contents": [
                     {
@@ -434,8 +434,8 @@ async def read_resource(request: Request):
                     }
                 ]
             }
-        if uri == "resource://dicionario-situacao-final":
-            text = Path("datasets/situacao-final-estudantes/dicionario-situacao-final.json").read_text(encoding="utf-8")
+        if uri == "resource://dicionario-infracoes":
+            text = Path("datasets/registro-das-infracoes-de-transito/dicionario-de-dados-das-infracoes-de-transito.json").read_text(encoding="utf-8")
             return {
                 "contents": [
                     {
