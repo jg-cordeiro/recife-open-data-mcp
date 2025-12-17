@@ -1,131 +1,65 @@
 # Recife Open Data MCP
 
-Camada MCP em Python/FastMCP para consultar datasets públicos do Recife via linguagem natural. Os dados são armazenados em um banco DuckDB embutido (arquivo local) e expostos a um LLM via OpenRouter para gerar e executar SQL com limites e guardrails.
+Protótipo para consultar dados públicos do Recife em linguagem natural usando MCP como camada de orquestração. A implementação realizada materializa um protótipo funcional para consulta a dados públicos abertos do município do Recife a partir de linguagem natural, utilizando um servidor MCP como camada de abstração entre (i) um repositório local de dados estruturados em banco relacional e (ii) um cliente que orquestra chamadas a um modelo de linguagem para geração de consultas SQL e leitura dos resultados. A escolha do MCP como protocolo busca padronizar o acesso a dados estruturados por modelos de linguagem, reduzindo a necessidade de integrações ad hoc entre cada fonte de dados e cada aplicação cliente.
 
-## Pré-requisitos
-- Python 3.12+
-- Git LFS instalado (para baixar o `data/recife.duckdb`): `brew install git-lfs` e `git lfs install`
-- Chave de API do OpenRouter (`OPENROUTER_API_KEY`), com acesso ao modelo `openai/gpt-5.1-codex-max` (Preview)
+## Arquitetura do protótipo
+- **Dados**: arquivos CSV do portal de dados abertos são carregados em um DuckDB local (`./data/recife.duckdb`), preservando a estrutura original (detalhes em `INGESTAO_DATASETS.md`).
+- **Camada MCP (FastMCP)**: expõe ferramentas para explorar o schema, executar SQL direto e gerar SQL via LLM com guardrails. A versão HTTP usa FastAPI/uvicorn; o mesmo app roda via stdio.
+- **Cliente/LLM**: perguntas em linguagem natural são enviadas ao OpenRouter (`openai/gpt-5.1-codex-max`) com um prompt que força exploração prévia do schema e checagens de segurança.
+- **Observabilidade**: Braintrust registra chamadas LLM e spans de ingestão/consulta (ver `OBSERVABILITY.md`).
+- **Avaliação**: `scripts/run_eval.py` executa casos de teste (`eval_cases.json`) comparando o SQL gerado com queries de referência.
 
-## Configuração
+## Pré-requisitos e dependências principais
+- Python 3.12+ e Git LFS (para baixar `data/recife.duckdb`): `brew install python@3.12 git-lfs && git lfs install`
+- Chave do OpenRouter (`OPENROUTER_API_KEY`) com acesso ao modelo `openai/gpt-5.1-codex-max` (Preview)
+- Bibliotecas centrais: FastMCP/FastAPI, DuckDB, OpenAI SDK, Typer (CLIs), Braintrust (observabilidade)
+
+## Configuração rápida
 1. Copie variáveis de ambiente:
    ```bash
    cp .env.example .env
-   # preencha OPENROUTER_API_KEY
+   # preencha OPENROUTER_API_KEY (e opcionalmente BRAINTRUST_API_KEY)
    ```
-
-2. Instale dependências Python (recomendado usar venv):
+2. Crie o ambiente e instale dependências:
    ```bash
-   # macOS com Homebrew
-   brew install python@3.12
-   /opt/homebrew/bin/python3.12 -m venv .venv
+   /opt/homebrew/bin/python3.12 -m venv .venv  # ajuste o caminho conforme seu sistema
    source .venv/bin/activate
    pip install -r requirements.txt
    ```
-
-### Ambiente de desenvolvimento mais rápido (uv)
-- Instale o gerenciador `uv` (mais rápido que pip): `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- Crie/ative o ambiente e sincronize as dependências em uma linha: 
-  ```bash
-  uv venv && source .venv/bin/activate && uv pip sync requirements.txt
-  ```
-- Sincronizar novamente não reinstala tudo, só aplica diffs — resolve a necessidade de refazer installs toda hora.
-
-3. (Opcional) Configure o diretório de dados do DuckDB:
+   Dica: `uv venv && source .venv/bin/activate && uv pip sync requirements.txt` acelera o setup.
+3. (Opcional) Configure onde o DuckDB será salvo:
    ```bash
-   export DUCKDB_DATA_DIR=./data  # padrão; cria a pasta automaticamente
+   export DUCKDB_DATA_DIR=./data  # padrão; criado automaticamente
    ```
 
-## Ingestão de dados
+## Executando o servidor MCP
+- **Stdio (FastMCP)**:
+  ```bash
+  OPENROUTER_API_KEY=... python -m server.main
+  ```
+- **HTTP (FastAPI/uvicorn)**:
+  ```bash
+  OPENROUTER_API_KEY=... uvicorn server.http_server:app --reload --port 8000
+  ```
+- **Clientes de teste**:
+  - MCP interativo (stdio): `python client.py interactive`
+  - MCP via HTTP: `python http_client.py interactive`
 
-Os CSVs não são consolidados ou alterados neste repositório. Para carregar dados no DuckDB, mantenha os arquivos originais e forneça um descriptor JSON com o esquema esperado (nome da tabela e colunas). Toda a lógica necessária para ingestão está em `scripts/ingest.py`.
+Endpoints HTTP MCP principais: `GET /health`, `GET /mcp/v1/tools`, `POST /mcp/v1/tools/execute`, `GET /mcp/v1/resources`.
 
-### Ingestão individual
+## Dados e ingestão
+Os CSVs são mantidos exatamente como vieram do portal, e a carga é feita por descritores JSON que definem tabela/esquema. A agregação por dataset junta múltiplos CSVs homogêneos em uma tabela única para permitir consultas longitudinais sem remodelagens profundas. O script `scripts/ingest.py` suporta ingestão individual ou em lote; detalhes e critérios estão em `INGESTAO_DATASETS.md`.
 
-Crie um descriptor para cada CSV, apontando para os nomes e tipos das colunas. Exemplo (`datasets/escolas.json`):
-```json
-{
-  "table": "escolas",
-  "description": "Escolas públicas do Recife",
-  "columns": [
-    {"name": "id", "type": "INTEGER"},
-    {"name": "nome", "type": "VARCHAR"},
-    {"name": "bairro", "type": "VARCHAR"},
-    {"name": "qtde_alunos", "type": "INTEGER"}
-  ]
-}
-```
+## Ferramentas MCP e prompt
+O servidor expõe um conjunto enxuto de ferramentas para explorar schema e consultar dados (`list_tables`, `describe_table`, `search_schema`, `list_databases`, `execute_sql`, `answer_question`) e dicionários de dados via resources. O prompt do LLM obriga a explorar tabelas/colunas antes de gerar SQL e aplica regras de segurança/quoting; o racional completo está em `FERRAMENTAS_MCP.md`.
 
-Ingerir um arquivo:
-```bash
-python -m scripts.ingest load datasets/escolas.json datasets/escolas.csv --schema public --replace
-```
+## Testes e evals
+Casos de avaliação em `eval_cases.json` são executados por `python -m scripts.run_eval --help`. Cada caso compara o SQL gerado e as linhas retornadas com uma query de referência, produzindo um relatório Markdown em `eval_runs/`. Use o DuckDB local com os dados já ingeridos antes de rodar os evals.
 
-- Se `columns` não for fornecido no JSON, o script infere os tipos a partir das primeiras linhas do CSV.
-- `--replace` recria a tabela; remova a flag ou use `--replace False` para anexar.
-- Tipos suportados: `INTEGER`, `DOUBLE`, `BOOLEAN`, `TIMESTAMP`, `VARCHAR`.
+## Observabilidade
+Braintrust coleta spans de geração/execução de SQL (servidor MCP e clientes). Adicione `BRAINTRUST_API_KEY` no `.env` para ativar; consulte `OBSERVABILITY.md` para escopo e métricas.
 
-### Ingestão em lote
-
-Para carregar vários arquivos de uma vez, mantenha cada par `<nome>.json` + `<nome>.csv` no mesmo diretório (por exemplo, `datasets/`). O comando abaixo varre esse diretório sem modificar os CSVs:
-
-```bash
-python -m scripts.ingest batch --input-dir datasets --schema public --replace
-```
-
-O script cria tabelas com base nos descritores e insere os dados exatamente como estão nos CSVs originais.
-
-## Executando o servidor MCP localmente
-```bash
-OPENROUTER_API_KEY=... python -m server.main
-```
-
-Ou via FastAPI HTTP:
-```bash
-OPENROUTER_API_KEY=... uvicorn server.http_server:app --reload
-```
-
-## Ferramentas MCP Disponíveis
-
-Para guia completo com exemplos de uso, veja [FERRAMENTAS_MCP.md](FERRAMENTAS_MCP.md).
-
-Exposição principal (via MCP):
-- `list_tables()`: lista todas as tabelas disponíveis com seus schemas.
-- `describe_table(table_name)`: retorna detalhes das colunas de uma tabela específica.
-- `search_schema(search_term)`: busca tabelas e colunas que correspondem a um termo.
-- `list_databases()`: lista todos os schemas disponíveis no banco.
-- `execute_sql(sql)`: executa SELECT com LIMIT automático.
-- `answer_question(question)`: gera SQL com o LLM (dois estágios de retry), valida, executa e retorna o resultado.
-- Resources: dicionários dos datasets (`resource://dicionario-situacao-final`, `resource://dicionario-infracoes`, `resource://dicionario-naufragios`).
-
-**Recomendação:** Sempre use `list_tables()` e, em seguida, `describe_table("<tabela>")` antes de gerar SQL para garantir que a LLM use nomes exatos (há hífens, acentos e espaços em colunas como `historia detalhada`).
-
-Guardrails:
-- Somente SELECT/WITH/EXPLAIN são aceitos; DDL/DML são bloqueados.
-- `LIMIT` automático (configurável via `MAX_RESULT_ROWS`).
-- Sem timeout por statement (DuckDB executa rapidamente localmente).
-
-## Testando interativamente (CLI)
-Cliente interativo usando OpenRouter para fazer perguntas em linguagem natural:
-
-Ou manualmente:
-```bash
-source .venv/bin/activate
-python client.py interactive
-```
-
-Exemplos de perguntas:
-- "Quantos registros de alunos há em 2024?"
-- "Quais são os 5 códigos de infração mais comuns?"
-- "Liste 3 naufrágios com profundidade máxima informada"
-
-## Uso com clientes MCP / FastMCP Cloud
-- Endpoint/entrypoint: `server/main.py`.
-- Variáveis obrigatórias: `OPENROUTER_API_KEY`. O modelo padrão é `OPENROUTER_MODEL=openai/gpt-5.1-codex-max`.
-- O arquivo DuckDB é armazenado localmente (variável `DUCKDB_DATA_DIR`), permitindo persistência mesmo em restarts.
-
-## Troubleshooting
-- DuckDB não inicializa: verifique se o diretório `./data` existe e tem permissões de escrita.
-- LLM falhou ou devolveu SQL inválido: `answer_question` faz retry com o erro; revise schema e dados.
-- Ingestão falha: confirme que o CSV está bem-formado e os tipos no descriptor são válidos para DuckDB.
-- Banco cresce muito: dados em DuckDB são comprimidos automaticamente; considere arquivar datasets antigos em volumes separados.
+## Documentação complementar
+- `INGESTAO_DATASETS.md`: ingestão e organização do banco (princípios, estratégia de agregação, escolha do DuckDB)
+- `FERRAMENTAS_MCP.md`: implementação do servidor MCP, ferramentas disponíveis e detalhamento do system prompt
+- `OBSERVABILITY.md`: monitoramento de chamadas LLM e spans de consulta

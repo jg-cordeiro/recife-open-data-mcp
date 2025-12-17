@@ -25,3 +25,4 @@ datasets/
 # Eval outputs
 eval_runs/
 !eval_runs/.gitkeep
+README_CIENTIFICO.md

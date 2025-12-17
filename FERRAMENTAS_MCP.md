@@ -1,43 +1,31 @@
-# Guia de Uso das Ferramentas MCP
+# Servidor MCP, Ferramentas e System Prompt
 
-## Ferramentas Disponíveis
+## Implementação e abordagem
+O servidor MCP foi implementado a partir de uma instância do FastMCP, com um conjunto enxuto de ferramentas voltadas a duas necessidades: (i) exploração do schema (descobrir tabelas/colunas) e (ii) consulta de dados (executar SQL diretamente ou gerar SQL a partir de linguagem natural). Toda execução de SQL passa por uma rotina central (_run_sql) que valida a query, garante que seja read-only (SELECT/WITH/EXPLAIN) e aplica limites de segurança antes de consultar o banco.
 
-### 1. `list_tables()` - Listar Tabelas
-Quando usar: descobrir quais tabelas existem.  
-Retorna: lista de tabelas com schema e nome completo.
+Em vez de disponibilizar a estrutura completa do banco como recurso de contexto único, a exploração é feita de forma incremental via ferramentas. Essa decisão evita janelas de contexto grandes e prepara o protótipo para cenários com múltiplos bancos ou domínios heterogêneos. O fluxo típico é: listar tabelas → descrever colunas → gerar/executar SQL → obter resultados.
 
-### 2. `describe_table(table_name)` - Descrever Tabela
-Quando usar: saber colunas e tipos antes de gerar SQL.  
-Parâmetros: `table_name` sem schema (ex.: `situação_final_dos_alunos_por_período_letivo`, `registro_das_infrações_de_trânsito_-_cttu` ou `naufrágios_do_recife`).
+## Ferramentas expostas
+- `list_tables()`: lista tabelas disponíveis com schema.
+- `describe_table(table_name)`: retorna colunas/tipos de uma tabela específica.
+- `search_schema(search_term)`: busca tabelas/colunas por termo.
+- `list_databases()`: lista schemas (geralmente apenas `public`).
+- `execute_sql(sql)`: executa SQL read-only com limite automático.
+- `answer_question(question)`: gera SQL via LLM, valida e executa com retry.
+- Resources: dicionários de dados para consulta contextual (`resource://dicionario-situacao-final`, `resource://dicionario-infracoes`, `resource://dicionario-naufragios`).
 
-### 3. `search_schema(search_term)` - Buscar no Schema
-Quando usar: localizar tabelas/colunas por palavra‑chave.
+Guardrails principais: bloqueio de DDL/DML, `LIMIT` aplicado automaticamente, quoting obrigatório para nomes com acentos/hífens e validação de colunas/tabelas via ferramentas.
 
-### 4. `list_databases()` - Listar Schemas
-Geralmente retorna apenas `public`.
+## System prompt (racional linha a linha)
+O prompt enviado ao LLM (ver `server/openrouter_client.py`) inclui instruções explícitas para reduzir alucinações e proteger o banco. Principais linhas e seus motivos:
+- **"You are a SQL expert... DuckDB"**: ancora o modelo no dialeto e domínio esperado.
+- **"Always call list_tables... REQUIRED describe_table"**: força descoberta de nomes reais antes de escrever SQL, evitando colunas inventadas.
+- **"consultar dataset dictionaries via resources"**: oferece contexto sem enviar todo o schema, mantendo a janela pequena.
+- **"Use ONLY names returned by the tools"**: reforça vínculo com o schema efetivo.
+- **Regras de filtragem (casing, regex para ano, profundidade)**: tratam nuances específicas dos datasets e reduzem retries desnecessários.
+- **"Never mutate data" / "Do NOT add LIMIT automaticamente"**: garante operações só de leitura e evita truncar resultados quando não solicitado.
+- **Quoting obrigatório (schema/tabela/coluna)**: endereça caracteres especiais (acentos, hífens, espaços) presentes nos nomes originais.
+- **Exemplos reais de SQL**: servem de few-shot para guiar formato e aliases consistentes.
+- **"If a column error occurs, STOP and call describe_table"**: instrui o modelo a corrigir erros consultando o schema, não chutando nomes.
 
-### 5. `execute_sql(sql)` - Executar SQL direto
-Use apenas se já tiver a query pronta. Lembre de quotar nomes com hífen/acentos.
-
-### 6. `answer_question(question)` - Responder Pergunta de Dados
-Para contagens, agregações, filtros. Não usar para descobrir estrutura.
-
-## Fluxo Recomendado
-1. `list_tables()` → ver tabelas disponíveis.  
-2. `describe_table("<tabela>")` → colunas exatas.  
-3. `answer_question("...")` ou `execute_sql("...")` se já tiver SQL.
-
-## Exemplos de Uso
-- Listar tabelas: `list_tables()`  
-- Colunas da tabela de infrações: `describe_table("registro_das_infrações_de_trânsito_-_cttu")`  
-- Contagem de multas implantadas em 2024:  
-  `SELECT COUNT(*) AS total FROM "public"."registro_das_infrações_de_trânsito_-_cttu" WHERE substr("dataimplantacao",1,4) = '2024';`
-- Top 5 anos com mais registros de alunos:  
-  `SELECT "ano", COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" GROUP BY "ano" ORDER BY total DESC LIMIT 5;`
-- Listar naufrágios com profundidade máxima conhecida:  
-  `SELECT "nome", "profundidade_maxima" FROM "public"."naufrágios_do_recife" WHERE "profundidade_maxima" IS NOT NULL;`
-
-## Dicas
-- Sempre use `describe_table` para pegar os nomes corretos (ex.: `situacao_nome`, `ano`, `dataInfracao`, `agenteequipamento`).  
-- Colunas com hífen ou acento exigem aspas duplas em SQL.  
-- Consulte os dicionários via resources (`resource://dicionario-situacao-final`, `resource://dicionario-infracoes`) para confirmar nomenclatura.
+Essa combinação de ferramentas + prompt obriga o cliente a explorar o esquema de forma incremental, reduz ambiguidade em cenários com múltiplos datasets e facilita auditar cada decisão durante os experimentos.
