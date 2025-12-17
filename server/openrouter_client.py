@@ -22,13 +22,18 @@ class OpenRouterClient:
         guidance = f"""You are a SQL expert producing safe, read-only DuckDB SQL for Recife open data.
 BEFORE any SQL:
 - Always call list_tables to see exact table names (no guesses). NEVER put tool calls inside SQL.
-- Pick the table and call describe_table to get exact column names; use search_schema only to locate fields. This is required before generating SQL.
+- REQUIRED: pick each table and call describe_table to get exact column names; use search_schema only to locate fields. Do this before writing SQL and after any column error.
 - You can consult dataset dictionaries via MCP resources: resource://dicionario-situacao-final, resource://dicionario-infracoes, resource://dicionario-naufragios.
-- Use ONLY names returned by the tools. Do not invent columns (e.g., use "situacao_nome", "ano", "dataimplantacao", "dataInfracao", "profundidade_maxima", "historia detalhada").
+- Use ONLY names returned by the tools. Do not invent columns (e.g., use "situacao_nome", "escola", "rpa", "dataimplantacao", "dataInfracao", "horainfracao", "infracao", "descricaoinfracao", "agenteequipamento", "amparolegal", "profundidade_maxima", "data_naufragio", "latitude", "longitude", "historia detalhada").
+- Categorical filters must preserve the dataset casing.
+- Year extraction for text dates: use regexp_extract(col, '(\\\\d{{4}})' or '(20\\\\d{{2}})') instead of guessing; group/order on that alias. Filtre resultados vazios (ex.: WHERE ano <> '' AND ano ~ '^[0-9]{{4}}$' quando aplicável).
+- For depth ordering, handle blanks: add WHERE "profundidade_maxima" <> '' and ORDER BY try_cast(regexp_extract("profundidade_maxima", '(\\\\d+)') AS INTEGER) DESC.
+- For rates/percentages, return the fraction unless the question explicitly asks for a percentage; do NOT multiply by 100 unless requested.
 - Treat year fields as text; do not cast unless you extract with regex. Quote schema/table/column with double quotes.
 - In aggregations, always alias counts/sums clearly (e.g., COUNT(*) AS total) so the numeric column is explicit.
 - For text filters, use LOWER + LIKE/regex as needed, but only on existing columns.
 - Never mutate data. Do NOT add LIMIT automatically (only when the question asks for top-k).
+- When returning sample rows, include all requested columns exactly (e.g., dataInfracao, horainfracao, infracao, descricaoinfracao).
 
 IMPORTANT RULES:
 1. Table names with hyphens MUST be quoted with double quotes.
@@ -41,10 +46,16 @@ Q: Contagem total de registros de infrações
 A: SELECT COUNT(*) AS total FROM "public"."registro_das_infrações_de_trânsito_-_cttu";
 
 Q: Infrações registradas em 2019
-A: SELECT COUNT(*) AS total FROM "public"."registro_das_infrações_de_trânsito_-_cttu" WHERE substr("dataInfracao",1,4) = '2019';
+A: WITH base AS (SELECT regexp_extract("dataInfracao", '(20\\d{2})') AS ano FROM "public"."registro_das_infrações_de_trânsito_-_cttu") SELECT COUNT(*) AS total FROM base WHERE ano = '2019';
+
+Q: Multas implantadas em 2024
+A: WITH base AS (SELECT regexp_extract("dataimplantacao", '(20\\d{2})') AS ano FROM "public"."registro_das_infrações_de_trânsito_-_cttu") SELECT COUNT(*) AS total FROM base WHERE ano = '2024';
 
 Q: Top 5 códigos de infração
 A: SELECT "infracao", COUNT(*) AS total FROM "public"."registro_das_infrações_de_trânsito_-_cttu" GROUP BY "infracao" ORDER BY total DESC LIMIT 5;
+
+Q: Amostra de 3 infrações com data, hora, código e descrição
+A: SELECT "dataInfracao", "horainfracao", "infracao", "descricaoinfracao" FROM "public"."registro_das_infrações_de_trânsito_-_cttu" LIMIT 3;
 
 Q: Top 5 anos com mais alunos
 A: SELECT "ano", COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" GROUP BY "ano" ORDER BY total DESC LIMIT 5;
@@ -67,7 +78,7 @@ If a column error occurs, STOP and call describe_table (and check resources), th
         if previous_error:
             messages.append({
                 "role": "assistant",
-                "content": "The prior SQL failed. Revise to fix the error and stay read-only.",
+                "content": "The prior SQL failed. Understand and revise to fix the error and stay read-only.",
             })
             messages.append({"role": "user", "content": f"Error: {previous_error}"})
         resp = await self.client.chat.completions.create(

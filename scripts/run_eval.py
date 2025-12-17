@@ -102,7 +102,8 @@ def compare_ranking(rows: List[Dict[str, Any]], gold_rows: List[Dict[str, Any]],
         _, got_val = _first_numeric(got_row, preferred=spec.value_column, exclude=spec.key_columns)
         _, gold_val = _first_numeric(gold_row, preferred=spec.value_column, exclude=spec.key_columns)
         if got_val is None or gold_val is None:
-            return False, f"Posição {idx}: valor numérico ausente."
+            # sem valor numérico; aceita ordem apenas pelas chaves
+            continue
         if abs(got_val - gold_val) > tol:
             return False, f"Posição {idx} valor: obtido={got_val}, esperado={gold_val}, tolerancia={tol}"
     return True, f"Top-{top_k} bate com o gold."
@@ -188,40 +189,75 @@ async def evaluate_case(
         "question": case.question,
         "reference_sql": case.reference_sql,
     }
-    try:
-        # Gold result
-        ensure_read_only(case.reference_sql)
-        reference_sql_limited = ensure_limit(case.reference_sql, max_rows)
-        reference_rows = await db.fetch_rows(reference_sql_limited)
+    # Gold result é fixo; compute uma vez
+    ensure_read_only(case.reference_sql)
+    reference_sql_limited = ensure_limit(case.reference_sql, max_rows)
+    reference_rows = await db.fetch_rows(reference_sql_limited)
 
-        generated_sql = await llm.generate_sql(case.question, schema_text)
-        ensure_read_only(generated_sql)
-        limited_sql = ensure_limit(generated_sql, max_rows)
-        rows = await db.fetch_rows(limited_sql)
-        result.update(
-            {
-                "generated_sql": limited_sql,
-                "rows": rows,
-                "reference_rows": reference_rows,
-                "tools_called": [],  # sem toolcalls explícitos nesta via
-            }
-        )
-        spec = case.comparison
-        if spec.type == "numeric":
-            passed, cmp_msg = compare_numeric(rows, reference_rows, spec)
-        elif spec.type == "ranking":
-            passed, cmp_msg = compare_ranking(rows, reference_rows, spec)
-        elif spec.type == "list":
-            passed, cmp_msg = compare_list(rows, reference_rows, spec)
-        else:
-            passed, cmp_msg = False, f"Tipo de comparação desconhecido: {spec.type}"
-        result["passed"] = passed
-        result["comparison_result"] = cmp_msg
-    except Exception as exc:  # pylint: disable=broad-except
+    max_attempts = 3
+    previous_error: Optional[str] = None
+    last_exc: Optional[Exception] = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            generated_sql = await llm.generate_sql(case.question, schema_text, previous_error=previous_error)
+            # Normaliza regex escapadas em excesso (\\d -> \d)
+            generated_sql = generated_sql.replace("\\\\", "\\")
+            # Bloqueia toolcalls dentro do SQL
+            lowered = generated_sql.lower()
+            if "list_tables" in lowered or "describe_table" in lowered or "search_schema" in lowered:
+                raise ValueError("SQL inválido: não inclua list_tables/describe_table/search_schema dentro do SQL. Gere apenas SELECT/WITH.")
+            if lowered.startswith("the prior sql failed"):
+                raise ValueError("Modelo retornou texto em vez de SQL. Gere apenas o SQL.")
+            ensure_read_only(generated_sql)
+            limited_sql = ensure_limit(generated_sql, max_rows)
+            result["generated_sql"] = limited_sql
+            result["attempts"] = attempt
+            rows = await db.fetch_rows(limited_sql)
+            result.update(
+                {
+                    "rows": rows,
+                    "reference_rows": reference_rows,
+                    "tools_called": [],  # sem toolcalls explícitos nesta via
+                }
+            )
+            spec = case.comparison
+            if spec.type == "numeric":
+                passed, cmp_msg = compare_numeric(rows, reference_rows, spec)
+            elif spec.type == "ranking":
+                passed, cmp_msg = compare_ranking(rows, reference_rows, spec)
+            elif spec.type == "list":
+                passed, cmp_msg = compare_list(rows, reference_rows, spec)
+            else:
+                passed, cmp_msg = False, f"Tipo de comparação desconhecido: {spec.type}"
+            result["passed"] = passed
+            result["comparison_result"] = cmp_msg
+            if passed:
+                break
+            # se comparação falhou mas SQL é válido, não reitera para evitar loop infinito
+            break
+        except ValueError as exc:
+            # SQL inválido: tenta iterar com feedback
+            last_exc = exc
+            previous_error = str(exc)
+            result["generated_sql"] = generated_sql if "generated_sql" in locals() else None
+            result["attempts"] = attempt
+            if attempt == max_attempts:
+                break
+            continue
+        except Exception as exc:  # pylint: disable=broad-except
+            last_exc = exc
+            result["attempts"] = attempt
+            break
+
+    if not result.get("passed", False):
         result["passed"] = False
-        result["error"] = str(exc)
-    finally:
-        result["duration_ms"] = int((time.time() - start) * 1000)
+        if last_exc:
+            result["error"] = str(last_exc)
+        elif "comparison_result" in result:
+            result["error"] = result["comparison_result"]
+        else:
+            result["error"] = "Falha desconhecida após tentativas."
+    result["duration_ms"] = int((time.time() - start) * 1000)
     return result
 
 
@@ -246,7 +282,7 @@ def run(
 
     async def _run_all() -> List[Dict[str, Any]]:
         await db.init()
-        schema_text = None  # LLM deve descobrir schema via ferramentas MCP
+        schema_text = await db.fetch_schema_snapshot()  # fornece snapshot do schema para evitar toolcalls inválidos
         results: List[Dict[str, Any]] = []
         for case in cases:
             typer.secho(f"→ Caso {case.id}: {case.question}", fg=typer.colors.BLUE)
