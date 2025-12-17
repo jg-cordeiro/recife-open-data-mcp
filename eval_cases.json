@@ -1,126 +1,126 @@
 {
-  "version": "3.0",
-  "description": "Casos de avaliação para o MCP com os datasets atuais: situação final de alunos, infrações de trânsito (CTTU) e naufrágios do Recife.",
+  "version": "prod-1.0",
+  "description": "Casos finais de avaliação (10 por dataset) para situação final de alunos, infrações de trânsito (CTTU) e naufrágios do Recife.",
   "cases": [
     {
-      "id": "alunos_total_all",
-      "question": "Quantos registros de situação final de alunos existem no período inteiro?",
-      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\";",
+      "id": "alunos_total_2022",
+      "question": "Quantos registros existem no dataset de alunos para o ano de 2022?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2022';",
       "comparison": { "type": "numeric" }
     },
     {
-      "id": "alunos_2024_total",
-      "question": "Quantos registros de alunos existem em 2024?",
-      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2024';",
+      "id": "alunos_retidos_geral",
+      "question": "Quantos alunos têm situação começando com RETIDO em todo o período?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE upper(\"situacao_nome\") LIKE 'RETIDO%';",
       "comparison": { "type": "numeric" }
     },
     {
-      "id": "alunos_aprovados_2023",
-      "question": "Quantos alunos foram aprovados em 2023?",
-      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2023' AND \"situacao_nome\" = 'APROVADO';",
-      "comparison": { "type": "numeric" }
-    },
-    {
-      "id": "alunos_top_escolas",
-      "question": "Quais são as 5 escolas com mais registros de alunos no período?",
-      "reference_sql": "SELECT \"escola\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"escola\" ORDER BY total DESC LIMIT 5;",
-      "comparison": { "type": "ranking", "key_columns": ["escola"], "value_column": "total", "top_k": 5 }
-    },
-    {
-      "id": "alunos_top_situacoes",
-      "question": "Quais são as 5 situações mais frequentes dos alunos?",
-      "reference_sql": "SELECT \"situacao_nome\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"situacao_nome\" ORDER BY total DESC LIMIT 5;",
-      "comparison": { "type": "ranking", "key_columns": ["situacao_nome"], "value_column": "total", "top_k": 5 }
-    },
-    {
-      "id": "alunos_retidos_2024_total",
-      "question": "Quantos alunos foram retidos em 2024?",
-      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2024' AND \"situacao_nome\" = 'RETIDO';",
-      "comparison": { "type": "numeric" }
-    },
-    {
-      "id": "alunos_por_sexo",
-      "question": "Quantos registros existem por sexo?",
-      "reference_sql": "SELECT \"sexo\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"sexo\" ORDER BY total DESC;",
-      "comparison": { "type": "ranking", "key_columns": ["sexo"], "value_column": "total" }
-    },
-    {
-      "id": "alunos_top_anos",
-      "question": "Quais são os 5 anos com mais registros de alunos?",
-      "reference_sql": "SELECT \"ano\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"ano\" ORDER BY total DESC LIMIT 5;",
-      "comparison": { "type": "ranking", "key_columns": ["ano"], "value_column": "total", "top_k": 5 }
-    },
-    {
-      "id": "alunos_top_rpa",
-      "question": "Quais são as 3 RPAs com mais registros de alunos?",
-      "reference_sql": "SELECT \"rpa\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"rpa\" IS NOT NULL GROUP BY \"rpa\" ORDER BY total DESC LIMIT 3;",
-      "comparison": { "type": "ranking", "key_columns": ["rpa"], "value_column": "total", "top_k": 3 }
-    },
-    {
-      "id": "alunos_taxa_aprovacao_2014",
-      "question": "Qual a taxa de aprovação dos alunos em 2014?",
-      "reference_sql": "SELECT CAST(SUM(CASE WHEN \"situacao_nome\" = 'APROVADO' THEN 1 ELSE 0 END) AS DOUBLE) / COUNT(*) AS taxa_aprovacao FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2014';",
+      "id": "alunos_taxa_aprovacao_2023",
+      "question": "Qual a taxa de aprovação dos alunos em 2023?",
+      "reference_sql": "SELECT CAST(SUM(CASE WHEN upper(\"situacao_nome\") = 'APROVADO' THEN 1 ELSE 0 END) AS DOUBLE) / COUNT(*) AS taxa_aprovacao FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2023';",
       "comparison": { "type": "numeric", "field_name": "taxa_aprovacao", "tolerance": 0.0001 }
     },
     {
-      "id": "transito_total_all",
+      "id": "alunos_top_escolas_aprovados",
+      "question": "Quais são as 5 escolas com mais alunos aprovados no período?",
+      "reference_sql": "SELECT \"escola\", COUNT(*) AS total_aprovados FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE upper(\"situacao_nome\") = 'APROVADO' GROUP BY \"escola\" ORDER BY total_aprovados DESC LIMIT 5;",
+      "comparison": { "type": "ranking", "key_columns": ["escola"], "value_column": "total_aprovados", "top_k": 5 }
+    },
+    {
+      "id": "alunos_turnos_2020",
+      "question": "Quais são os 3 turnos com mais registros em 2020?",
+      "reference_sql": "SELECT \"turno\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2020' GROUP BY \"turno\" ORDER BY total DESC LIMIT 3;",
+      "comparison": { "type": "ranking", "key_columns": ["turno"], "value_column": "total", "top_k": 3 }
+    },
+    {
+      "id": "alunos_modalidade_2018",
+      "question": "Quantos registros de 2018 são da modalidade Educação Infantil?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2018' AND upper(\"modalidade_ensino\") = 'EDUCACAO INFANTIL';",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "alunos_rpa_retencao",
+      "question": "Quais são as 3 RPAs com mais alunos retidos (qualquer tipo de retenção)?",
+      "reference_sql": "SELECT \"rpa\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"rpa\" IS NOT NULL AND upper(\"situacao_nome\") LIKE 'RETIDO%' GROUP BY \"rpa\" ORDER BY total DESC LIMIT 3;",
+      "comparison": { "type": "ranking", "key_columns": ["rpa"], "value_column": "total", "top_k": 3 }
+    },
+    {
+      "id": "alunos_idade_media_2024",
+      "question": "Qual é a idade média dos alunos em 2024 (considerando idades entre 4 e 30 anos)?",
+      "reference_sql": "SELECT AVG(try_cast(\"idade\" AS DOUBLE)) AS idade_media FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2024' AND try_cast(\"idade\" AS DOUBLE) BETWEEN 4 AND 30;",
+      "comparison": { "type": "numeric", "field_name": "idade_media", "tolerance": 0.001 }
+    },
+    {
+      "id": "alunos_modalidades_top",
+      "question": "Quais são as 3 modalidades de ensino com mais registros no período?",
+      "reference_sql": "SELECT \"modalidade_ensino\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"modalidade_ensino\" ORDER BY total DESC LIMIT 3;",
+      "comparison": { "type": "ranking", "key_columns": ["modalidade_ensino"], "value_column": "total", "top_k": 3 }
+    },
+    {
+      "id": "alunos_sample_2015",
+      "question": "Liste 5 registros de 2015 com ano, escola, situação e turno.",
+      "reference_sql": "SELECT \"ano\", \"escola\", \"situacao_nome\", \"turno\" FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2015' ORDER BY \"matricula\" LIMIT 5;",
+      "comparison": { "type": "list", "sample_columns": ["ano", "escola", "situacao_nome", "turno"], "sample_size": 5 }
+    },
+    {
+      "id": "transito_total_registros",
       "question": "Quantos registros existem no dataset de infrações de trânsito?",
       "reference_sql": "SELECT COUNT(*) FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\";",
       "comparison": { "type": "numeric" }
     },
     {
-      "id": "transito_total_2019",
-      "question": "Quantas infrações foram registradas em 2019?",
-      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataInfracao\", '(20\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2019';",
+      "id": "transito_implantacao_2022",
+      "question": "Quantas multas foram implantadas em 2022?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataimplantacao\", '(20\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2022';",
       "comparison": { "type": "numeric" }
     },
     {
-      "id": "transito_top_anos",
-      "question": "Quais são os 5 anos com mais infrações registradas (pela data da infração)?",
-      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataInfracao\", '(20\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT ano, COUNT(*) AS total FROM base GROUP BY ano ORDER BY total DESC LIMIT 5;",
-      "comparison": { "type": "ranking", "key_columns": ["ano"], "value_column": "total", "top_k": 5 }
+      "id": "transito_infracoes_2023",
+      "question": "Quantas infrações ocorreram em 2023 (pela data da infração)?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataInfracao\", '(20\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2023';",
+      "comparison": { "type": "numeric" }
     },
     {
-      "id": "transito_top_infracoes",
-      "question": "Quais são os 5 códigos de infração mais frequentes?",
-      "reference_sql": "SELECT \"infracao\", COUNT(*) AS total FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" GROUP BY \"infracao\" ORDER BY total DESC LIMIT 5;",
-      "comparison": { "type": "ranking", "key_columns": ["infracao"], "value_column": "total", "top_k": 5 }
+      "id": "transito_top_descricoes",
+      "question": "Quais são as 5 descrições de infração mais frequentes?",
+      "reference_sql": "SELECT \"descricaoinfracao\", COUNT(*) AS total FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" GROUP BY \"descricaoinfracao\" ORDER BY total DESC LIMIT 5;",
+      "comparison": { "type": "ranking", "key_columns": ["descricaoinfracao"], "value_column": "total", "top_k": 5 }
     },
     {
-      "id": "transito_top_locais",
-      "question": "Quais são os 5 locais de cometimento com mais registros?",
-      "reference_sql": "SELECT \"localcometimento\", COUNT(*) AS total FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" GROUP BY \"localcometimento\" ORDER BY total DESC LIMIT 5;",
+      "id": "transito_locais_2024",
+      "question": "Quais são os 5 locais de cometimento com mais multas implantadas em 2024?",
+      "reference_sql": "SELECT \"localcometimento\", COUNT(*) AS total FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" WHERE regexp_extract(\"dataimplantacao\", '(20\\d{2})') = '2024' GROUP BY \"localcometimento\" ORDER BY total DESC LIMIT 5;",
       "comparison": { "type": "ranking", "key_columns": ["localcometimento"], "value_column": "total", "top_k": 5 }
     },
     {
-      "id": "transito_implantacao_2024",
-      "question": "Quantas multas foram implantadas em 2024?",
-      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataimplantacao\", '(20\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2024';",
-      "comparison": { "type": "numeric" }
-    },
-    {
-      "id": "transito_top_agentes",
-      "question": "Quais são os 3 agentes/equipamentos com mais registros?",
-      "reference_sql": "SELECT \"agenteequipamento\", COUNT(*) AS total FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" GROUP BY \"agenteequipamento\" ORDER BY total DESC LIMIT 3;",
-      "comparison": { "type": "ranking", "key_columns": ["agenteequipamento"], "value_column": "total", "top_k": 3 }
-    },
-    {
-      "id": "transito_infracoes_2024_amparo",
-      "question": "Quais são os 3 amparos legais mais comuns nas multas implantadas em 2024?",
-      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataimplantacao\", '(20\\d{2})') AS ano, \"amparolegal\" FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT \"amparolegal\", COUNT(*) AS total FROM base WHERE ano = '2024' GROUP BY \"amparolegal\" ORDER BY total DESC LIMIT 3;",
+      "id": "transito_amparo_2016",
+      "question": "Quais são os 3 amparos legais mais comuns para infrações ocorridas em 2016?",
+      "reference_sql": "SELECT \"amparolegal\", COUNT(*) AS total FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" WHERE regexp_extract(\"dataInfracao\", '(20\\d{2})') = '2016' GROUP BY \"amparolegal\" ORDER BY total DESC LIMIT 3;",
       "comparison": { "type": "ranking", "key_columns": ["amparolegal"], "value_column": "total", "top_k": 3 }
     },
     {
-      "id": "transito_sample_lista",
-      "question": "Liste 3 registros de infração com data, hora e código de infração.",
-      "reference_sql": "SELECT \"dataInfracao\", \"horainfracao\", \"infracao\" FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" LIMIT 3;",
-      "comparison": { "type": "list", "sample_columns": ["dataInfracao", "horainfracao", "infracao"], "sample_size": 3 }
+      "id": "transito_media_diaria_2023",
+      "question": "Qual é a média diária de infrações registradas em 2023?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataInfracao\", '(20\\d{2})') AS ano, regexp_extract(\"dataInfracao\", '([0-9]{2}/[0-9]{2}/[0-9]{4})') AS data FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" WHERE regexp_extract(\"dataInfracao\", '(20\\d{2})') = '2023' AND regexp_extract(\"dataInfracao\", '([0-9]{2}/[0-9]{2}/[0-9]{4})') <> '') SELECT CAST(COUNT(*) AS DOUBLE) / NULLIF(COUNT(DISTINCT data), 0) AS media_por_dia FROM base;",
+      "comparison": { "type": "numeric", "field_name": "media_por_dia", "tolerance": 0.0001 }
     },
     {
-      "id": "transito_total_2015_implantacao",
-      "question": "Quantas multas foram implantadas em 2015?",
-      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataimplantacao\", '(20\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2015';",
+      "id": "transito_zona_azul_total",
+      "question": "Quantas infrações foram registradas por agentes ou equipamentos de Zona Azul?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" WHERE upper(\"agenteequipamento\") LIKE '%ZONA AZUL%';",
       "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "transito_top_agentes_2017",
+      "question": "Quais são os 3 agentes/equipamentos com mais multas implantadas em 2017?",
+      "reference_sql": "SELECT \"agenteequipamento\", COUNT(*) AS total FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" WHERE regexp_extract(\"dataimplantacao\", '(20\\d{2})') = '2017' GROUP BY \"agenteequipamento\" ORDER BY total DESC LIMIT 3;",
+      "comparison": { "type": "ranking", "key_columns": ["agenteequipamento"], "value_column": "total", "top_k": 3 }
+    },
+    {
+      "id": "transito_sample_2024",
+      "question": "Liste 5 infrações de 2024 com data da infração, hora, código e local.",
+      "reference_sql": "SELECT \"dataInfracao\", \"horainfracao\", \"infracao\", \"localcometimento\" FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" WHERE regexp_extract(\"dataInfracao\", '(20\\d{2})') = '2024' ORDER BY \"dataInfracao\", \"horainfracao\" LIMIT 5;",
+      "comparison": { "type": "list", "sample_columns": ["dataInfracao", "horainfracao", "infracao", "localcometimento"], "sample_size": 5 }
     },
     {
       "id": "naufragios_total",
@@ -129,22 +129,58 @@
       "comparison": { "type": "numeric" }
     },
     {
-      "id": "naufragios_top_profundidade",
-      "question": "Quais são os 3 naufrágios com maior profundidade máxima informada?",
-      "reference_sql": "SELECT \"nome\", \"profundidade_maxima\" FROM \"public\".\"naufrágios_do_recife\" WHERE \"profundidade_maxima\" <> '' ORDER BY try_cast(regexp_extract(\"profundidade_maxima\", '(\\d+)') AS INTEGER) DESC LIMIT 3;",
-      "comparison": { "type": "ranking", "key_columns": ["nome"], "value_column": "profundidade_maxima", "top_k": 3 }
+      "id": "naufragios_sem_data",
+      "question": "Quantos naufrágios não têm data informada?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"naufrágios_do_recife\" WHERE \"data_naufragio\" IS NULL OR lower(\"data_naufragio\") = 'sem data';",
+      "comparison": { "type": "numeric" }
     },
     {
-      "id": "naufragios_por_ano",
-      "question": "Quantos naufrágios têm ano informado (por ano)?",
-      "reference_sql": "WITH base AS (SELECT regexp_extract(\"data_naufragio\", '(\\d{4})') AS ano FROM \"public\".\"naufrágios_do_recife\") SELECT \"ano\", COUNT(*) AS total FROM base WHERE \"ano\" ~ '^[0-9]{4}$' GROUP BY \"ano\" ORDER BY \"ano\";",
-      "comparison": { "type": "ranking", "key_columns": ["ano"], "value_column": "total" }
+      "id": "naufragios_top_profundos",
+      "question": "Quais são os 5 naufrágios mais profundos?",
+      "reference_sql": "SELECT \"nome\", try_cast(regexp_extract(\"profundidade_maxima\", '(\\d+)') AS INTEGER) AS profundidade_m FROM \"public\".\"naufrágios_do_recife\" WHERE regexp_extract(\"profundidade_maxima\", '(\\d+)') <> '' ORDER BY profundidade_m DESC LIMIT 5;",
+      "comparison": { "type": "ranking", "key_columns": ["nome"], "value_column": "profundidade_m", "top_k": 5 }
     },
     {
-      "id": "naufragios_sample",
-      "question": "Liste 5 naufrágios com profundidade máxima e coordenadas.",
-      "reference_sql": "SELECT \"nome\", \"profundidade_maxima\", \"latitude\", \"longitude\" FROM \"public\".\"naufrágios_do_recife\" LIMIT 5;",
-      "comparison": { "type": "list", "sample_columns": ["nome", "profundidade_maxima", "latitude", "longitude"], "sample_size": 5 }
+      "id": "naufragios_top_rasos",
+      "question": "Quais são os 5 naufrágios com menor profundidade máxima?",
+      "reference_sql": "SELECT \"nome\", try_cast(regexp_extract(\"profundidade_maxima\", '(\\d+)') AS INTEGER) AS profundidade_m FROM \"public\".\"naufrágios_do_recife\" WHERE regexp_extract(\"profundidade_maxima\", '(\\d+)') <> '' ORDER BY profundidade_m ASC LIMIT 5;",
+      "comparison": { "type": "ranking", "key_columns": ["nome"], "value_column": "profundidade_m", "top_k": 5 }
+    },
+    {
+      "id": "naufragios_pos_2000",
+      "question": "Quantos naufrágios têm ano de naufrágio a partir de 2000?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"data_naufragio\", '(\\d{4})') AS ano FROM \"public\".\"naufrágios_do_recife\") SELECT COUNT(*) FROM base WHERE ano ~ '^(20\\d{2})$';",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "naufragios_mais_antigos",
+      "question": "Quais são os 3 naufrágios mais antigos com ano conhecido?",
+      "reference_sql": "SELECT \"nome\", CAST(regexp_extract(\"data_naufragio\", '(\\d{4})') AS INTEGER) AS ano_int FROM \"public\".\"naufrágios_do_recife\" WHERE regexp_extract(\"data_naufragio\", '(\\d{4})') ~ '^(18|19|20)\\d{2}$' ORDER BY ano_int ASC LIMIT 3;",
+      "comparison": { "type": "ranking", "key_columns": ["nome"], "value_column": "ano_int", "top_k": 3 }
+    },
+    {
+      "id": "naufragios_profundidade_media",
+      "question": "Qual é a profundidade média (em metros) considerando apenas valores numéricos?",
+      "reference_sql": "SELECT AVG(try_cast(regexp_extract(\"profundidade_maxima\", '(\\d+)') AS DOUBLE)) AS profundidade_media FROM \"public\".\"naufrágios_do_recife\" WHERE regexp_extract(\"profundidade_maxima\", '(\\d+)') <> '';",
+      "comparison": { "type": "numeric", "field_name": "profundidade_media", "tolerance": 0.01 }
+    },
+    {
+      "id": "naufragios_30m_ou_mais",
+      "question": "Quantos naufrágios têm profundidade máxima de 30 metros ou mais?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"naufrágios_do_recife\" WHERE try_cast(regexp_extract(\"profundidade_maxima\", '(\\d+)') AS INTEGER) >= 30;",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "naufragios_mais_norte",
+      "question": "Quais são os 3 naufrágios mais ao norte (maior latitude)?",
+      "reference_sql": "SELECT \"nome\", CAST(\"latitude\" AS DOUBLE) AS latitude, CAST(\"longitude\" AS DOUBLE) AS longitude FROM \"public\".\"naufrágios_do_recife\" ORDER BY CAST(\"latitude\" AS DOUBLE) DESC LIMIT 3;",
+      "comparison": { "type": "ranking", "key_columns": ["nome"], "value_column": "latitude", "top_k": 3 }
+    },
+    {
+      "id": "naufragios_ano_2006",
+      "question": "Liste os naufrágios com ano de 2006, com data e profundidade.",
+      "reference_sql": "SELECT \"nome\", \"data_naufragio\", \"profundidade_maxima\" FROM \"public\".\"naufrágios_do_recife\" WHERE regexp_extract(\"data_naufragio\", '(\\d{4})') = '2006' ORDER BY \"nome\";",
+      "comparison": { "type": "list", "sample_columns": ["nome", "data_naufragio", "profundidade_maxima"], "sample_size": 3 }
     }
   ]
 }

@@ -1,0 +1,3622 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.github/
+  copilot-instructions.md
+data/
+  recife.duckdb
+resources/
+  dicionario-de-dados-das-infracoes-de-transito.json
+  dicionario-naufragios.json
+  dicionario-situacao-final.json
+scripts/
+  ingest.py
+  run_eval.py
+server/
+  __init__.py
+  config.py
+  db.py
+  http_server.py
+  main.py
+  openrouter_client.py
+  sql_guard.py
+.env.example
+.gitattributes
+.gitignore
+.python-version
+client.py
+eval_cases.json
+fastmcp_entry.py
+FERRAMENTAS_MCP.md
+http_client.py
+INGESTAO_DATASETS.md
+main.py
+OBSERVABILITY.md
+pyproject.toml
+README.md
+requirements.txt
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="resources/dicionario-de-dados-das-infracoes-de-transito.json">
+{
+    "metadados": {
+        "cabecalho": {
+            "titulo": "Registro das infrações de trânsito - CTTU",
+            "descricao": "Relação das multas de trânsito registradas pela CTTU",
+            "categoria_vcge": "http://vocab.e.gov.br/2011/03/vcge#multas-/-infracoes",
+            "fonte_dados": "http://dados.recife.pe.gov.br",
+            "licenca": "Open Database License (ODbL)",
+            "responsavel_dados": "CTTU",
+            "responsavel_disponibilizar": "Emprel",
+            "frequencia_atualizacao": "semestral",
+            "endereco_dataset": "http://dados.recife.pe.gov.br/dataset/registro-das-infracoes-de-transito",
+            "status": "ativo",
+            "endereco_dataset_substituto": "",
+            "granularidade": "Por registro de infração realizado",
+            "etiquetas": "multas, infrações, trânsito, cttu"
+        },
+        "campos": [
+            {
+                "codigo": "dataInfracao",
+                "descricao": "Data em que ocorreu a infração",
+                "tipo": "DATE",
+                "tamanho": 10,
+                "valores_permitidos": ""
+            },
+            {
+                "codigo": "horainfracao",
+                "descricao": "Hora de registro da infração",
+                "tipo": "DATE",
+                "tamanho": 10,
+                "valores_permitidos": ""
+            },
+            {
+                "codigo": "dataimplantacao",
+                "descricao": "Data de implantação da multa",
+                "tipo": "DATE",
+                "tamanho": 10,
+                "valores_permitidos": ""
+            },
+            {
+                "codigo": "agenteequipamento",
+                "descricao": "Forma de autuação",
+                "tipo": "CHAR",
+                "tamanho": 50,
+                "valores_permitidos": ""
+            },
+            {
+                "codigo": "infracao",
+                "descricao": "Código da Infração",
+                "tipo": "NUMER",
+                "tamanho": 10,
+                "valores_permitidos": ""
+            },
+            {
+                "codigo": "descricaoinfracao",
+                "descricao": "Descrição da infração",
+                "tipo": "CHAR",
+                "tamanho": 200,
+                "valores_permitidos": ""
+            },
+            {
+                "codigo": "localcometimento",
+                "descricao": "Local onde ocorreu a infração",
+                "tipo": "CHAR",
+                "tamanho": 200,
+                "valores_permitidos": ""
+            },
+            {
+                "codigo": "amparolegal",
+                "descricao": "Amparo legal para registro da infração",
+                "tipo": "CHAR",
+                "tamanho": 50,
+                "valores_permitidos": ""
+            }
+        ]
+    }
+}
+</file>
+
+<file path="resources/dicionario-naufragios.json">
+{
+  "metadados": {
+    "cabecalho": {
+      "titulo": "Naufrágios do Recife",
+      "descricao": "A cidade do Recife é considerada a 'Meca do mergulho'. Essa é uma base de embarcações que naufragaram de forma natural ou artificial no Recife e que hoje podem ser visitados através de mergulho com cilindro.",
+      "categoria_vcge": "http://vocab.e.gov.br/id/governo#turismo",
+      "fonte_dados": "http://dados.recife.pe.gov.br",
+      "licenca": "Open Database License (ODbL)",
+      "responsavel_dados": "Secretaria de Transformação Digital Ciência e Tecnologia",
+      "responsavel_disponibilizar": "Emprel",
+      "frequencia_atualizacao": "finalizado",
+      "endereco_dataset": "http://dados.recife.pe.gov.br/dataset/naufragios-do-recife",
+      "status": "ativo",
+      "endereco_dataset_substituto": "",
+      "granularidade": "Por naufrágio",
+      "etiquetas": "naufrágio,mar,mergulho,embarcação"
+    },
+    "recursos": [
+      {
+        "identificador": "http://dados.recife.pe.gov.br/dataset/naufragios-do-recife/resource/791c0a6c-bf09-41c1-beb5-1cb5cdcebe8a",
+        "titulo": "Naufrágios do Recife",
+        "formato": "csv",
+        "descricao": "Este recursos apresenta a base de embarcações que naufragaram de forma natural ou artificial no Recife e que hoje podem ser visitados através de mergulho com cilindro."
+      }
+    ],
+    "campos": [
+      {
+        "codigo": "nome",
+        "descricao": "nome do naufrágio",
+        "tipo": "CHAR",
+        "tamanho": 50,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "data_naufragio",
+        "descricao": "Data do naufrágio",
+        "tipo": "DATE",
+        "tamanho": 10,
+        "valores_permitidos": "data formato yyyy-mm-dd"
+      },
+      {
+        "codigo": "latitude",
+        "descricao": "Coordenada geografica",
+        "tipo": "num",
+        "tamanho": 20,
+        "valores_permitidos": ""
+      },
+        {
+        "codigo": "longitude",
+        "descricao": "Coordenada geografica",
+        "tipo": "num",
+        "tamanho": 20,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "profundidade_maxima",
+        "descricao": "profundidade_maxima do naufrágio",
+        "tipo": "CHAR",
+        "tamanho": 10,
+        "valores_permitidos": ""
+      },
+      {
+        "codigo": "historia detalhada",
+        "descricao": "link para história detalhada do naufrágio",
+        "tipo": "CHAR",
+        "tamanho": 200,
+        "valores_permitidos": ""
+      }
+    ]
+  }
+}
+</file>
+
+<file path="resources/dicionario-situacao-final.json">
+{
+	"metadados": {
+		"cabecalho": {
+			"titulo": "Situação final dos alunos por período letivo",
+			"descricao": "Situação acadêmica dos alunos da rede pública de ensino da cidade do Recife ao final de um ano letivo",
+			"categoria_vcge": "http://vocab.e.gov.br/2011/03/vcge#sistema-educacional-avaliacao",
+			"fonte_dados": "http://dados.recife.pe.gov.br",
+			"licenca": "Open Database License (ODbL)",
+			"responsavel_dados": "Secretaria de Educação",
+			"responsavel_disponibilizar": "Emprel",
+			"frequencia_atualizacao": "Anual",
+			"endereco_dataset": "http://dados.recife.pe.gov.br/dataset/situacao-final-dos-alunos-por-periodo-letivo",
+			"status": "ativo",
+			"endereco_dataset_substituto": "",
+			"granularidade": "Por ano letivo",
+			"etiquetas": "Alunos, Aprovação, Educação, Escolas"
+		},
+		"recursos": [
+			{ 
+				"identificador": "http://dados.recife.pe.gov.br/dataset/ce5168d4-d925-48f5-a193-03d4e0f587c7/resource/4b067949-d158-4047-aec6-e1c47bbe9ec6/download/situacaofinal2012.csv",
+				"titulo": "Resultado Final dos Alunos - 2012",
+				"formato": "csv",
+				"descricao": "Resultado final dos alunos da rede pública de ensino da cidade do Recife no ano 2012"
+			},
+			{ 
+				"identificador": "http://dados.recife.pe.gov.br/dataset/ce5168d4-d925-48f5-a193-03d4e0f587c7/resource/63a58027-b03f-45c5-b9b3-1d2a8eab303b/download/situacaofinal2013.csv",
+				"titulo": "Resultado Final dos Alunos - 2013",
+				"formato": "csv",
+				"descricao": "Resultado final dos alunos da rede pública de ensino da cidade do Recife no ano 2013"
+			},
+			{ 
+				"identificador": "http://dados.recife.pe.gov.br/dataset/ce5168d4-d925-48f5-a193-03d4e0f587c7/resource/38393f35-c250-4616-8c18-2ebff209c0cf/download/situacaofinal2014.csv",
+				"titulo": "Resultado Final dos Alunos - 2014",
+				"formato": "csv",
+				"descricao": "Resultado final dos alunos da rede pública de ensino da cidade do Recife no ano 2014"
+			},
+			{ 
+				"identificador": "http://dados.recife.pe.gov.br/dataset/ce5168d4-d925-48f5-a193-03d4e0f587c7/resource/07a3da33-08e1-4d3a-ab09-97f9f395f4a6/download/situacaofinal2015.csv",
+				"titulo": "Resultado Final dos Alunos - 2015",
+				"formato": "csv",
+				"descricao": "Resultado final dos alunos da rede pública de ensino da cidade do Recife no ano 2015"
+			},
+			{ 
+				"identificador": "http://dados.recife.pe.gov.br/dataset/ce5168d4-d925-48f5-a193-03d4e0f587c7/resource/243ff776-d45d-4a1d-8119-a335532f1270/download/situacaofinal2016.csv",
+				"titulo": "Resultado Final dos Alunos - 2016",
+				"formato": "csv",
+				"descricao": "Resultado final dos alunos da rede pública de ensino da cidade do Recife no ano 2016"
+			},
+			{ 
+				"identificador": "http://dados.recife.pe.gov.br/dataset/ce5168d4-d925-48f5-a193-03d4e0f587c7/resource/e73a458f-188d-4040-9462-186db5bb61ad/download/situacaofinal2017.csv",
+				"titulo": "Resultado Final dos Alunos - 2017",
+				"formato": "csv",
+				"descricao": "Resultado final dos alunos da rede pública de ensino da cidade do Recife no ano 2017"
+			},
+			{ 
+				"identificador": "http://dados.recife.pe.gov.br/dataset/ce5168d4-d925-48f5-a193-03d4e0f587c7/resource/1893ed20-0141-43ce-ad5f-ac736deb5447/download/situacaofinal2018.csv",
+				"titulo": "Resultado Final dos Alunos - 2018",
+				"formato": "csv",
+				"descricao": "Resultado final dos alunos da rede pública de ensino da cidade do Recife no ano 2018"
+			},
+			{ 
+				"identificador": "http://dados.recife.pe.gov.br/dataset/ce5168d4-d925-48f5-a193-03d4e0f587c7/resource/4ce242c5-81ad-4506-bea0-8c66484d8ff7/download/situacaofinal2019.csv",
+				"titulo": "Resultado Final dos Alunos - 2019",
+				"formato": "csv",
+				"descricao": "Resultado final dos alunos da rede pública de ensino da cidade do Recife no ano 2019"
+			},
+			{ 
+				"identificador": "http://dados.recife.pe.gov.br/dataset/ce5168d4-d925-48f5-a193-03d4e0f587c7/resource/86f83be8-4343-4505-a114-5093a93dc6a3/download/situacaofinal2020.csv",
+				"titulo": "Resultado Final dos Alunos - 2020",
+				"formato": "csv",
+				"descricao": "Resultado final dos alunos da rede pública de ensino da cidade do Recife no ano 2020"
+			},
+			{ 
+				"identificador": "http://dados.recife.pe.gov.br/dataset/ce5168d4-d925-48f5-a193-03d4e0f587c7/resource/8a156d81-23bc-4a19-9c7f-342fe7c88286/download/situacaofinal2021.csv",
+				"titulo": "Resultado Final dos Alunos - 2021",
+				"formato": "csv",
+				"descricao": "Resultado final dos alunos da rede pública de ensino da cidade do Recife no ano 2021"
+			},
+			{ 
+				"identificador": "http://dados.recife.pe.gov.br/dataset/ce5168d4-d925-48f5-a193-03d4e0f587c7/resource/9e22fc25-716f-4454-8d95-998894b6ce01/download/situacaofinal2022.csv",
+				"titulo": "Resultado Final dos Alunos - 2022",
+				"formato": "csv",
+				"descricao": "Resultado final dos alunos da rede pública de ensino da cidade do Recife no ano 2022"
+			},
+			{ 
+				"identificador": "http://dados.recife.pe.gov.br/dataset/ce5168d4-d925-48f5-a193-03d4e0f587c7/resource/854da2d7-c34b-457f-97b9-ba217d489621/download/situacaofinal2023.csv",
+				"titulo": "Resultado Final dos Alunos - 2023",
+				"formato": "csv",
+				"descricao": "Resultado final dos alunos da rede pública de ensino da cidade do Recife no ano 2023"
+			}
+		],
+		"campos": [
+			{
+				"codigo": "ano",
+				"descricao": "Ano letivo",
+				"tipo": "Num",
+				"tamanho": 4,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "codigo_escola",
+				"descricao": "código da escola",
+				"tipo": "Num",
+				"tamanho": 4,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "escola",
+				"descricao": "Nome da Escola Municipal",
+				"tipo": "Char",
+				"tamanho": 100,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "endereco_bairro",
+				"descricao": "Bairro",
+				"tipo": "Char",
+				"tamanho": 50,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "endereco_logradouro",
+				"descricao": "Logradouro",
+				"tipo": "Char",
+				"tamanho": 80,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "endereco_numero",
+				"descricao": "Número",
+				"tipo": "Char",
+				"tamanho": 10,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "rpa",
+				"descricao": "Região Político Administrativa",
+				"tipo": "Num",
+				"tamanho": 1,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "ano_ensino",
+				"descricao": "Ano de Ensino",
+				"tipo": "Char",
+				"tamanho": 30,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "modalidade_ensino_codigo",
+				"descricao": "Código da Modalidade de Ensino",
+				"tipo": "Num",
+				"tamanho": 4,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "modalidade_ensino",
+				"descricao": "Modalidade de Ensino",
+				"tipo": "Char",
+				"tamanho": 50,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "serie_codigo",
+				"descricao": "Código da série",
+				"tipo": "Char",
+				"tamanho": 10,
+				"valores_permitidos": ""
+			},{
+				"codigo": "serie",
+				"descricao": "Série",
+				"tipo": "Char",
+				"tamanho": 20,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "turma",
+				"descricao": "Turme",
+				"tipo": "Char",
+				"tamanho": 3,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "turno",
+				"descricao": "Turno",
+				"tipo": "Char",
+				"tamanho": 15,
+				"valores_permitidos": ""
+			},
+{
+				"codigo": "matricula",
+				"descricao": "Matrícula",
+				"tipo": "Num",
+				"tamanho": 6,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "sexo",
+				"descricao": "Sexo",
+				"tipo": "Num",
+				"tamanho": 1,
+				"valores_permitidos": "1 2"
+			},
+			{
+				"codigo": "idade",
+				"descricao": "Idade do aluno no ano letivo",
+				"tipo": "Num",
+				"tamanho": 2,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "situacao_codigo",
+				"descricao": "Código da Situação Final",
+				"tipo": "Char",
+				"tamanho": 4,
+				"valores_permitidos": ""
+			},
+			{
+				"codigo": "situacao_nome",
+				"descricao": "Descrição da Situação Final",
+				"tipo": "Char",
+				"tamanho": 30,
+				"valores_permitidos": ""
+			}
+		]
+	}
+}
+</file>
+
+<file path=".env.example">
+# API keys
+OPENROUTER_API_KEY=replace-me
+OPENROUTER_MODEL=openai/gpt-5.1-codex-max
+
+# Database
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=recife_open_data
+POSTGRES_USER=recife
+POSTGRES_PASSWORD=recife
+
+# Server
+STATEMENT_TIMEOUT_MS=10000
+MAX_RESULT_ROWS=200
+</file>
+
+<file path=".gitattributes">
+data/recife.duckdb filter=lfs diff=lfs merge=lfs -text
+</file>
+
+<file path=".python-version">
+3.12
+</file>
+
+<file path="fastmcp_entry.py">
+"""
+Entry point for FastMCP deployments.
+
+Exposes the FastMCP server instance using standard variable names
+(`mcp`, `server`, `app`) so runtimes that inspect the module can find it.
+"""
+from server.main import app as mcp
+
+# Aliases expected by runtimes
+server = mcp
+app = mcp
+</file>
+
+<file path="main.py">
+def main():
+    print("Hello from recife-open-data-mcp!")
+
+
+if __name__ == "__main__":
+    main()
+</file>
+
+<file path="OBSERVABILITY.md">
+# Observabilidade com Braintrust
+
+Este projeto usa [Braintrust](https://www.braintrustdata.com/) para observabilidade e monitoramento de **todas** as chamadas LLM.
+
+## Configuração
+
+1. Obtenha uma API key do Braintrust em https://www.braintrustdata.com/
+2. Adicione a chave no arquivo `.env`:
+
+```bash
+BRAINTRUST_API_KEY=sk-your-api-key-here
+```
+
+## O que está sendo monitorado
+
+### 1. Geração de SQL (`server/openrouter_client.py::generate_sql`)
+- **Tipo**: LLM call
+- **Input**: Mensagens do sistema e do usuário com schema e pergunta
+- **Output**: SQL gerado
+- **Métricas**: 
+  - `prompt_tokens`: Tokens usados no prompt
+  - `completion_tokens`: Tokens gerados na resposta
+  - `total_tokens`: Total de tokens consumidos
+- **Metadata**:
+  - Modelo usado
+  - Temperatura
+  - Pergunta original
+  - Se houve erro anterior (retry)
+
+### 2. Resposta a Perguntas via MCP (`server/main.py::answer_question`)
+- **Tipo**: Span principal
+- **Input**: Pergunta do usuário
+- **Output**: Resultado da query (SQL + dados)
+- **Metadata**:
+  - SQL gerado
+  - Se houve retry
+  - Se foi bem-sucedido
+  - Erro na primeira tentativa (se houver)
+
+### 3. Resposta a Perguntas via HTTP (`server/http_server.py::answer_question`)
+- **Tipo**: Span principal
+- **Input**: Pergunta do usuário através do endpoint HTTP
+- **Output**: Resultado da query formatado
+- **Metadata**:
+  - SQL gerado
+  - Se houve retry
+  - Número de linhas retornadas
+  - Se foi bem-sucedido
+
+### 4. Geração de Dicionário de Dados (`scripts/consolidate.py::generate_dictionary_with_llm`)
+- **Tipo**: LLM call
+- **Input**: Prompt com informações do dataset e amostras
+- **Output**: Dicionário de dados JSON
+- **Métricas**: 
+  - Tokens de prompt, completion e total
+- **Metadata**:
+  - Nome do dataset
+  - Número de colunas
+  - Número de arquivos processados
+  - Modelo e temperatura
+
+### 5. Cliente MCP Interativo (`client.py::chat`)
+- **Tipo**: LLM call com tool calling
+- **Input**: Mensagem do usuário e ferramentas disponíveis
+- **Output**: Resposta final do assistente
+- **Métricas**: 
+  - Tokens de cada chamada (inicial e follow-ups)
+- **Metadata**:
+  - Número total de chamadas de ferramentas
+  - Ferramentas utilizadas em cada iteração
+  - Finish reason de cada resposta
+
+### 6. Cliente HTTP MCP (`http_client.py::chat`)
+- **Tipo**: LLM call com tool calling via HTTP
+- **Input**: Mensagem do usuário
+- **Output**: Resposta final do assistente
+- **Métricas**: 
+  - Tokens de cada chamada
+- **Metadata**:
+  - Iterações de tool calling
+  - Ferramentas executadas
+  - Sucesso da operação
+
+## Como visualizar os dados
+
+1. Acesse o dashboard do Braintrust em https://www.braintrustdata.com/
+2. Selecione o projeto "Recife Open Data MCP"
+3. Você verá:
+   - Histórico de todas as chamadas LLM
+   - Tempo de resposta
+   - Custos por chamada
+   - Taxa de sucesso/falha
+   - Queries SQL geradas
+   - Traces completos de cada pergunta
+
+## Benefícios
+
+- **Debugging**: Veja exatamente o que foi enviado para a LLM e o que foi retornado
+- **Performance**: Monitore tempos de resposta e identifique gargalos
+- **Custos**: Acompanhe o consumo de tokens e custos por query
+- **Qualidade**: Analise a qualidade das respostas SQL geradas
+- **Retry Analysis**: Identifique queries que precisaram de retry e por quê
+
+## Exemplo de uso
+
+Quando você faz uma pergunta via MCP:
+```python
+answer_question("Quantos atendimentos teve em 2022?")
+```
+
+O Braintrust registra:
+1. A pergunta original
+2. O prompt completo enviado para a LLM
+3. O SQL gerado
+4. Tokens consumidos
+5. Se houve erro e retry
+6. O resultado final
+
+Tudo isso fica disponível no dashboard para análise posterior.
+</file>
+
+<file path=".github/copilot-instructions.md">
+Use this file to provide workspace-specific custom instructions to Copilot.
+ - [x] Verify that the copilot-instructions.md file in the .github directory is created.
+
+ - [x] Clarify Project Requirements
+	<!-- Ask for project type, language, and frameworks if not specified. Skip if already provided. -->
+
+ - [x] Scaffold the Project
+	<!--
+	Ensure that the previous step has been marked as completed.
+	Call project setup tool with projectType parameter.
+	Run scaffolding command to create project files and folders.
+	Use '.' as the working directory.
+	If no appropriate projectType is available, search documentation using available tools.
+	Otherwise, create the project structure manually using available file creation tools.
+	-->
+
+ - [x] Customize the Project
+	<!--
+	Verify that all previous steps have been completed successfully and you have marked the step as completed.
+	Develop a plan to modify codebase according to user requirements.
+	Apply modifications using appropriate tools and user-provided references.
+	Skip this step for "Hello World" projects.
+	-->
+
+ - [x] Install Required Extensions
+	<!-- ONLY install extensions provided mentioned in the get_project_setup_info. Skip this step otherwise and mark as completed. -->
+
+- [ ] Compile the Project
+	<!--
+	Verify that all previous steps have been completed.
+	Install any missing dependencies.
+	Run diagnostics and resolve any issues.
+	Check for markdown files in project folder for relevant instructions on how to do this.
+	-->
+
+- [ ] Create and Run Task
+	<!--
+	Verify that all previous steps have been completed.
+	Check https://code.visualstudio.com/docs/debugtest/tasks to determine if the project needs a task. If so, use the create_and_run_task to create and launch a task based on package.json, README.md, and project structure.
+	Skip this step otherwise.
+	 -->
+
+- [ ] Launch the Project
+	<!--
+	Verify that all previous steps have been completed.
+	Prompt user for debug mode, launch only if confirmed.
+	 -->
+
+- [ ] Ensure Documentation is Complete
+	<!--
+	Verify that all previous steps have been completed.
+	Verify that README.md and the copilot-instructions.md file in the .github directory exists and contains current project information.
+	Clean up the copilot-instructions.md file in the .github directory by removing all HTML comments.
+	 -->
+ 
+## Execution Guidelines
+PROGRESS TRACKING:
+- If any tools are available to manage the above todo list, use it to track progress through this checklist.
+- After completing each step, mark it complete and add a summary.
+- Read current todo list status before starting each new step.
+
+COMMUNICATION RULES:
+- Avoid verbose explanations or printing full command outputs.
+- If a step is skipped, state that briefly (e.g. "No extensions needed").
+- Do not explain project structure unless asked.
+- Keep explanations concise and focused.
+
+DEVELOPMENT RULES:
+- Use '.' as the working directory unless user specifies otherwise.
+- Avoid adding media or external links unless explicitly requested.
+- Use placeholders only with a note that they should be replaced.
+- Use VS Code API tool only for VS Code extension projects.
+- Once the project is created, it is already opened in Visual Studio Code—do not suggest commands to open this project in Visual Studio again.
+
+FOLDER CREATION RULES:
+- Always use the current directory as the project root.
+- If you are running any terminal commands, use the '.' argument to ensure that the current working directory is used ALWAYS.
+- Do not create a new folder unless the user explicitly requests it besides a .vscode folder for a tasks.json file.
+- If any of the scaffolding commands mention that the folder name is not correct, let the user know to create a new folder with the correct name and then reopen it again in vscode.
+
+EXTENSION INSTALLATION RULES:
+- Only install extension specified by the get_project_setup_info tool. DO NOT INSTALL any other extensions.
+
+PROJECT CONTENT RULES:
+- If the user has not specified project details, assume they want a "Hello World" project as a starting point.
+- Avoid adding links of any type (URLs, files, folders, etc.) or integrations that are not explicitly required.
+- Avoid generating images, videos, or any other media files unless explicitly requested.
+- If you need to use any media assets as placeholders, let the user know that these are placeholders and should be replaced with the actual assets later.
+- Ensure all generated components serve a clear purpose within the user's requested workflow.
+- If a feature is assumed but not confirmed, prompt the user for clarification before including it.
+- If you are working on a VS Code extension, use the VS Code API tool with a query to find relevant VS Code API references and samples related to that query.
+
+TASK COMPLETION RULES:
+- Your task is complete when:
+	- Project is successfully scaffolded and compiled without errors
+	- copilot-instructions.md file in the .github directory exists in the project
+	- README.md file exists and is up to date
+	- User is provided with clear instructions to debug/launch the project
+
+Before starting a new task in the above plan, update progress in the plan.
+- Work through each checklist item systematically.
+- Keep communication concise and focused.
+- Follow development best practices.
+</file>
+
+<file path="server/sql_guard.py">
+import re
+import sqlparse
+
+PROHIBITED = {"INSERT", "UPDATE", "DELETE", "DROP", "ALTER", "TRUNCATE", "CREATE", "REPLACE", "GRANT", "REVOKE"}
+
+
+def ensure_read_only(sql: str) -> None:
+    statements = [stmt for stmt in sqlparse.parse(sql) if stmt.tokens]
+    if not statements:
+        raise ValueError("SQL is empty.")
+    
+    # Allow only single statements
+    if len(statements) > 1:
+        raise ValueError("Only single SQL statements are allowed. Multiple statements detected.")
+    
+    for stmt in statements:
+        first_token = stmt.token_first(skip_cm=True)
+        normalized = first_token.normalized if first_token else ""
+        if normalized not in {"SELECT", "WITH", "EXPLAIN"}:
+            raise ValueError("Only SELECT statements are allowed.")
+        text = stmt.value.upper()
+        if any(keyword in text for keyword in PROHIBITED):
+            raise ValueError("Destructive or mutating statements are not allowed.")
+
+
+def ensure_limit(sql: str, max_rows: int) -> str:
+    # Limite removido a pedido: apenas normaliza removendo ';'
+    return sql.rstrip().rstrip(';')
+</file>
+
+<file path="pyproject.toml">
+[project]
+name = "recife-open-data-mcp"
+version = "0.1.0"
+description = "MCP server and tools for Recife open data"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "braintrust>=0.0.1",
+    "duckdb>=0.9.0",
+    "fastapi>=0.115.0",
+    "fastmcp>=2.13.3",
+    "httpx>=0.27.0",
+    "openai>=2.9.0",
+    "python-dotenv>=1.2.1",
+    "sqlparse>=0.5.4",
+    "sse-starlette>=2.1.3",
+    "typer>=0.20.0",
+    "uvicorn[standard]>=0.32.0",
+]
+</file>
+
+<file path="scripts/run_eval.py">
+import asyncio
+import json
+import os
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+import numbers
+
+import typer
+from dotenv import load_dotenv
+
+from server.config import Settings
+from server.db import Database
+from server.openrouter_client import OpenRouterClient
+from server.sql_guard import ensure_limit, ensure_read_only
+
+load_dotenv()
+
+app = typer.Typer(help="Executa casos de avaliação e registra relatório em Markdown.")
+
+
+@dataclass
+class ComparisonSpec:
+    type: str
+    field_name: Optional[str] = None  # campo preferencial para comparação numérica
+    tolerance: float = 0  # tolerância para comparação numérica
+    key_columns: List[str] = field(default_factory=list)  # colunas que definem a chave em rankings
+    value_column: Optional[str] = None  # coluna de valor em rankings
+    top_k: Optional[int] = None  # quantas linhas comparar em rankings
+    sample_columns: Optional[List[str]] = None  # colunas relevantes para comparação de listas
+    sample_size: int = 3  # número de linhas a comparar em listas
+
+
+@dataclass
+class EvalCase:
+    id: str
+    question: str
+    reference_sql: str
+    comparison: ComparisonSpec
+
+
+def load_cases(cases_path: Path) -> List[EvalCase]:
+    data = json.loads(cases_path.read_text(encoding="utf-8"))
+    cases: List[EvalCase] = []
+    for item in data.get("cases", []):
+        comp = ComparisonSpec(**item["comparison"])
+        reference_sql = item.get("reference_sql") or item.get("gold_sql")
+        if not reference_sql:
+            raise ValueError(f"Caso {item.get('id')} sem reference_sql")
+        cases.append(
+            EvalCase(
+                id=item["id"],
+                question=item["question"],
+                reference_sql=reference_sql,
+                comparison=comp,
+            )
+        )
+    return cases
+
+
+def _first_numeric(row: Dict[str, Any], preferred: Optional[str] = None, exclude: Optional[List[str]] = None) -> Tuple[Optional[str], Optional[float]]:
+    exclude = set(exclude or [])
+    if preferred and preferred in row and isinstance(row[preferred], numbers.Number):
+        return preferred, float(row[preferred])
+    for k, v in row.items():
+        if k in exclude:
+            continue
+        if isinstance(v, numbers.Number):
+            return k, float(v)
+    return None, None
+
+
+def compare_numeric(rows: List[Dict[str, Any]], gold_rows: List[Dict[str, Any]], spec: ComparisonSpec) -> Tuple[bool, str]:
+    if not rows:
+        return False, "Nenhuma linha retornada."
+    if not gold_rows:
+        return False, "Gold SQL não retornou linhas."
+    got_field, got_val = _first_numeric(rows[0], preferred=spec.field_name)
+    gold_field, gold_val = _first_numeric(gold_rows[0], preferred=spec.field_name)
+    if got_val is None or gold_val is None:
+        return False, f"Valor numérico não encontrado (got_field={got_field}, gold_field={gold_field})."
+    tol = spec.tolerance or 0
+    ok = abs(got_val - gold_val) <= tol
+    return ok, f"obtido={got_val}, esperado={gold_val}, tolerancia={tol}"
+
+
+def compare_ranking(rows: List[Dict[str, Any]], gold_rows: List[Dict[str, Any]], spec: ComparisonSpec) -> Tuple[bool, str]:
+    if not spec.key_columns:
+        return False, "key_columns não definidos."
+    top_k = spec.top_k or min(len(rows), len(gold_rows))
+    if len(rows) < top_k or len(gold_rows) < top_k:
+        return False, f"Linhas insuficientes para top_k={top_k}."
+    tol = spec.tolerance or 0
+    for idx in range(top_k):
+        got_row = rows[idx]
+        gold_row = gold_rows[idx]
+        for col in spec.key_columns:
+            if got_row.get(col) != gold_row.get(col):
+                return False, f"Posição {idx} coluna {col}: obtido={got_row.get(col)}, esperado={gold_row.get(col)}"
+        _, got_val = _first_numeric(got_row, preferred=spec.value_column, exclude=spec.key_columns)
+        _, gold_val = _first_numeric(gold_row, preferred=spec.value_column, exclude=spec.key_columns)
+        if got_val is None or gold_val is None:
+            # sem valor numérico; aceita ordem apenas pelas chaves
+            continue
+        if abs(got_val - gold_val) > tol:
+            return False, f"Posição {idx} valor: obtido={got_val}, esperado={gold_val}, tolerancia={tol}"
+    return True, f"Top-{top_k} bate com o gold."
+
+
+def compare_list(rows: List[Dict[str, Any]], gold_rows: List[Dict[str, Any]], spec: ComparisonSpec) -> Tuple[bool, str]:
+    if len(rows) != len(gold_rows):
+        return False, f"Row count difere: obtido={len(rows)}, gold={len(gold_rows)}"
+    sample_size = min(spec.sample_size or 3, len(rows))
+    if sample_size == 0:
+        return True, "Sem linhas para comparar."
+    cols = spec.sample_columns
+    if not cols:
+        # usa interseção de colunas
+        cols = list(set(rows[0].keys()) & set(gold_rows[0].keys()))
+    for idx in range(sample_size):
+        got_row = rows[idx]
+        gold_row = gold_rows[idx]
+        for col in cols:
+            if got_row.get(col) != gold_row.get(col):
+                return False, f"Amostra divergente na linha {idx}, coluna {col}: obtido={got_row.get(col)}, gold={gold_row.get(col)}"
+    return True, "Row count e amostra conferem."
+
+
+def format_markdown(run_id: str, model: str, results: List[Dict[str, Any]]) -> str:
+    lines = [
+        f"# Eval run {run_id}",
+        "",
+        f"- Modelo: `{model}`",
+        f"- Data/Hora: {datetime.now(timezone.utc).isoformat()}",
+        f"- Casos: {len(results)}",
+        "",
+        "| Caso | Status | Pergunta | SQL Referência | SQL Gerado | Comparação | Duração (ms) | Linhas retornadas | Detalhes |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    ]
+    for r in results:
+        lines.append(
+            "| {id} | {status} | {question} | `{reference}` | `{sql}` | {cmp} | {duration} | {row_count} | {details} |".format(
+                id=r["id"],
+                status="✅" if r["passed"] else "❌",
+                question=r["question"].replace("|", "\\|"),
+                reference=r["reference_sql"].replace("|", "\\|"),
+                sql=(r.get("generated_sql") or "").replace("|", "\\|"),
+                cmp=r.get("comparison_result", "").replace("|", "\\|"),
+                duration=int(r.get("duration_ms", 0)),
+                row_count=len(r.get("rows", [])),
+                details=(r.get("error") or "").replace("|", "\\|"),
+            )
+        )
+
+    lines.append("\n## Detalhes por caso\n")
+    for r in results:
+        lines.append(f"### {r['id']} ({'✅' if r['passed'] else '❌'})")
+        lines.append(f"- Pergunta: {r['question']}")
+        lines.append(f"- SQL gerado: `{r.get('generated_sql', '')}`")
+        lines.append(f"- SQL referência: `{r['reference_sql']}`")
+        lines.append(f"- Comparação: {r.get('comparison_result', '')}")
+        lines.append(f"- Linhas retornadas: {len(r.get('rows', []))}")
+        lines.append(f"- Ferramentas chamadas: {', '.join(r.get('tools_called', [])) if r.get('tools_called') else 'N/A'}")
+        lines.append(f"- Duração (ms): {int(r.get('duration_ms', 0))}")
+        if r.get("error"):
+            lines.append(f"- Erro: {r['error']}")
+        sample_rows = r.get("rows", [])[:3]
+        if sample_rows:
+            lines.append("- Amostra de linhas:")
+            lines.append("```json")
+            lines.append(json.dumps(sample_rows, ensure_ascii=False, indent=2))
+            lines.append("```")
+        lines.append("")
+    return "\n".join(lines)
+
+
+async def evaluate_case(
+    db: Database,
+    llm: OpenRouterClient,
+    schema_text: Optional[str],
+    case: EvalCase,
+    max_rows: int,
+) -> Dict[str, Any]:
+    start = time.time()
+    result: Dict[str, Any] = {
+        "id": case.id,
+        "question": case.question,
+        "reference_sql": case.reference_sql,
+    }
+    # Gold result é fixo; compute uma vez
+    ensure_read_only(case.reference_sql)
+    reference_sql_limited = ensure_limit(case.reference_sql, max_rows)
+    reference_rows = await db.fetch_rows(reference_sql_limited)
+
+    max_attempts = 3
+    previous_error: Optional[str] = None
+    last_exc: Optional[Exception] = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            generated_sql = await llm.generate_sql(case.question, schema_text, previous_error=previous_error)
+            # Normaliza regex escapadas em excesso (\\d -> \d)
+            generated_sql = generated_sql.replace("\\\\", "\\")
+            # Bloqueia toolcalls dentro do SQL
+            lowered = generated_sql.lower()
+            if "list_tables" in lowered or "describe_table" in lowered or "search_schema" in lowered:
+                raise ValueError("SQL inválido: não inclua list_tables/describe_table/search_schema dentro do SQL. Gere apenas SELECT/WITH.")
+            if lowered.startswith("the prior sql failed"):
+                raise ValueError("Modelo retornou texto em vez de SQL. Gere apenas o SQL.")
+            ensure_read_only(generated_sql)
+            limited_sql = ensure_limit(generated_sql, max_rows)
+            result["generated_sql"] = limited_sql
+            result["attempts"] = attempt
+            rows = await db.fetch_rows(limited_sql)
+            result.update(
+                {
+                    "rows": rows,
+                    "reference_rows": reference_rows,
+                    "tools_called": [],  # sem toolcalls explícitos nesta via
+                }
+            )
+            spec = case.comparison
+            if spec.type == "numeric":
+                passed, cmp_msg = compare_numeric(rows, reference_rows, spec)
+            elif spec.type == "ranking":
+                passed, cmp_msg = compare_ranking(rows, reference_rows, spec)
+            elif spec.type == "list":
+                passed, cmp_msg = compare_list(rows, reference_rows, spec)
+            else:
+                passed, cmp_msg = False, f"Tipo de comparação desconhecido: {spec.type}"
+            result["passed"] = passed
+            result["comparison_result"] = cmp_msg
+            if passed:
+                break
+            # se comparação falhou mas SQL é válido, não reitera para evitar loop infinito
+            break
+        except ValueError as exc:
+            # SQL inválido: tenta iterar com feedback
+            last_exc = exc
+            previous_error = str(exc)
+            result["generated_sql"] = generated_sql if "generated_sql" in locals() else None
+            result["attempts"] = attempt
+            if attempt == max_attempts:
+                break
+            continue
+        except Exception as exc:  # pylint: disable=broad-except
+            last_exc = exc
+            result["attempts"] = attempt
+            break
+
+    if not result.get("passed", False):
+        result["passed"] = False
+        if last_exc:
+            result["error"] = str(last_exc)
+        elif "comparison_result" in result:
+            result["error"] = result["comparison_result"]
+        else:
+            result["error"] = "Falha desconhecida após tentativas."
+    result["duration_ms"] = int((time.time() - start) * 1000)
+    return result
+
+
+@app.command()
+def run(
+    cases_path: Path = typer.Option(Path("eval_cases.json"), help="Caminho para o arquivo de casos."),
+    output_dir: Path = typer.Option(Path("eval_runs"), help="Diretório para salvar relatórios."),
+):
+    """Executa os casos de avaliação e gera um relatório em Markdown."""
+    settings = Settings.load()
+    db = Database(settings)
+    llm = OpenRouterClient(settings)
+    cases = load_cases(cases_path)
+
+    # Preparar diretório de saída
+    output_dir.mkdir(parents=True, exist_ok=True)
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    run_dir = output_dir / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    typer.secho(f"🏁 Rodando {len(cases)} casos (run_id={run_id})", fg=typer.colors.CYAN)
+
+    async def _run_all() -> List[Dict[str, Any]]:
+        await db.init()
+        schema_text = await db.fetch_schema_snapshot()  # fornece snapshot do schema para evitar toolcalls inválidos
+        results: List[Dict[str, Any]] = []
+        for case in cases:
+            typer.secho(f"→ Caso {case.id}: {case.question}", fg=typer.colors.BLUE)
+            res = await evaluate_case(db, llm, schema_text, case, settings.max_result_rows)
+            status = "✅" if res.get("passed") else "❌"
+            typer.secho(f"   {status} {res.get('comparison_result', res.get('error', ''))}", fg=typer.colors.GREEN if res.get("passed") else typer.colors.RED)
+            results.append(res)
+        await db.close()
+        return results
+
+    results = asyncio.run(_run_all())
+
+    # Persistir JSON e Markdown
+    json_path = run_dir / "results.json"
+    md_path = run_dir / "report.md"
+    json_path.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
+    md_path.write_text(format_markdown(run_id, settings.openrouter_model, results), encoding="utf-8")
+
+    typer.secho(f"\n📄 Relatório salvo em {md_path}", fg=typer.colors.GREEN)
+    typer.secho(f"🧪 Resultados detalhados em {json_path}", fg=typer.colors.GREEN)
+
+
+if __name__ == "__main__":
+    app()
+</file>
+
+<file path="server/config.py">
+import os
+from dataclasses import dataclass
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+@dataclass
+class Settings:
+    openrouter_api_key: str
+    openrouter_model: str
+    db_path: str
+    max_result_rows: int
+    http_port: int
+
+    @classmethod
+    def load(cls) -> "Settings":
+        db_dir = Path(os.environ.get("DUCKDB_DATA_DIR", "./data"))
+        try:
+            db_dir.mkdir(parents=True, exist_ok=True)
+        except PermissionError:
+            # Read-only filesystems (e.g., managed runtimes) may block mkdir; continue using the path
+            pass
+        db_path = str(db_dir / "recife.duckdb")
+        return cls(
+            openrouter_api_key=os.environ.get("OPENROUTER_API_KEY", ""),
+            openrouter_model=os.environ.get("OPENROUTER_MODEL", "openai/gpt-5.1-codex-max"),
+            db_path=db_path,
+            max_result_rows=int(os.environ.get("MAX_RESULT_ROWS", "200")),
+            http_port=int(os.environ.get("HTTP_PORT", "8000")),
+        )
+
+    def require_api_key(self) -> None:
+        if not self.openrouter_api_key:
+            raise RuntimeError("OPENROUTER_API_KEY is required to run the MCP server.")
+</file>
+
+<file path="http_client.py">
+"""
+HTTP-based MCP client for testing via OpenRouter.
+"""
+import asyncio
+import json
+import logging
+import os
+from typing import Any, Dict, List, Optional
+
+import httpx
+import typer
+from dotenv import load_dotenv
+from openai import AsyncOpenAI
+from braintrust import current_span, init_logger, traced
+
+from server.config import Settings
+
+load_dotenv()
+
+app = typer.Typer(help="HTTP MCP client for testing via OpenRouter.")
+settings = Settings.load()
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(name)s] %(message)s")
+logger = logging.getLogger("mcp.http_client")
+
+
+class HTTPMCPClient:
+    """Client that communicates with MCP server via HTTP."""
+
+    def __init__(self, mcp_base_url: str = "http://localhost:8000"):
+        self.mcp_base_url = mcp_base_url.rstrip("/")
+        self.settings = settings
+        self.client = AsyncOpenAI(
+            api_key=settings.openrouter_api_key,
+            base_url="https://openrouter.ai/api/v1",
+        )
+        self.model = settings.openrouter_model
+        self.http_client = httpx.AsyncClient(timeout=60.0)
+        
+        # Initialize Braintrust logger
+        init_logger(
+            project="Recife Open Data MCP",
+            api_key=os.getenv("BRAINTRUST_API_KEY")
+        )
+
+    async def close(self):
+        """Close HTTP client."""
+        await self.http_client.aclose()
+
+    async def check_server_health(self) -> bool:
+        """Check if MCP server is healthy."""
+        try:
+            response = await self.http_client.get(f"{self.mcp_base_url}/health")
+            response.raise_for_status()
+            data = response.json()
+            logger.info("health ok", extra={"response": data})
+            return data.get("status") == "healthy"
+        except Exception as e:
+            typer.secho(f"❌ MCP server health check failed: {e}", fg=typer.colors.RED)
+            logger.exception("health check failed")
+            return False
+
+    async def list_tools(self) -> List[Dict[str, Any]]:
+        """Fetch available tools from MCP server."""
+        response = await self.http_client.get(f"{self.mcp_base_url}/mcp/v1/tools")
+        response.raise_for_status()
+        data = response.json()
+        logger.info("tools fetched", extra={"tools": [t.get("name") for t in data.get("tools", [])]})
+        return data.get("tools", [])
+
+    async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> str:
+        """Call a tool on the MCP server via HTTP."""
+        typer.secho(f"🔧 Calling tool: {tool_name}", fg=typer.colors.MAGENTA)
+        # Use key 'tool_args' to avoid clashing with LogRecord 'args'
+        logger.info("calling tool", extra={"tool": tool_name, "tool_args": arguments})
+        
+        try:
+            response = await self.http_client.post(
+                f"{self.mcp_base_url}/mcp/v1/tools/execute",
+                json={"name": tool_name, "arguments": arguments},
+            )
+            response.raise_for_status()
+            result = response.json()
+            logger.info("tool response", extra={"tool": tool_name, "result_preview": json.dumps(result)[:400]})
+            
+            # Extract text from MCP response format
+            if "content" in result and len(result["content"]) > 0:
+                content = result["content"][0].get("text")
+                if content:
+                    return content
+            
+            # Fallback for empty or malformed responses
+            logger.warning("empty tool response", extra={"tool": tool_name})
+            return json.dumps({"message": "Tool executed but returned no data", "tool": tool_name})
+        except Exception as e:
+            logger.exception("tool call failed", extra={"tool": tool_name})
+            return json.dumps({"error": str(e), "tool": tool_name})
+
+    def _convert_tools_to_openai_format(self, mcp_tools: List[Dict]) -> List[Dict]:
+        """Convert MCP tool format to OpenAI function calling format."""
+        openai_tools = []
+        for tool in mcp_tools:
+            openai_tools.append({
+                "type": "function",
+                "function": {
+                    "name": tool["name"],
+                    "description": tool["description"],
+                    "parameters": tool.get("inputSchema", {}),
+                },
+            })
+        return openai_tools
+
+    @traced(type="llm", name="HTTP MCP Client Chat", notrace_io=True)
+    async def chat(self, user_message: str) -> str:
+        """Send a message to LLM and handle tool calls via MCP server."""
+        typer.secho(f"\n👤 User: {user_message}", fg=typer.colors.CYAN)
+        logger.info("chat start", extra={"user_message": user_message})
+
+        system_prompt = (
+            "Você é um assistente MCP que responde em português e decide o uso de ferramentas para acessar dados públicos da Prefeitura do Recife no DuckDB.\n"
+            "- Sempre comece obtendo a lista de tabelas com list_tables antes de escolher o que consultar.\n"
+            "- Depois de decidir uma tabela, use describe_table para ver colunas; use search_schema só se não souber onde encontrar um campo.\n"
+            "- Para perguntas sobre dados (contagens, filtros, agregações), prefira answer_question; use execute_sql apenas se o usuário fornecer SQL completo e válido.\n"
+            "- Não invente tabelas ou colunas; siga exatamente os nomes retornados pelas ferramentas.\n"
+            "- Se nenhuma ferramenta for necessária, responda direto, mas mantenha as respostas concisas."
+        )
+
+        # Fetch available tools from MCP server
+        mcp_tools = await self.list_tools()
+        tools = self._convert_tools_to_openai_format(mcp_tools)
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message},
+        ]
+
+        # First LLM request
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            tools=tools,
+            tool_choice="auto",
+        )
+        logger.info("llm response", extra={"finish_reason": response.choices[0].finish_reason})
+        
+        # Log initial LLM call
+        usage = response.usage or None
+        current_span().log(
+            input={"user_message": user_message, "tools_available": len(tools)},
+            metrics={
+                "prompt_tokens": usage.prompt_tokens if usage else 0,
+                "completion_tokens": usage.completion_tokens if usage else 0,
+                "total_tokens": usage.total_tokens if usage else 0,
+            },
+            metadata={
+                "model": self.model,
+                "finish_reason": response.choices[0].finish_reason,
+                "has_tool_calls": response.choices[0].finish_reason == "tool_calls"
+            }
+        )
+
+        # Tool use loop with max iterations
+        tool_call_count = 0
+        MAX_TOOL_ITERATIONS = 10
+        
+        while response.choices[0].finish_reason == "tool_calls" and tool_call_count < MAX_TOOL_ITERATIONS:
+            tool_call_count += 1
+            tool_calls = response.choices[0].message.tool_calls
+            
+            if not tool_calls:
+                logger.warning("no tool calls found")
+                break
+                
+            logger.info("llm requested tools", extra={"tool_names": [tc.function.name for tc in tool_calls]})
+            
+            # Add assistant message with tool calls
+            messages.append({
+                "role": "assistant",
+                "content": response.choices[0].message.content or "",
+                "tool_calls": [
+                    {
+                        "id": tc.id,
+                        "type": "function",
+                        "function": {
+                            "name": tc.function.name,
+                            "arguments": tc.function.arguments,
+                        },
+                    }
+                    for tc in tool_calls
+                ],
+            })
+
+            # Execute all tool calls via HTTP MCP server
+            for tool_call in tool_calls:
+                tool_name = tool_call.function.name
+                tool_args = json.loads(tool_call.function.arguments)
+                
+                typer.secho(f"📊 Executing: {tool_name}({list(tool_args.keys())})", fg=typer.colors.BLUE)
+                # Avoid reserved LogRecord key 'args'
+                logger.info("executing tool", extra={"tool": tool_name, "tool_args": tool_args})
+                
+                # Call MCP server via HTTP
+                result = await self.call_tool(tool_name, tool_args)
+                logger.info("tool result received", extra={"tool": tool_name, "result_preview": result[:400]})
+                
+                # Add tool result to messages
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": result,
+                })
+
+            # Next LLM request with tool results
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                tools=tools,
+                tool_choice="auto",
+            )
+            logger.info("llm response", extra={"finish_reason": response.choices[0].finish_reason})
+            
+            # Log follow-up LLM call
+            usage = response.usage or None
+            current_span().log(
+                metrics={
+                    "prompt_tokens": usage.prompt_tokens if usage else 0,
+                    "completion_tokens": usage.completion_tokens if usage else 0,
+                    "total_tokens": usage.total_tokens if usage else 0,
+                },
+                metadata={
+                    "tool_call_iteration": tool_call_count,
+                    "tools_called": [tc.function.name for tc in tool_calls],
+                    "finish_reason": response.choices[0].finish_reason,
+                }
+            )
+
+        # Check if we hit max iterations
+        if tool_call_count >= MAX_TOOL_ITERATIONS:
+            typer.secho(f"\n⚠️  Reached max tool iterations ({MAX_TOOL_ITERATIONS})", fg=typer.colors.YELLOW)
+            logger.warning("max tool iterations reached", extra={"iterations": tool_call_count})
+            final_response = "Desculpe, precisei usar muitas ferramentas e não consegui completar a resposta. Tente fazer uma pergunta mais específica."
+        else:
+            # Extract final response
+            final_response = response.choices[0].message.content or ""
+        
+        # Handle empty final response
+        if not final_response or final_response.strip() == "":
+            final_response = "Desculpe, não consegui gerar uma resposta. Por favor, tente reformular sua pergunta."
+            logger.warning("empty final response from llm")
+        
+        # Log final output
+        current_span().log(
+            output={"final_response": final_response},
+            metadata={
+                "total_tool_calls": tool_call_count,
+                "success": bool(final_response),
+                "hit_max_iterations": tool_call_count >= MAX_TOOL_ITERATIONS
+            }
+        )
+        
+        typer.secho(f"\n🤖 Assistant: {final_response}", fg=typer.colors.GREEN)
+        logger.info("chat done", extra={"final_response_preview": final_response[:400]})
+        return final_response
+
+
+@app.command()
+def interactive(
+    mcp_url: str = typer.Option(
+        "http://localhost:8000",
+        "--mcp-url",
+        help="Base URL of the MCP HTTP server",
+    )
+):
+    """Start interactive CLI client using HTTP transport."""
+    asyncio.run(_interactive_async(mcp_url))
+
+
+async def _interactive_async(mcp_url: str):
+    """Async implementation of interactive mode."""
+    client = HTTPMCPClient(mcp_url)
+
+    # Check server health
+    typer.secho(f"\n🔍 Checking MCP server at {mcp_url}...", fg=typer.colors.CYAN)
+    if not await client.check_server_health():
+        typer.secho("❌ MCP server is not available. Please start it first.", fg=typer.colors.RED)
+        typer.secho(f"   Run: uvicorn server.http_server:app --reload --port 8000", fg=typer.colors.YELLOW)
+        return
+
+    typer.secho("✅ MCP server is healthy!", fg=typer.colors.GREEN)
+
+    typer.secho("\n" + "=" * 60, fg=typer.colors.CYAN)
+    typer.secho("🎯 Recife Open Data MCP - HTTP Client", fg=typer.colors.CYAN)
+    typer.secho("=" * 60, fg=typer.colors.CYAN)
+    typer.secho("Type your questions in natural language. Examples:", fg=typer.colors.CYAN)
+    typer.secho("  - Quantas escolas existem?", fg=typer.colors.CYAN)
+    typer.secho("  - Liste todas as escolas de Santo Amaro", fg=typer.colors.CYAN)
+    typer.secho("  - Qual é o total de alunos?", fg=typer.colors.CYAN)
+    typer.secho("Type 'exit' to quit.\n", fg=typer.colors.CYAN)
+    typer.secho("Commands:", fg=typer.colors.CYAN)
+    typer.secho("  :tools             - list available tools", fg=typer.colors.CYAN)
+    typer.secho("  :tables            - list database tables", fg=typer.colors.CYAN)
+    typer.secho("  :schemas           - list database schemas", fg=typer.colors.CYAN)
+    typer.secho("  :describe <table>  - describe columns of a table", fg=typer.colors.CYAN)
+    typer.secho("  :search <keyword>  - search tables/columns by keyword\n", fg=typer.colors.CYAN)
+
+    try:
+        while True:
+            try:
+                user_input = typer.prompt("You").strip()
+                if user_input.lower() in ("exit", "quit", "q"):
+                    typer.secho("\n👋 Goodbye!", fg=typer.colors.CYAN)
+                    break
+                if not user_input:
+                    continue
+                # Built-in commands to exercise HTTP tools directly
+                if user_input.startswith(":"):
+                    parts = user_input.split()
+                    cmd = parts[0]
+                    arg = " ".join(parts[1:]) if len(parts) > 1 else ""
+
+                    if cmd == ":tools":
+                        tools = await client.list_tools()
+                        typer.echo(json.dumps({"tools": [t["name"] for t in tools]}, indent=2, ensure_ascii=False))
+                        continue
+                    if cmd == ":tables":
+                        res = await client.call_tool("list_tables", {})
+                        typer.echo(res)
+                        continue
+                    if cmd == ":schemas":
+                        res = await client.call_tool("list_databases", {})
+                        typer.echo(res)
+                        continue
+                    if cmd == ":describe":
+                        if not arg:
+                            typer.secho("Usage: :describe <table>", fg=typer.colors.YELLOW)
+                        else:
+                            res = await client.call_tool("describe_table", {"table_name": arg})
+                            typer.echo(res)
+                        continue
+                    if cmd == ":search":
+                        if not arg:
+                            typer.secho("Usage: :search <keyword>", fg=typer.colors.YELLOW)
+                        else:
+                            res = await client.call_tool("search_schema", {"search_term": arg})
+                            typer.echo(res)
+                        continue
+
+                    typer.secho("Unknown command. Try :tools, :tables, :schemas, :describe, :search", fg=typer.colors.YELLOW)
+                    continue
+
+                await client.chat(user_input)
+            except KeyboardInterrupt:
+                typer.secho("\n\n👋 Goodbye!", fg=typer.colors.CYAN)
+                break
+            except Exception as e:
+                typer.secho(f"\n❌ Error: {e}", fg=typer.colors.RED)
+    finally:
+        await client.close()
+
+
+if __name__ == "__main__":
+    app()
+</file>
+
+<file path="INGESTAO_DATASETS.md">
+# Ingestão e Organização do Banco
+
+Guia para carregar CSVs do portal de dados abertos no DuckDB local preservando a estrutura original. A ingestão foi implementada por meio de um script que carrega arquivos CSV em tabelas do banco local, usando o descritor JSON fornecido no Portal de Dados Abertos do Recife para definir nome de tabela e esquema de colunas. O processo é não destrutivo em relação aos arquivos de origem: os CSVs são mantidos como foram obtidos, e a ingestão cria tabelas e insere registros no banco conforme o esquema descrito, sem remodelagens profundas no conteúdo.
+
+## Conjuntos de dados utilizados
+Foram selecionados três conjuntos de dados públicos para compor o estudo:
+- Situação final dos alunos por período letivo (`situação_final_dos_alunos_por_período_letivo`)
+- Registro das infrações de trânsito - CTTU (`registro_das_infrações_de_trânsito_-_cttu`)
+- Naufrágios do Recife (`naufrágios_do_recife`)
+
+Em todos os casos, o portal publica múltiplos CSVs por ano de referência, resultantes da mesma consulta e com estrutura homogênea. A estratégia adotada foi agregar todos os arquivos de um mesmo tema em uma única tabela, contendo o histórico completo disponível. Essa agregação é estritamente estrutural/temporal: os CSVs são concatenados mantendo o esquema original, sem fusão de atributos ou mudança de semântica, permitindo consultas longitudinais mantendo fidelidade à fonte.
+
+## Princípios e desafios
+- **Preservação**: manter cabeçalhos e formatos conforme a origem; apenas ajustes mínimos para viabilizar a leitura (encoding/delimitador).
+- **Descritor como contrato**: o JSON do portal define o nome da tabela e as colunas. Quando o descritor não traz tipos, a tipagem é inferida amostrando o CSV.
+- **Heterogeneidade controlada**: mesmo com arquivos anuais separados, a agregação exige que o esquema seja idêntico; divergências são tratadas antes da carga para manter a estrutura consistente.
+- **DuckDB para o protótipo**: escolhido por ser embutido (arquivo único, sem servidor), rápido para leitura de CSV e suficientemente expressivo para SQL analítico local — ideal para um protótipo reprodutível em laboratório sem dependências externas.
+
+## Fluxo de ingestão
+1. Posicione os CSVs originais e o descritor JSON (obtido do portal) no diretório desejado.
+2. Rode o script com modo individual ou em lote; os arquivos não são modificados.
+3. Cada conjunto temático vira uma tabela única, agregando todos os arquivos daquele diretório.
+
+### Ingestão individual
+```bash
+python -m scripts.ingest load <descriptor.json> <arquivo.csv> [--schema public] [--replace] [--sample-rows 1000]
+```
+- Usa o descritor para criar a tabela; com `--replace` recria antes de inserir.
+- Se o descritor não trouxer colunas, infere tipos (`INTEGER`, `DOUBLE`, `BOOLEAN`, `TIMESTAMP`, `VARCHAR`) usando a amostra `--sample-rows`.
+
+### Ingestão em lote
+```bash
+python -m scripts.ingest batch [--input-dir datasets] [--schema public] [--replace]
+```
+- **Descritor com `metadados`**: cria a tabela pelo descritor e insere todos os CSVs da pasta (primeiro recria, demais fazem append).
+- **Descritor simples**: procura um CSV com o mesmo nome-base do JSON e carrega apenas esse arquivo.
+
+O relatório final indica quantos arquivos foram carregados e eventuais falhas.
+
+## Organização do banco e checagens
+- O arquivo DuckDB padrão fica em `./data/recife.duckdb` (configurável via `DUCKDB_DATA_DIR`).
+- Para recomeçar do zero, apague o arquivo do banco; não crie arquivos vazios, o DuckDB recria sozinho na próxima conexão.
+- Verifique a carga com consultas simples:
+  ```sql
+  SELECT COUNT(*) FROM <schema>.<tabela>;
+  SELECT * FROM <schema>.<tabela> LIMIT 5;
+  ```
+
+## Estrutura de diretórios sugerida
+```
+datasets/
+├── situacao_final_alunos/
+│   ├── 2023.csv
+│   ├── 2024.csv
+│   └── descriptor.json
+├── infracoes_cttu/
+│   ├── 2019.csv
+│   ├── 2024.csv
+│   └── descriptor.json
+└── naufragios/
+    ├── dados.csv
+    └── descriptor.json
+```
+</file>
+
+<file path="scripts/ingest.py">
+import csv
+import json
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import List, Optional
+
+import duckdb
+import typer
+from dotenv import load_dotenv
+
+from server.config import Settings
+
+load_dotenv()
+app = typer.Typer(help="Ingest CSV datasets into DuckDB for the MCP server.")
+
+
+@dataclass
+class ColumnSpec:
+    name: str
+    type: str
+
+
+BOOL_VALUES = {"true", "false", "t", "f", "yes", "no"}
+
+
+def _looks_int(value: str) -> bool:
+    try:
+        int(value)
+        return True
+    except Exception:
+        return False
+
+
+def _looks_float(value: str) -> bool:
+    try:
+        float(value)
+        return True
+    except Exception:
+        return False
+
+
+def _looks_bool(value: str) -> bool:
+    return value.lower() in BOOL_VALUES
+
+
+def _looks_date(value: str) -> bool:
+    try:
+        datetime.fromisoformat(value)
+        return True
+    except Exception:
+        return False
+
+
+def infer_columns(csv_path: Path, sample_rows: int) -> List[ColumnSpec]:
+    with csv_path.open("r", encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        columns = reader.fieldnames or []
+        samples = list(row for _, row in zip(range(sample_rows), reader))
+    specs: List[ColumnSpec] = []
+    for col in columns:
+        values = [row[col] for row in samples if row[col] not in ("", None)]
+        if values and all(_looks_int(v) for v in values):
+            duck_type = "INTEGER"
+        elif values and all(_looks_float(v) for v in values):
+            duck_type = "DOUBLE"
+        elif values and all(_looks_bool(v) for v in values):
+            duck_type = "BOOLEAN"
+        elif values and all(_looks_date(v) for v in values):
+            duck_type = "TIMESTAMP"
+        else:
+            duck_type = "VARCHAR"
+        specs.append(ColumnSpec(name=col, type=duck_type))
+    return specs
+
+
+def read_descriptor(descriptor: Path) -> tuple[str, Optional[List[ColumnSpec]]]:
+    data = json.loads(descriptor.read_text(encoding="utf-8"))
+    
+    # Check if it's a metadata structure (new format with "metadados" key)
+    if "metadados" in data:
+        # New format: single descriptor for multiple CSVs
+        metadata = data["metadados"]
+        cabecalho = metadata.get("cabecalho", {})
+        table = cabecalho.get("titulo", "").lower().replace(" ", "_")
+        if not table:
+            raise typer.BadParameter("Descriptor with 'metadados' must include 'cabecalho.titulo'.")
+        
+        # Extract columns from "campos" if available
+        campos = metadata.get("campos", [])
+        if campos:
+            cols = [ColumnSpec(name=c["codigo"], type="VARCHAR") for c in campos]
+            return table, cols
+        return table, None
+    
+    # Old format: simple descriptor with "table" or "name"
+    table = data.get("table") or data.get("name")
+    if not table:
+        raise typer.BadParameter("Descriptor must include 'table' or 'name' or 'metadados'.")
+    cols = data.get("columns")
+    if cols:
+        return table, [ColumnSpec(name=c["name"], type=c["type"]) for c in cols]
+    return table, None
+
+
+def create_table(conn: duckdb.DuckDBPyConnection, schema: str, table: str, columns: List[ColumnSpec], replace: bool) -> None:
+    if replace:
+        try:
+            conn.execute(f'DROP TABLE IF EXISTS "{schema}"."{table}"')
+        except Exception:
+            pass
+    
+    columns_sql = [f'"{c.name}" {c.type}' for c in columns]
+    create_stmt = f'CREATE TABLE IF NOT EXISTS "{schema}"."{table}" ({", ".join(columns_sql)})'
+    conn.execute(create_stmt)
+
+
+def copy_csv(conn: duckdb.DuckDBPyConnection, schema: str, table: str, csv_path: Path) -> None:
+    # Use DuckDB's read_csv_auto and insert
+    csv_path_str = str(csv_path)
+    try:
+        conn.execute(f'INSERT INTO "{schema}"."{table}" SELECT * FROM read_csv_auto(\'{csv_path_str}\')')
+    except Exception:
+        # Fallback with explicit options
+        try:
+            conn.execute(
+                f'''INSERT INTO "{schema}"."{table}"
+                    SELECT * FROM read_csv_auto(
+                        '{csv_path_str}',
+                        header=True,
+                        delim=',',
+                        quote='"',
+                        ignore_errors=True,
+                        all_varchar=True,
+                        sample_size=-1
+                    )'''
+            )
+        except Exception:
+            # Last resort: clean outer quotes and double quotes into a temp file, then load
+            import tempfile
+            tmp = Path(tempfile.mkstemp(suffix=csv_path.name)[1])
+            with csv_path.open("r", encoding="utf-8", errors="ignore") as src, tmp.open("w", encoding="utf-8") as dst:
+                for line in src:
+                    stripped = line.strip()
+                    if stripped.startswith('"') and stripped.endswith('"') and len(stripped) >= 2:
+                        stripped = stripped[1:-1]
+                    stripped = stripped.replace('""', '"')
+                    dst.write(stripped + "\n")
+            conn.execute(
+                f'''INSERT INTO "{schema}"."{table}"
+                    SELECT * FROM read_csv_auto(
+                        '{tmp}',
+                        header=True,
+                        delim=',',
+                        quote='"',
+                        ignore_errors=True,
+                        all_varchar=True,
+                        sample_size=-1
+                    )'''
+            )
+
+
+@app.command()
+def load(
+    descriptor: Path = typer.Argument(..., help="JSON descriptor with table metadata."),
+    csv_file: Path = typer.Argument(..., help="CSV file to ingest."),
+    schema: str = typer.Option("public", help="Target schema."),
+    replace: bool = typer.Option(True, help="Drop and recreate the table before loading."),
+    sample_rows: int = typer.Option(1000, help="Rows to sample for type inference if columns missing."),
+):
+    """Load a single CSV file into DuckDB based on a descriptor JSON."""
+    settings = Settings.load()
+    table, columns = read_descriptor(descriptor)
+    if columns is None:
+        columns = infer_columns(csv_file, sample_rows)
+    
+    conn = duckdb.connect(settings.db_path)
+    
+    # Ensure schema exists
+    conn.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema}"')
+    
+    create_table(conn, schema, table, columns, replace)
+    copy_csv(conn, schema, table, csv_file)
+    conn.close()
+    typer.echo(f"✅ Loaded {csv_file} into {schema}.{table}")
+
+
+@app.command()
+def batch(
+    input_dir: Path = typer.Option(
+        Path("datasets"),
+        help="Directory containing CSV files alongside their descriptors",
+    ),
+    schema: str = typer.Option("public", help="Target schema."),
+    replace: bool = typer.Option(True, help="Drop and recreate tables before loading."),
+):
+    """
+    Batch load CSVs using descriptors located in a directory.
+
+    Supports two patterns:
+    1. Matching pairs: descriptor.json + descriptor.csv (e.g., escolas.json + escolas.csv)
+    2. Single descriptor for multiple CSVs: descriptor.json describes all *.csv in the directory
+       (identified by 'metadados' key in the JSON)
+    """
+    if not input_dir.exists():
+        typer.echo(f"❌ Input directory not found: {input_dir}", err=True)
+        raise typer.Exit(1)
+
+    # Find all descriptor JSON files
+    descriptors = list(input_dir.glob("*.json"))
+
+    if not descriptors:
+        typer.echo(f"❌ No descriptor JSON files found in {input_dir}", err=True)
+        raise typer.Exit(1)
+
+    settings = Settings.load()
+    conn = duckdb.connect(settings.db_path)
+
+    # Ensure schema exists
+    conn.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema}"')
+
+    typer.echo(f"\n📦 Batch ingestion from {input_dir}")
+    typer.echo(f"   Found {len(descriptors)} descriptor(s)\n")
+
+    success_count = 0
+    failed_count = 0
+
+    for descriptor_path in sorted(descriptors):
+        try:
+            descriptor_data = json.loads(descriptor_path.read_text(encoding="utf-8"))
+            
+            # Check if this is a "metadados" descriptor (describes multiple CSVs)
+            if "metadados" in descriptor_data:
+                typer.echo(f"📄 Processing metadata descriptor: {descriptor_path.name}")
+                table, columns = read_descriptor(descriptor_path)
+                
+                if columns is None:
+                    typer.echo(f"⚠️  Skipping {descriptor_path.name}: no columns defined", err=True)
+                    failed_count += 1
+                    continue
+                
+                # Find all CSV files in this directory
+                csv_files = sorted(input_dir.glob("*.csv"))
+                
+                if not csv_files:
+                    typer.echo(f"⚠️  Skipping {descriptor_path.name}: no CSV files found in directory", err=True)
+                    failed_count += 1
+                    continue
+                
+                for csv_path in csv_files:
+                    try:
+                        typer.echo(f"   📊 Loading {csv_path.name} into {table}...")
+                        
+                        # For the first CSV, create the table; for others, append
+                        is_first = (csv_path == csv_files[0])
+                        create_table(conn, schema, table, columns, replace and is_first)
+                        copy_csv(conn, schema, table, csv_path)
+                        
+                        result = conn.execute(f'SELECT COUNT(*) FROM "{schema}"."{table}"').fetchone()
+                        row_count = result[0] if result else 0
+                        
+                        typer.echo(f"      ✅ {csv_path.name}: {row_count:,} total rows in {schema}.{table}")
+                        success_count += 1
+                    except Exception as e:
+                        typer.echo(f"      ❌ Error loading {csv_path.name}: {e}", err=True)
+                        failed_count += 1
+                
+                typer.echo()
+            
+            else:
+                # Old pattern: matching pairs
+                csv_path = descriptor_path.with_suffix('.csv')
+                
+                if not csv_path.exists():
+                    typer.echo(f"⚠️  Skipping {descriptor_path.name}: matching CSV not found", err=True)
+                    failed_count += 1
+                    continue
+                
+                table, columns = read_descriptor(descriptor_path)
+                
+                if columns is None:
+                    typer.echo(f"⚠️  Skipping {descriptor_path.name}: no columns defined", err=True)
+                    failed_count += 1
+                    continue
+                
+                typer.echo(f"📄 Loading {table}...")
+                typer.echo(f"   Descriptor: {descriptor_path.name}")
+                typer.echo(f"   CSV: {csv_path.name}")
+                
+                create_table(conn, schema, table, columns, replace)
+                copy_csv(conn, schema, table, csv_path)
+                
+                result = conn.execute(f'SELECT COUNT(*) FROM "{schema}"."{table}"').fetchone()
+                row_count = result[0] if result else 0
+                
+                typer.echo(f"   ✅ Success: {row_count:,} rows loaded into {schema}.{table}\n")
+                success_count += 1
+        
+        except Exception as e:
+            typer.echo(f"❌ Error processing {descriptor_path.name}: {e}\n", err=True)
+            failed_count += 1
+
+    conn.close()
+
+    typer.echo(f"\n📊 Batch ingestion complete:")
+    typer.echo(f"   ✅ Successful: {success_count}")
+    typer.echo(f"   ❌ Failed: {failed_count}")
+
+    if failed_count > 0:
+        raise typer.Exit(1)
+
+
+if __name__ == "__main__":
+    app()
+</file>
+
+<file path="eval_cases.json">
+{
+  "version": "3.0",
+  "description": "Casos de avaliação para o MCP com os datasets atuais: situação final de alunos, infrações de trânsito (CTTU) e naufrágios do Recife.",
+  "cases": [
+    {
+      "id": "alunos_total_all",
+      "question": "Quantos registros de situação final de alunos existem no período inteiro?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\";",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "alunos_2024_total",
+      "question": "Quantos registros de alunos existem em 2024?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2024';",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "alunos_aprovados_2023",
+      "question": "Quantos alunos foram aprovados em 2023?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2023' AND \"situacao_nome\" = 'APROVADO';",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "alunos_top_escolas",
+      "question": "Quais são as 5 escolas com mais registros de alunos no período?",
+      "reference_sql": "SELECT \"escola\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"escola\" ORDER BY total DESC LIMIT 5;",
+      "comparison": { "type": "ranking", "key_columns": ["escola"], "value_column": "total", "top_k": 5 }
+    },
+    {
+      "id": "alunos_top_situacoes",
+      "question": "Quais são as 5 situações mais frequentes dos alunos?",
+      "reference_sql": "SELECT \"situacao_nome\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"situacao_nome\" ORDER BY total DESC LIMIT 5;",
+      "comparison": { "type": "ranking", "key_columns": ["situacao_nome"], "value_column": "total", "top_k": 5 }
+    },
+    {
+      "id": "alunos_retidos_2024_total",
+      "question": "Quantos alunos foram retidos em 2024?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2024' AND \"situacao_nome\" = 'RETIDO';",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "alunos_por_sexo",
+      "question": "Quantos registros existem por sexo?",
+      "reference_sql": "SELECT \"sexo\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"sexo\" ORDER BY total DESC;",
+      "comparison": { "type": "ranking", "key_columns": ["sexo"], "value_column": "total" }
+    },
+    {
+      "id": "alunos_top_anos",
+      "question": "Quais são os 5 anos com mais registros de alunos?",
+      "reference_sql": "SELECT \"ano\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" GROUP BY \"ano\" ORDER BY total DESC LIMIT 5;",
+      "comparison": { "type": "ranking", "key_columns": ["ano"], "value_column": "total", "top_k": 5 }
+    },
+    {
+      "id": "alunos_top_rpa",
+      "question": "Quais são as 3 RPAs com mais registros de alunos?",
+      "reference_sql": "SELECT \"rpa\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"rpa\" IS NOT NULL GROUP BY \"rpa\" ORDER BY total DESC LIMIT 3;",
+      "comparison": { "type": "ranking", "key_columns": ["rpa"], "value_column": "total", "top_k": 3 }
+    },
+    {
+      "id": "alunos_taxa_aprovacao_2014",
+      "question": "Qual a taxa de aprovação dos alunos em 2014?",
+      "reference_sql": "SELECT CAST(SUM(CASE WHEN \"situacao_nome\" = 'APROVADO' THEN 1 ELSE 0 END) AS DOUBLE) / COUNT(*) AS taxa_aprovacao FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2014';",
+      "comparison": { "type": "numeric", "field_name": "taxa_aprovacao", "tolerance": 0.0001 }
+    },
+    {
+      "id": "transito_total_all",
+      "question": "Quantos registros existem no dataset de infrações de trânsito?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\";",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "transito_total_2019",
+      "question": "Quantas infrações foram registradas em 2019?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataInfracao\", '(20\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2019';",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "transito_top_anos",
+      "question": "Quais são os 5 anos com mais infrações registradas (pela data da infração)?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataInfracao\", '(20\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT ano, COUNT(*) AS total FROM base GROUP BY ano ORDER BY total DESC LIMIT 5;",
+      "comparison": { "type": "ranking", "key_columns": ["ano"], "value_column": "total", "top_k": 5 }
+    },
+    {
+      "id": "transito_top_infracoes",
+      "question": "Quais são os 5 códigos de infração mais frequentes?",
+      "reference_sql": "SELECT \"infracao\", COUNT(*) AS total FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" GROUP BY \"infracao\" ORDER BY total DESC LIMIT 5;",
+      "comparison": { "type": "ranking", "key_columns": ["infracao"], "value_column": "total", "top_k": 5 }
+    },
+    {
+      "id": "transito_top_locais",
+      "question": "Quais são os 5 locais de cometimento com mais registros?",
+      "reference_sql": "SELECT \"localcometimento\", COUNT(*) AS total FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" GROUP BY \"localcometimento\" ORDER BY total DESC LIMIT 5;",
+      "comparison": { "type": "ranking", "key_columns": ["localcometimento"], "value_column": "total", "top_k": 5 }
+    },
+    {
+      "id": "transito_implantacao_2024",
+      "question": "Quantas multas foram implantadas em 2024?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataimplantacao\", '(20\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2024';",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "transito_top_agentes",
+      "question": "Quais são os 3 agentes/equipamentos com mais registros?",
+      "reference_sql": "SELECT \"agenteequipamento\", COUNT(*) AS total FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" GROUP BY \"agenteequipamento\" ORDER BY total DESC LIMIT 3;",
+      "comparison": { "type": "ranking", "key_columns": ["agenteequipamento"], "value_column": "total", "top_k": 3 }
+    },
+    {
+      "id": "transito_infracoes_2024_amparo",
+      "question": "Quais são os 3 amparos legais mais comuns nas multas implantadas em 2024?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataimplantacao\", '(20\\d{2})') AS ano, \"amparolegal\" FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT \"amparolegal\", COUNT(*) AS total FROM base WHERE ano = '2024' GROUP BY \"amparolegal\" ORDER BY total DESC LIMIT 3;",
+      "comparison": { "type": "ranking", "key_columns": ["amparolegal"], "value_column": "total", "top_k": 3 }
+    },
+    {
+      "id": "transito_sample_lista",
+      "question": "Liste 3 registros de infração com data, hora e código de infração.",
+      "reference_sql": "SELECT \"dataInfracao\", \"horainfracao\", \"infracao\" FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" LIMIT 3;",
+      "comparison": { "type": "list", "sample_columns": ["dataInfracao", "horainfracao", "infracao"], "sample_size": 3 }
+    },
+    {
+      "id": "transito_total_2015_implantacao",
+      "question": "Quantas multas foram implantadas em 2015?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataimplantacao\", '(20\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2015';",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "naufragios_total",
+      "question": "Quantos naufrágios estão listados no dataset?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"naufrágios_do_recife\";",
+      "comparison": { "type": "numeric" }
+    },
+    {
+      "id": "naufragios_top_profundidade",
+      "question": "Quais são os 3 naufrágios com maior profundidade máxima informada?",
+      "reference_sql": "SELECT \"nome\", \"profundidade_maxima\" FROM \"public\".\"naufrágios_do_recife\" WHERE \"profundidade_maxima\" <> '' ORDER BY try_cast(regexp_extract(\"profundidade_maxima\", '(\\d+)') AS INTEGER) DESC LIMIT 3;",
+      "comparison": { "type": "ranking", "key_columns": ["nome"], "value_column": "profundidade_maxima", "top_k": 3 }
+    },
+    {
+      "id": "naufragios_por_ano",
+      "question": "Quantos naufrágios têm ano informado (por ano)?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"data_naufragio\", '(\\d{4})') AS ano FROM \"public\".\"naufrágios_do_recife\") SELECT \"ano\", COUNT(*) AS total FROM base WHERE \"ano\" ~ '^[0-9]{4}$' GROUP BY \"ano\" ORDER BY \"ano\";",
+      "comparison": { "type": "ranking", "key_columns": ["ano"], "value_column": "total" }
+    },
+    {
+      "id": "naufragios_sample",
+      "question": "Liste 5 naufrágios com profundidade máxima e coordenadas.",
+      "reference_sql": "SELECT \"nome\", \"profundidade_maxima\", \"latitude\", \"longitude\" FROM \"public\".\"naufrágios_do_recife\" LIMIT 5;",
+      "comparison": { "type": "list", "sample_columns": ["nome", "profundidade_maxima", "latitude", "longitude"], "sample_size": 5 }
+    }
+  ]
+}
+</file>
+
+<file path="FERRAMENTAS_MCP.md">
+# Servidor MCP, Ferramentas e System Prompt
+
+## Implementação e abordagem
+O servidor MCP foi implementado a partir de uma instância do FastMCP, com um conjunto enxuto de ferramentas voltadas a duas necessidades: (i) exploração do schema (descobrir tabelas/colunas) e (ii) consulta de dados (executar SQL diretamente ou gerar SQL a partir de linguagem natural). Toda execução de SQL passa por uma rotina central (_run_sql) que valida a query, garante que seja read-only (SELECT/WITH/EXPLAIN) e aplica limites de segurança antes de consultar o banco.
+
+Em vez de disponibilizar a estrutura completa do banco como recurso de contexto único, a exploração é feita de forma incremental via ferramentas. Essa decisão evita janelas de contexto grandes e prepara o protótipo para cenários com múltiplos bancos ou domínios heterogêneos. O fluxo típico é: listar tabelas → descrever colunas → gerar/executar SQL → obter resultados.
+
+## Ferramentas expostas
+- `list_tables()`: lista tabelas disponíveis com schema.
+- `describe_table(table_name)`: retorna colunas/tipos de uma tabela específica.
+- `search_schema(search_term)`: busca tabelas/colunas por termo.
+- `list_databases()`: lista schemas (geralmente apenas `public`).
+- `execute_sql(sql)`: executa SQL read-only com limite automático.
+- `answer_question(question)`: gera SQL via LLM, valida e executa com retry.
+- Resources: dicionários de dados para consulta contextual (`resource://dicionario-situacao-final`, `resource://dicionario-infracoes`, `resource://dicionario-naufragios`).
+
+Guardrails principais: bloqueio de DDL/DML, `LIMIT` aplicado automaticamente, quoting obrigatório para nomes com acentos/hífens e validação de colunas/tabelas via ferramentas.
+
+## System prompt (racional linha a linha)
+O prompt enviado ao LLM (ver `server/openrouter_client.py`) inclui instruções explícitas para reduzir alucinações e proteger o banco. Principais linhas e seus motivos:
+- **"You are a SQL expert... DuckDB"**: ancora o modelo no dialeto e domínio esperado.
+- **"Always call list_tables... REQUIRED describe_table"**: força descoberta de nomes reais antes de escrever SQL, evitando colunas inventadas.
+- **"consultar dataset dictionaries via resources"**: oferece contexto sem enviar todo o schema, mantendo a janela pequena.
+- **"Use ONLY names returned by the tools"**: reforça vínculo com o schema efetivo.
+- **Regras de filtragem (casing, regex para ano, profundidade)**: tratam nuances específicas dos datasets e reduzem retries desnecessários.
+- **"Never mutate data" / "Do NOT add LIMIT automaticamente"**: garante operações só de leitura e evita truncar resultados quando não solicitado.
+- **Quoting obrigatório (schema/tabela/coluna)**: endereça caracteres especiais (acentos, hífens, espaços) presentes nos nomes originais.
+- **Exemplos reais de SQL**: servem de few-shot para guiar formato e aliases consistentes.
+- **"If a column error occurs, STOP and call describe_table"**: instrui o modelo a corrigir erros consultando o schema, não chutando nomes.
+
+Essa combinação de ferramentas + prompt obriga o cliente a explorar o esquema de forma incremental, reduz ambiguidade em cenários com múltiplos datasets e facilita auditar cada decisão durante os experimentos.
+</file>
+
+<file path="server/db.py">
+import duckdb
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+from .config import Settings
+
+
+class Database:
+    def __init__(self, settings: Settings) -> None:
+        self.settings = settings
+        self._conn: Optional[duckdb.DuckDBPyConnection] = None
+
+    async def init(self) -> None:
+        if self._conn is not None:
+            return
+
+        db_path = Path(self.settings.db_path)
+
+        def _connect(path: Path):
+            # Using read_only=False after copying to a writable location to avoid lock issues
+            return duckdb.connect(str(path), read_only=False)
+
+        try:
+            self._conn = _connect(db_path)
+        except Exception as exc:  # pragma: no cover - runtime fallback
+            # Fallback for read-only filesystems (e.g., FastMCP/Lambda layers)
+            if "Read-only file system" in str(exc) or "read-only" in str(exc).lower():
+                fallback_dir = Path("/tmp/recife-duckdb")
+                fallback_dir.mkdir(parents=True, exist_ok=True)
+                fallback_path = fallback_dir / "recife.duckdb"
+                if db_path.exists():
+                    import shutil
+                    shutil.copyfile(db_path, fallback_path)
+                self.settings.db_path = str(fallback_path)
+                self._conn = _connect(fallback_path)
+            else:
+                raise
+
+        # Enable execution in read-only context where needed
+        self._conn.execute("SET threads = 4")
+        self._conn.execute("SET memory_limit = '4GB'")
+
+    async def close(self) -> None:
+        if self._conn:
+            self._conn.close()
+            self._conn = None
+
+    async def fetch_rows(self, sql: str, timeout_ms: Optional[int] = None) -> List[Dict[str, Any]]:
+        if self._conn is None:
+            await self.init()
+        assert self._conn is not None
+        # Validação de schema: EXPLAIN detecta tabela/coluna inexistente antes de executar
+        try:
+            self._conn.execute(f"EXPLAIN {sql}")
+        except Exception as exc:
+            raise ValueError(f"SQL inválido (tabela/coluna não encontrada). Use list_tables/describe_table e corrija os nomes. Erro: {exc}") from exc
+
+        result = self._conn.execute(sql).fetchall()
+        # Convert to list of dicts
+        columns = [desc[0] for desc in self._conn.description] if self._conn.description else []
+        rows = []
+        for row in result:
+            row_dict = {col: val for col, val in zip(columns, row)}
+            rows.append(row_dict)
+        return rows
+
+    async def fetch_schema_snapshot(self) -> str:
+        if self._conn is None:
+            await self.init()
+        assert self._conn is not None
+        # Get all tables and their column info
+        query = """
+        SELECT table_schema, table_name, column_name, data_type
+        FROM information_schema.columns
+        WHERE table_schema NOT IN ('information_schema', 'pg_catalog', 'memory')
+        ORDER BY table_schema, table_name, ordinal_position;
+        """
+        rows = self._conn.execute(query).fetchall()
+        parts: List[str] = []
+        for row in rows:
+            table_schema, table_name, column_name, data_type = row
+            parts.append(
+                f"{table_schema}.{table_name} :: {column_name} ({data_type})"
+            )
+        return "\n".join(parts)
+
+    async def list_tables(self) -> List[Dict[str, str]]:
+        """List all tables with their schema."""
+        if self._conn is None:
+            await self.init()
+        assert self._conn is not None
+        query = """
+        SELECT table_schema, table_name
+        FROM information_schema.tables
+        WHERE table_schema NOT IN ('information_schema', 'pg_catalog', 'memory')
+        ORDER BY table_schema, table_name;
+        """
+        rows = self._conn.execute(query).fetchall()
+        return [{"schema": row[0], "table": row[1], "full_name": f'"{row[0]}"."{row[1]}"'} for row in rows]
+
+    async def describe_table(self, table_name: str) -> List[Dict[str, str]]:
+        """Get detailed column information for a specific table."""
+        if self._conn is None:
+            await self.init()
+        assert self._conn is not None
+        query = """
+        SELECT column_name, data_type, is_nullable
+        FROM information_schema.columns
+        WHERE table_name = ?
+        AND table_schema NOT IN ('information_schema', 'pg_catalog', 'memory')
+        ORDER BY ordinal_position;
+        """
+        rows = self._conn.execute(query, [table_name]).fetchall()
+        return [{"column": row[0], "type": row[1], "nullable": row[2]} for row in rows]
+
+    async def search_schema(self, search_term: str) -> List[Dict[str, str]]:
+        """Search for tables or columns matching a term."""
+        if self._conn is None:
+            await self.init()
+        assert self._conn is not None
+        query = """
+        SELECT table_schema, table_name, column_name, data_type
+        FROM information_schema.columns
+        WHERE table_schema NOT IN ('information_schema', 'pg_catalog', 'memory')
+        AND (LOWER(table_name) LIKE ? OR LOWER(column_name) LIKE ?)
+        ORDER BY table_schema, table_name, ordinal_position;
+        """
+        search_pattern = f"%{search_term.lower()}%"
+        rows = self._conn.execute(query, [search_pattern, search_pattern]).fetchall()
+        return [
+            {
+                "schema": row[0],
+                "table": row[1],
+                "column": row[2],
+                "type": row[3],
+                "full_reference": f'"{row[0]}"."{row[1]}"."{row[2]}"'
+            }
+            for row in rows
+        ]
+
+    async def list_databases(self) -> List[str]:
+        """List all database schemas."""
+        if self._conn is None:
+            await self.init()
+        assert self._conn is not None
+        query = """
+        SELECT DISTINCT table_schema
+        FROM information_schema.tables
+        WHERE table_schema NOT IN ('information_schema', 'pg_catalog', 'memory')
+        ORDER BY table_schema;
+        """
+        rows = self._conn.execute(query).fetchall()
+        return [row[0] for row in rows]
+</file>
+
+<file path=".gitignore">
+__pycache__/
+*.pyc
+.env
+.env.local
+*.sqlite
+.DS_Store
+.vscode/
+.envrc
+.venv/
+.idea/
+.mypy_cache/
+.eggs/
+*.egg-info/
+*.log
+*.db
+node_modules/
+
+# Data files (keep the DuckDB database, ignore raw CSVs)
+data/*
+!data/recife.duckdb
+
+# Ignore all raw datasets; MCP should not depend on this folder
+datasets/
+
+# Eval outputs
+eval_runs/
+!eval_runs/.gitkeep
+README_CIENTIFICO.md
+</file>
+
+<file path="requirements.txt">
+# System prerequisite (instale via Homebrew/APT): git-lfs (necessário para baixar data/recife.duckdb via LFS)
+braintrust>=0.0.1
+duckdb>=0.9.0
+fastapi>=0.115.0
+fastmcp>=2.13.3
+httpx>=0.27.0
+openai>=2.9.0
+python-dotenv>=1.2.1
+sqlparse>=0.5.4
+sse-starlette>=2.1.3
+typer>=0.20.0
+uvicorn[standard]>=0.32.0
+</file>
+
+<file path="README.md">
+# Recife Open Data MCP
+
+Protótipo para consultar dados públicos do Recife em linguagem natural usando MCP como camada de orquestração. A implementação realizada materializa um protótipo funcional para consulta a dados públicos abertos do município do Recife a partir de linguagem natural, utilizando um servidor MCP como camada de abstração entre (i) um repositório local de dados estruturados em banco relacional e (ii) um cliente que orquestra chamadas a um modelo de linguagem para geração de consultas SQL e leitura dos resultados. A escolha do MCP como protocolo busca padronizar o acesso a dados estruturados por modelos de linguagem, reduzindo a necessidade de integrações ad hoc entre cada fonte de dados e cada aplicação cliente.
+
+## Arquitetura do protótipo
+- **Dados**: arquivos CSV do portal de dados abertos são carregados em um DuckDB local (`./data/recife.duckdb`), preservando a estrutura original (detalhes em `INGESTAO_DATASETS.md`).
+- **Camada MCP (FastMCP)**: expõe ferramentas para explorar o schema, executar SQL direto e gerar SQL via LLM com guardrails. A versão HTTP usa FastAPI/uvicorn; o mesmo app roda via stdio.
+- **Cliente/LLM**: perguntas em linguagem natural são enviadas ao OpenRouter (`openai/gpt-5.1-codex-max`) com um prompt que força exploração prévia do schema e checagens de segurança.
+- **Observabilidade**: Braintrust registra chamadas LLM e spans de ingestão/consulta (ver `OBSERVABILITY.md`).
+- **Avaliação**: `scripts/run_eval.py` executa casos de teste (`eval_cases.json`) comparando o SQL gerado com queries de referência.
+
+## Pré-requisitos e dependências principais
+- Python 3.12+ e Git LFS (para baixar `data/recife.duckdb`): `brew install python@3.12 git-lfs && git lfs install`
+- Chave do OpenRouter (`OPENROUTER_API_KEY`) com acesso ao modelo `openai/gpt-5.1-codex-max` (Preview)
+- Bibliotecas centrais: FastMCP/FastAPI, DuckDB, OpenAI SDK, Typer (CLIs), Braintrust (observabilidade)
+
+## Configuração rápida
+1. Copie variáveis de ambiente:
+   ```bash
+   cp .env.example .env
+   # preencha OPENROUTER_API_KEY (e opcionalmente BRAINTRUST_API_KEY)
+   ```
+2. Crie o ambiente e instale dependências:
+   ```bash
+   /opt/homebrew/bin/python3.12 -m venv .venv  # ajuste o caminho conforme seu sistema
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+   Dica: `uv venv && source .venv/bin/activate && uv pip sync requirements.txt` acelera o setup.
+3. (Opcional) Configure onde o DuckDB será salvo:
+   ```bash
+   export DUCKDB_DATA_DIR=./data  # padrão; criado automaticamente
+   ```
+
+## Executando o servidor MCP
+- **Stdio (FastMCP)**:
+  ```bash
+  OPENROUTER_API_KEY=... python -m server.main
+  ```
+- **HTTP (FastAPI/uvicorn)**:
+  ```bash
+  OPENROUTER_API_KEY=... uvicorn server.http_server:app --reload --port 8000
+  ```
+- **Clientes de teste**:
+  - MCP interativo (stdio): `python client.py interactive`
+  - MCP via HTTP: `python http_client.py interactive`
+
+Endpoints HTTP MCP principais: `GET /health`, `GET /mcp/v1/tools`, `POST /mcp/v1/tools/execute`, `GET /mcp/v1/resources`.
+
+## Dados e ingestão
+Os CSVs são mantidos exatamente como vieram do portal, e a carga é feita por descritores JSON que definem tabela/esquema. A agregação por dataset junta múltiplos CSVs homogêneos em uma tabela única para permitir consultas longitudinais sem remodelagens profundas. O script `scripts/ingest.py` suporta ingestão individual ou em lote; detalhes e critérios estão em `INGESTAO_DATASETS.md`.
+
+## Ferramentas MCP e prompt
+O servidor expõe um conjunto enxuto de ferramentas para explorar schema e consultar dados (`list_tables`, `describe_table`, `search_schema`, `list_databases`, `execute_sql`, `answer_question`) e dicionários de dados via resources. O prompt do LLM obriga a explorar tabelas/colunas antes de gerar SQL e aplica regras de segurança/quoting; o racional completo está em `FERRAMENTAS_MCP.md`.
+
+## Testes e evals
+Casos de avaliação em `eval_cases.json` são executados por `python -m scripts.run_eval --help`. Cada caso compara o SQL gerado e as linhas retornadas com uma query de referência, produzindo um relatório Markdown em `eval_runs/`. Use o DuckDB local com os dados já ingeridos antes de rodar os evals.
+
+## Observabilidade
+Braintrust coleta spans de geração/execução de SQL (servidor MCP e clientes). Adicione `BRAINTRUST_API_KEY` no `.env` para ativar; consulte `OBSERVABILITY.md` para escopo e métricas.
+
+## Documentação complementar
+- `INGESTAO_DATASETS.md`: ingestão e organização do banco (princípios, estratégia de agregação, escolha do DuckDB)
+- `FERRAMENTAS_MCP.md`: implementação do servidor MCP, ferramentas disponíveis e detalhamento do system prompt
+- `OBSERVABILITY.md`: monitoramento de chamadas LLM e spans de consulta
+</file>
+
+<file path="server/openrouter_client.py">
+import os
+from typing import Tuple
+from openai import AsyncOpenAI
+from braintrust import current_span, init_logger, traced
+from .config import Settings
+
+# Initialize Braintrust logger
+logger = init_logger(
+    project="Recife Open Data MCP",
+    api_key=os.getenv("BRAINTRUST_API_KEY")
+)
+
+
+class OpenRouterClient:
+    def __init__(self, settings: Settings) -> None:
+        self.client = AsyncOpenAI(api_key=settings.openrouter_api_key, base_url="https://openrouter.ai/api/v1")
+        self.model = settings.openrouter_model
+        self.max_rows = settings.max_result_rows
+
+    @traced(type="llm", name="OpenRouter SQL Generation", notrace_io=True)
+    async def generate_sql(self, question: str, schema_text: str | None = None, previous_error: str | None = None) -> str:
+        guidance = f"""You are a SQL expert producing safe, read-only DuckDB SQL for Recife open data.
+BEFORE any SQL:
+- Always call list_tables to see exact table names (no guesses). NEVER put tool calls inside SQL.
+- REQUIRED: pick each table and call describe_table to get exact column names; use search_schema only to locate fields. Do this before writing SQL and after any column error.
+- You can consult dataset dictionaries via MCP resources: resource://dicionario-situacao-final, resource://dicionario-infracoes, resource://dicionario-naufragios.
+- Use ONLY names returned by the tools. Do not invent columns (e.g., use "situacao_nome", "escola", "rpa", "dataimplantacao", "dataInfracao", "horainfracao", "infracao", "descricaoinfracao", "agenteequipamento", "amparolegal", "profundidade_maxima", "data_naufragio", "latitude", "longitude", "historia detalhada").
+- Categorical filters must preserve the dataset casing.
+- Year extraction for text dates: use regexp_extract(col, '(\\\\d{{4}})' or '(20\\\\d{{2}})') instead of guessing; group/order on that alias. Filtre resultados vazios (ex.: WHERE ano <> '' AND ano ~ '^[0-9]{{4}}$' quando aplicável).
+- For depth ordering, handle blanks: add WHERE "profundidade_maxima" <> '' and ORDER BY try_cast(regexp_extract("profundidade_maxima", '(\\\\d+)') AS INTEGER) DESC.
+- For rates/percentages, return the fraction unless the question explicitly asks for a percentage; do NOT multiply by 100 unless requested.
+- Treat year fields as text; do not cast unless you extract with regex. Quote schema/table/column with double quotes.
+- In aggregations, always alias counts/sums clearly (e.g., COUNT(*) AS total) so the numeric column is explicit.
+- For text filters, use LOWER + LIKE/regex as needed, but only on existing columns.
+- Never mutate data. Do NOT add LIMIT automatically (only when the question asks for top-k).
+- When returning sample rows, include all requested columns exactly (e.g., dataInfracao, horainfracao, infracao, descricaoinfracao).
+
+IMPORTANT RULES:
+1. Table names with hyphens MUST be quoted with double quotes.
+2. Schema names MUST be quoted with double quotes.
+3. Column names with special characters, spaces, or capitals MUST be quoted.
+4. Format: "schema"."table-name"."Column_Name".
+
+EXAMPLES (real tables/columns, sem LIMIT, only top-k when asked):
+Q: Contagem total de registros de infrações
+A: SELECT COUNT(*) AS total FROM "public"."registro_das_infrações_de_trânsito_-_cttu";
+
+Q: Infrações registradas em 2019
+A: WITH base AS (SELECT regexp_extract("dataInfracao", '(20\\d{2})') AS ano FROM "public"."registro_das_infrações_de_trânsito_-_cttu") SELECT COUNT(*) AS total FROM base WHERE ano = '2019';
+
+Q: Multas implantadas em 2024
+A: WITH base AS (SELECT regexp_extract("dataimplantacao", '(20\\d{2})') AS ano FROM "public"."registro_das_infrações_de_trânsito_-_cttu") SELECT COUNT(*) AS total FROM base WHERE ano = '2024';
+
+Q: Top 5 códigos de infração
+A: SELECT "infracao", COUNT(*) AS total FROM "public"."registro_das_infrações_de_trânsito_-_cttu" GROUP BY "infracao" ORDER BY total DESC LIMIT 5;
+
+Q: Amostra de 3 infrações com data, hora, código e descrição
+A: SELECT "dataInfracao", "horainfracao", "infracao", "descricaoinfracao" FROM "public"."registro_das_infrações_de_trânsito_-_cttu" LIMIT 3;
+
+Q: Top 5 anos com mais alunos
+A: SELECT "ano", COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" GROUP BY "ano" ORDER BY total DESC LIMIT 5;
+
+Q: Quantos registros de alunos em 2024
+A: SELECT COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" WHERE "ano" = '2024';
+
+Q: Top 3 naufrágios mais profundos (profundidade_maxima)
+A: SELECT "nome", "profundidade_maxima" FROM "public"."naufrágios_do_recife" ORDER BY CAST(regexp_extract("profundidade_maxima", '(\\\\d+)') AS INTEGER) DESC LIMIT 3;
+
+If a column error occurs, STOP and call describe_table (and check resources), then regenerate SQL with the exact names. Do not retry with guessed names."""
+        user_content = f"Question: {question}\nReturn ONLY SQL, no markdown fences or commentary."
+        if schema_text:
+            user_content = f"Schema:\n{schema_text}\n\n{user_content}"
+
+        messages = [
+            {"role": "system", "content": guidance},
+            {"role": "user", "content": user_content},
+        ]
+        if previous_error:
+            messages.append({
+                "role": "assistant",
+                "content": "The prior SQL failed. Understand and revise to fix the error and stay read-only.",
+            })
+            messages.append({"role": "user", "content": f"Error: {previous_error}"})
+        resp = await self.client.chat.completions.create(
+            model=self.model,
+            temperature=0,
+            messages=messages,
+        )
+        content = resp.choices[0].message.content or ""
+        sql_output = content.strip().strip("` ")
+        
+        # Log to Braintrust with structured input/output
+        usage = resp.usage or None
+        current_span().log(
+            input=messages,
+            output=sql_output,
+            metrics={
+                "prompt_tokens": usage.prompt_tokens if usage else 0,
+                "completion_tokens": usage.completion_tokens if usage else 0,
+                "total_tokens": usage.total_tokens if usage else 0,
+            },
+            metadata={
+                "model": self.model,
+                "temperature": 0,
+                "question": question,
+                "has_previous_error": previous_error is not None,
+            }
+        )
+        
+        return sql_output
+</file>
+
+<file path="client.py">
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+from openai import AsyncOpenAI
+import asyncio
+import typer
+from dotenv import load_dotenv
+from braintrust import current_span, init_logger, traced
+from server.config import Settings
+
+load_dotenv()
+
+app = typer.Typer(help="Interactive MCP client for testing via OpenRouter.")
+settings = Settings.load()
+
+
+class MCPClient:
+    def __init__(self):
+        self.process = None
+        self.settings = settings
+        self.client = AsyncOpenAI(
+            api_key=settings.openrouter_api_key,
+            base_url="https://openrouter.ai/api/v1",
+        )
+        self.model = settings.openrouter_model
+        self.tools = None
+        self.schema_snapshot = None
+        
+        # Initialize Braintrust logger
+        init_logger(
+            project="Recife Open Data MCP",
+            api_key=os.getenv("BRAINTRUST_API_KEY")
+        )
+
+    async def start_server(self) -> None:
+        """Start the MCP server."""
+        typer.secho("🚀 Starting MCP server...", fg=typer.colors.CYAN)
+        self.process = subprocess.Popen(
+            [sys.executable, "-m", "server.main"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        await asyncio.sleep(2)
+        typer.secho("✅ MCP server started", fg=typer.colors.GREEN)
+
+    async def fetch_tools(self) -> list:
+        """Fetch available tools from MCP server."""
+        # For now, return hardcoded tools since we're in stdio mode
+        return [
+            {
+                "type": "function",
+                "function": {
+                    "name": "list_tables",
+                    "description": "List all available tables in the database with their schemas. Use this when the user asks what tables exist, what data is available, or wants to know the database structure.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "required": {
+                                "type": "boolean",
+                                "description": "Must be true; this tool is required before generating SQL."
+                            }
+                        },
+                        "required": ["required"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "describe_table",
+                    "description": "Get detailed column information for a specific table including column names, types, and nullability. Use this when you need to know the structure of a specific table before querying it.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "table_name": {
+                                "type": "string",
+                                "description": "Name of the table to describe (without schema, e.g., 'situação_final_dos_alunos_por_período_letivo')",
+                            },
+                            "required": {
+                                "type": "boolean",
+                                "description": "Must be true; this tool is required before generating SQL."
+                            }
+                        },
+                        "required": ["table_name", "required"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "search_schema",
+                    "description": "Search for tables or columns matching a keyword. Use this when you need to find where certain data might be located or what columns contain specific information.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "search_term": {
+                                "type": "string",
+                                "description": "Keyword to search for in table and column names",
+                            }
+                        },
+                        "required": ["search_term"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "list_databases",
+                    "description": "List all database schemas available. Use this to see what schemas exist in the database.",
+                    "parameters": {"type": "object", "properties": {}, "required": []},
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "execute_sql",
+                    "description": "Execute a pre-written SQL query directly. Use this only when you already have a complete, valid SQL query and don't need SQL generation.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "sql": {"type": "string", "description": "Complete SQL query to execute"}
+                        },
+                        "required": ["sql"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "answer_question",
+                    "description": "RECOMMENDED: Use this tool for questions about the actual DATA content - statistics, counts, aggregations, filtering, analysis, etc. This tool will generate SQL automatically and return results. Examples: 'quantos alunos', 'qual a taxa de aprovação', 'quais os top 10', etc. Do NOT use search_schema repeatedly - use answer_question directly for data questions.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "question": {
+                                "type": "string",
+                                "description": "Question about data content that needs SQL query to answer",
+                            }
+                        },
+                        "required": ["question"],
+                    },
+                },
+            },
+        ]
+
+    async def call_mcp_tool(self, tool_name: str, tool_input: dict) -> str:
+        """Call a tool via MCP server."""
+        from server.db import Database
+        from server.sql_guard import ensure_limit, ensure_read_only
+        from server.openrouter_client import OpenRouterClient
+
+        db = Database(self.settings)
+        await db.init()
+
+        try:
+            if tool_name == "list_tables":
+                typer.secho("📋 Listing all tables...", fg=typer.colors.BLUE)
+                tables = await db.list_tables()
+                return json.dumps({"message": f"Found {len(tables)} tables", "tables": tables})
+            elif tool_name == "describe_table":
+                table_name = tool_input.get("table_name", "")
+                typer.secho(f"📄 Describing table: {table_name}", fg=typer.colors.BLUE)
+                columns = await db.describe_table(table_name)
+                if not columns:
+                    return json.dumps({"error": f"Table '{table_name}' not found", "columns": []})
+                return json.dumps({"table": table_name, "column_count": len(columns), "columns": columns})
+            elif tool_name == "search_schema":
+                search_term = tool_input.get("search_term", "")
+                typer.secho(f"🔍 Searching schema for: {search_term}", fg=typer.colors.BLUE)
+                results = await db.search_schema(search_term)
+                if not results:
+                    return json.dumps({"message": f"No tables or columns found matching '{search_term}'", "results": []})
+                return json.dumps({"message": f"Found {len(results)} matches", "results": results})
+            elif tool_name == "list_databases":
+                typer.secho("🗄️  Listing databases/schemas...", fg=typer.colors.BLUE)
+                schemas = await db.list_databases()
+                return json.dumps({"message": f"Found {len(schemas)} schemas", "schemas": schemas})
+            elif tool_name == "execute_sql":
+                sql = tool_input.get("sql", "")
+                typer.secho(f"📊 Executing SQL: {sql[:80]}...", fg=typer.colors.BLUE)
+                ensure_read_only(sql)
+                limited = ensure_limit(sql, self.settings.max_result_rows)
+                rows = await db.fetch_rows(limited)
+                result = {"sql": limited, "row_count": len(rows), "rows": rows}
+                return json.dumps(result)
+            elif tool_name == "answer_question":
+                question = tool_input.get("question", "")
+                typer.secho(f"❓ Question: {question}", fg=typer.colors.BLUE)
+                llm = OpenRouterClient(self.settings)
+                sql_first = await llm.generate_sql(question)
+                typer.secho(f"🔍 Generated SQL: {sql_first[:100]}...", fg=typer.colors.YELLOW)
+                try:
+                    ensure_read_only(sql_first)
+                    limited = ensure_limit(sql_first, self.settings.max_result_rows)
+                    rows = await db.fetch_rows(limited)
+                    result = {"sql": limited, "row_count": len(rows), "rows": rows}
+                    return json.dumps(result)
+                except Exception as first_error:
+                    typer.secho(f"⚠️  First SQL attempt failed: {first_error}", fg=typer.colors.YELLOW)
+                    sql_second = await llm.generate_sql(question, previous_error=str(first_error))
+                    typer.secho(f"🔄 Retrying with revised SQL: {sql_second[:100]}...", fg=typer.colors.YELLOW)
+                    ensure_read_only(sql_second)
+                    limited = ensure_limit(sql_second, self.settings.max_result_rows)
+                    rows = await db.fetch_rows(limited)
+                    result = {"sql": limited, "row_count": len(rows), "rows": rows}
+                    return json.dumps(result)
+            else:
+                return json.dumps({"error": f"Unknown tool: {tool_name}"})
+        finally:
+            await db.close()
+
+    @traced(type="llm", name="MCP Client Chat", notrace_io=True)
+    async def chat(self, user_message: str) -> str:
+        """Send a message to Claude via OpenRouter and process tool calls."""
+        typer.secho(f"\n👤 User: {user_message}", fg=typer.colors.CYAN)
+
+        # Pré-busca: obter tabelas e descrições para dar contexto imediato à LLM
+        tables = await self.fetch_tools()
+        messages: list = []
+
+        system_prompt = (
+            "Você é um assistente MCP que responde em português e decide o uso de ferramentas para acessar dados públicos da Prefeitura do Recife no DuckDB.\n"
+            "- SEMPRE comece chamando list_tables. Não gere SQL antes de listar.\n"
+            "- Escolha a tabela e chame describe_table para pegar os nomes exatos de colunas. Não invente colunas ou acentos; use os nomes retornados (ex.: Ano, Ocorrencia, Grau_de_Risco, situacao_nome, ano, escola, sexo).\n"
+            "- Use search_schema apenas se precisar achar onde está um campo.\n"
+            "- Consulte os dicionários via resources (resource://dicionario-atendimentos e resource://dicionario-situacao-final) quando precisar confirmar nomes/colunas.\n"
+            "- Para perguntas de dados (contagens, filtros, agregações), prefira answer_question; use execute_sql só se o usuário já deu a query.\n"
+            "- Trate campos de ano como texto (sem casts) e mantenha aspas duplas em tabelas/colunas com hífen ou acentuação.\n"
+            "- Siga exatamente os nomes retornados pelas ferramentas; se uma coluna faltar, chame describe_table e refaça o SQL."
+        )
+
+        messages.extend([
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message},
+        ])
+
+        # Adiciona contexto de schema curto (list_tables + describe_table de cada tabela encontrada)
+        try:
+            tables_list = json.loads(await self.call_mcp_tool("list_tables", {"required": True}))
+            table_names = [t.get("table") for t in tables_list.get("tables", []) if t.get("table")]
+            schema_context = {"tables": tables_list.get("tables", [])}
+            for tname in table_names:
+                desc_raw = await self.call_mcp_tool("describe_table", {"table_name": tname, "required": True})
+                try:
+                    desc_json = json.loads(desc_raw)
+                except Exception:
+                    desc_json = {"error": desc_raw}
+                schema_context[tname] = desc_json
+            messages.append({"role": "user", "content": f"Contexto de schema (não invente nada além disto):\n{json.dumps(schema_context, ensure_ascii=False)}"})
+        except Exception as e:  # pylint: disable=broad-except
+            typer.secho(f"⚠️ Falha ao obter contexto de schema: {e}", fg=typer.colors.YELLOW)
+
+        tools = await self.fetch_tools()
+
+        # First request with tools
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            tools=tools,
+            tool_choice="auto",
+        )
+        
+        # Log initial LLM call
+        usage = response.usage or None
+        current_span().log(
+            input={"user_message": user_message, "tools_available": len(tools)},
+            metrics={
+                "prompt_tokens": usage.prompt_tokens if usage else 0,
+                "completion_tokens": usage.completion_tokens if usage else 0,
+                "total_tokens": usage.total_tokens if usage else 0,
+            },
+            metadata={
+                "model": self.model,
+                "finish_reason": response.choices[0].finish_reason,
+                "has_tool_calls": response.choices[0].finish_reason == "tool_calls"
+            }
+        )
+
+        # Tool use loop with max iterations
+        tool_call_count = 0
+        MAX_TOOL_ITERATIONS = 10
+        
+        while response.choices[0].finish_reason == "tool_calls" and tool_call_count < MAX_TOOL_ITERATIONS:
+            tool_call_count += 1
+            tool_calls = response.choices[0].message.tool_calls
+            
+            if not tool_calls:
+                typer.secho("⚠️  No tool calls found, breaking loop", fg=typer.colors.YELLOW)
+                break
+            
+            # Add assistant message with tool calls
+            assistant_message = {
+                "role": "assistant",
+                "content": response.choices[0].message.content or "",
+                "tool_calls": [
+                    {
+                        "id": tc.id,
+                        "type": "function",
+                        "function": {
+                            "name": tc.function.name,
+                            "arguments": tc.function.arguments
+                        }
+                    }
+                    for tc in tool_calls
+                ]
+            }
+            messages.append(assistant_message)
+
+            # Process all tool calls
+            tool_results = []
+            for tool_call in tool_calls:
+                tool_name = tool_call.function.name
+                tool_input = json.loads(tool_call.function.arguments)
+                typer.secho(f"\n🔧 Calling tool: {tool_name}", fg=typer.colors.MAGENTA)
+                result = await self.call_mcp_tool(tool_name, tool_input)
+                tool_results.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "name": tool_name,
+                        "content": result,
+                    }
+                )
+
+            messages.extend(tool_results)
+
+            # Next response after tool execution
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                tools=tools,
+                tool_choice="auto",
+            )
+            
+            # Log follow-up LLM call
+            usage = response.usage or None
+            current_span().log(
+                metrics={
+                    "prompt_tokens": usage.prompt_tokens if usage else 0,
+                    "completion_tokens": usage.completion_tokens if usage else 0,
+                    "total_tokens": usage.total_tokens if usage else 0,
+                },
+                metadata={
+                    "tool_call_iteration": tool_call_count,
+                    "tools_called": [tc.function.name for tc in tool_calls],
+                    "finish_reason": response.choices[0].finish_reason,
+                }
+            )
+
+        # Check if we hit max iterations
+        if tool_call_count >= MAX_TOOL_ITERATIONS:
+            typer.secho(f"\n⚠️  Reached max tool iterations ({MAX_TOOL_ITERATIONS})", fg=typer.colors.YELLOW)
+            final_response = "Desculpe, precisei usar muitas ferramentas e não consegui completar a resposta. Tente fazer uma pergunta mais específica."
+        else:
+            # Extract final response
+            final_response = response.choices[0].message.content or ""
+        
+        # Handle empty final response
+        if not final_response or final_response.strip() == "":
+            final_response = "Desculpe, não consegui gerar uma resposta. Por favor, tente reformular sua pergunta."
+            typer.secho("⚠️  Empty response from LLM", fg=typer.colors.YELLOW)
+        
+        # Log final output
+        current_span().log(
+            output={"final_response": final_response},
+            metadata={
+                "total_tool_calls": tool_call_count,
+                "success": bool(final_response),
+                "hit_max_iterations": tool_call_count >= MAX_TOOL_ITERATIONS
+            }
+        )
+        
+        typer.secho(f"\n🤖 Assistant: {final_response}", fg=typer.colors.GREEN)
+        return final_response
+
+
+@app.command()
+async def interactive():
+    """Start interactive CLI client for testing."""
+    client = MCPClient()
+    await client.start_server()
+
+    typer.secho("\n" + "=" * 60, fg=typer.colors.CYAN)
+    typer.secho("🎯 Recife Open Data MCP - Interactive Test Client", fg=typer.colors.CYAN)
+    typer.secho("=" * 60, fg=typer.colors.CYAN)
+    typer.secho("Type your questions in natural language. Examples:", fg=typer.colors.CYAN)
+    typer.secho("  - How many schools are there?", fg=typer.colors.CYAN)
+    typer.secho("  - List all schools in Santo Amaro", fg=typer.colors.CYAN)
+    typer.secho("  - What's the total number of students?", fg=typer.colors.CYAN)
+    typer.secho("Type 'exit' to quit.\n", fg=typer.colors.CYAN)
+    typer.secho("Commands:", fg=typer.colors.CYAN)
+    typer.secho("  :tools             - list available tools", fg=typer.colors.CYAN)
+    typer.secho("  :tables            - list database tables", fg=typer.colors.CYAN)
+    typer.secho("  :schemas           - list database schemas", fg=typer.colors.CYAN)
+    typer.secho("  :describe <table>  - describe columns of a table", fg=typer.colors.CYAN)
+    typer.secho("  :search <keyword>  - search tables/columns by keyword\n", fg=typer.colors.CYAN)
+
+    while True:
+        try:
+            user_input = typer.prompt("You").strip()
+            if user_input.lower() in ("exit", "quit", "q"):
+                typer.secho("\n👋 Goodbye!", fg=typer.colors.CYAN)
+                break
+            if not user_input:
+                continue
+            # Built-in commands to exercise local tools directly
+            if user_input.startswith(":"):
+                parts = user_input.split()
+                cmd = parts[0]
+                arg = " ".join(parts[1:]) if len(parts) > 1 else ""
+
+                if cmd == ":tools":
+                    tools = await client.fetch_tools()
+                    typer.echo(json.dumps({"tools": [t["function"]["name"] for t in tools]}, indent=2, ensure_ascii=False))
+                    continue
+                if cmd == ":tables":
+                    res = await client.call_mcp_tool("list_tables", {})
+                    typer.echo(res)
+                    continue
+                if cmd == ":schemas":
+                    res = await client.call_mcp_tool("list_databases", {})
+                    typer.echo(res)
+                    continue
+                if cmd == ":describe":
+                    if not arg:
+                        typer.secho("Usage: :describe <table>", fg=typer.colors.YELLOW)
+                    else:
+                        res = await client.call_mcp_tool("describe_table", {"table_name": arg})
+                        typer.echo(res)
+                    continue
+                if cmd == ":search":
+                    if not arg:
+                        typer.secho("Usage: :search <keyword>", fg=typer.colors.YELLOW)
+                    else:
+                        res = await client.call_mcp_tool("search_schema", {"search_term": arg})
+                        typer.echo(res)
+                    continue
+
+                typer.secho("Unknown command. Try :tools, :tables, :schemas, :describe, :search", fg=typer.colors.YELLOW)
+                continue
+
+            await client.chat(user_input)
+        except KeyboardInterrupt:
+            typer.secho("\n\n👋 Goodbye!", fg=typer.colors.CYAN)
+            break
+        except Exception as e:
+            typer.secho(f"\n❌ Error: {e}", fg=typer.colors.RED)
+
+
+if __name__ == "__main__":
+    # If no CLI args, run interactive mode directly to avoid Typer async issues
+    if len(sys.argv) == 1:
+        asyncio.run(interactive())
+    else:
+        app()
+</file>
+
+<file path="server/http_server.py">
+"""
+HTTP Transport server for MCP using FastAPI and SSE.
+"""
+import asyncio
+import json
+import logging
+from typing import Any, Dict, List
+from decimal import Decimal
+from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from sse_starlette.sse import EventSourceResponse
+from contextlib import asynccontextmanager
+from braintrust import start_span
+from pathlib import Path
+
+import sys
+from pathlib import Path
+
+# Allow running as module or script in environments without package install
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
+
+try:
+    from .config import Settings
+    from .db import Database
+    from .sql_guard import ensure_limit, ensure_read_only
+    from .openrouter_client import OpenRouterClient
+except ImportError:  # pragma: no cover
+    from server.config import Settings
+    from server.db import Database
+    from server.sql_guard import ensure_limit, ensure_read_only
+    from server.openrouter_client import OpenRouterClient
+
+
+# Global state
+settings = Settings.load()
+db: Database = None
+llm: OpenRouterClient = None
+
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(name)s] %(message)s")
+logger = logging.getLogger("mcp.http")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize database connection on startup."""
+    global db, llm
+    settings.require_api_key()
+    logger.info("Starting MCP HTTP server with DuckDB database at %s", settings.db_path)
+    db = Database(settings)
+    await db.init()
+    llm = OpenRouterClient(settings)
+    logger.info("MCP HTTP server ready")
+    yield
+    await db.close()
+    logger.info("MCP HTTP server shutdown complete")
+
+
+app = FastAPI(
+    title="Recife Open Data MCP Server",
+    description="MCP server for querying Recife open datasets via HTTP/SSE",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+# Aliases for runtimes that expect standard names
+server = app
+mcp = app
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+async def _run_sql(sql: str) -> Dict[str, Any]:
+    """Execute SQL with guardrails."""
+    logger.info("_run_sql called", extra={"sql_preview": sql[:200]})
+    ensure_read_only(sql)
+    limited = ensure_limit(sql, settings.max_result_rows)
+    rows = await db.fetch_rows(limited)
+    logger.info("SQL executed", extra={"row_count": len(rows)})
+    return {"sql": limited, "row_count": len(rows), "rows": rows}
+
+
+def _convert_to_serializable(obj: Any) -> Any:
+    """Convert Decimal and other non-JSON types to JSON-serializable types."""
+    if isinstance(obj, Decimal):
+        return float(obj)
+    elif isinstance(obj, dict):
+        return {k: _convert_to_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [_convert_to_serializable(item) for item in obj]
+    return obj
+
+
+@app.get("/")
+async def root():
+    """Health check endpoint."""
+    return {"status": "ok", "service": "recife-open-data-mcp", "transport": "http"}
+
+
+@app.get("/health")
+async def health():
+    """Detailed health check."""
+    try:
+        # Test database connection
+        await db.list_tables()
+        return {"status": "healthy", "database": "connected", "llm": "configured"}
+    except Exception as e:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "unhealthy", "error": str(e)}
+        )
+
+
+@app.get("/mcp/v1/capabilities")
+async def get_capabilities():
+    """Return MCP server capabilities."""
+    return {
+        "capabilities": {
+            "tools": True,
+            "resources": True,
+            "prompts": False,
+        },
+        "serverInfo": {
+            "name": "recife-open-data-mcp",
+            "version": "1.0.0",
+        },
+    }
+
+
+@app.get("/mcp/v1/tools")
+async def list_tools():
+    """List available MCP tools."""
+    return {
+        "tools": [
+            {
+                "name": "list_tables",
+                "description": "List all available tables in the database with their schemas.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "required": {
+                            "type": "boolean",
+                            "description": "Must be true; this tool is required before generating SQL."
+                        }
+                    },
+                    "required": ["required"],
+                },
+            },
+            {
+                "name": "describe_table",
+                "description": "Get detailed column information for a specific table including column names, types, and nullability.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "table_name": {
+                            "type": "string",
+                            "description": "Name of the table to describe (without schema)"
+                        },
+                        "required": {
+                            "type": "boolean",
+                            "description": "Must be true; this tool is required before generating SQL."
+                        }
+                    },
+                    "required": ["table_name", "required"],
+                },
+            },
+            {
+                "name": "search_schema",
+                "description": "Search for tables or columns matching a keyword.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "search_term": {
+                            "type": "string",
+                            "description": "Keyword to search for in table and column names"
+                        }
+                    },
+                    "required": ["search_term"],
+                },
+            },
+            {
+                "name": "list_databases",
+                "description": "List all database schemas available.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {},
+                    "required": [],
+                },
+            },
+            {
+                "name": "execute_sql",
+                "description": "Execute a read-only SQL query with timeout and row limit.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "sql": {
+                            "type": "string",
+                            "description": "SQL query to execute"
+                        }
+                    },
+                    "required": ["sql"],
+                },
+            },
+            {
+                "name": "answer_question",
+                "description": "Convert a natural language question into SQL, run it, and return formatted results.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "question": {
+                            "type": "string",
+                            "description": "Natural language question about the data"
+                        }
+                    },
+                    "required": ["question"],
+                },
+            },
+        ]
+    }
+
+
+@app.post("/mcp/v1/tools/execute")
+async def execute_tool(request: Request):
+    """Execute a tool and return results."""
+    body = await request.json()
+    tool_name = body.get("name")
+    arguments = body.get("arguments", {})
+
+    logger.info(
+        "Tool request",
+        extra={"tool": tool_name, "arguments_preview": json.dumps(arguments)[:500]},
+    )
+
+    try:
+        if tool_name == "list_tables":
+            tables = await db.list_tables()
+            payload = _convert_to_serializable({
+                "message": f"Found {len(tables)} tables",
+                "tables": tables,
+            })
+            return {
+                "content": [
+                    {"type": "text", "text": json.dumps(payload, indent=2, ensure_ascii=False)}
+                ]
+            }
+
+        elif tool_name == "describe_table":
+            table_name = arguments.get("table_name")
+            if not table_name:
+                return JSONResponse(status_code=400, content={"error": "table_name is required"})
+            columns = await db.describe_table(table_name)
+            payload = _convert_to_serializable({
+                "table": table_name,
+                "column_count": len(columns) if columns else 0,
+                "columns": columns or [],
+            })
+            return {
+                "content": [
+                    {"type": "text", "text": json.dumps(payload, indent=2, ensure_ascii=False)}
+                ]
+            }
+
+        elif tool_name == "search_schema":
+            search_term = arguments.get("search_term")
+            if not search_term:
+                return JSONResponse(status_code=400, content={"error": "search_term is required"})
+            results = await db.search_schema(search_term)
+            payload = _convert_to_serializable({
+                "message": f"Found {len(results)} matches" if results else f"No matches for '{search_term}'",
+                "results": results or [],
+            })
+            return {
+                "content": [
+                    {"type": "text", "text": json.dumps(payload, indent=2, ensure_ascii=False)}
+                ]
+            }
+
+        elif tool_name == "list_databases":
+            schemas = await db.list_databases()
+            payload = _convert_to_serializable({
+                "message": f"Found {len(schemas)} schemas",
+                "schemas": schemas,
+            })
+            return {
+                "content": [
+                    {"type": "text", "text": json.dumps(payload, indent=2, ensure_ascii=False)}
+                ]
+            }
+
+        if tool_name == "execute_sql":
+            sql = arguments.get("sql")
+            if not sql:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": "SQL query is required"}
+                )
+            result = await _run_sql(sql)
+            result = _convert_to_serializable(result)
+            return {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": json.dumps(result, indent=2, ensure_ascii=False)
+                    }
+                ]
+            }
+
+        elif tool_name == "answer_question":
+            question = arguments.get("question")
+            if not question:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": "Question is required"}
+                )
+            
+            with start_span(name="answer_question_http") as span:
+                span.log(input={"question": question})
+                
+                sql_first = await llm.generate_sql(question)
+                logger.info("Generated SQL (first pass)", extra={"sql_preview": sql_first[:200]})
+                
+                try:
+                    result = await _run_sql(sql_first)
+                    # Format response nicely
+                    formatted = {
+                        "question": question,
+                        "sql": result["sql"],
+                        "row_count": result["row_count"],
+                        "data": result["rows"]
+                    }
+                    formatted = _convert_to_serializable(formatted)
+                    logger.info(
+                        "answer_question succeeded",
+                        extra={"row_count": result["row_count"], "sql_preview": result["sql"][:200]},
+                    )
+                    
+                    span.log(
+                        output=formatted,
+                        metadata={
+                            "sql_generated": sql_first,
+                            "retry_attempted": False,
+                            "success": True
+                        }
+                    )
+                    
+                    return {
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": json.dumps(formatted, indent=2, ensure_ascii=False)
+                            }
+                        ]
+                    }
+                except Exception as first_error:
+                    # Retry with error feedback
+                    logger.warning("answer_question first attempt failed", extra={"error": str(first_error)})
+                    span.log(metadata={"first_error": str(first_error)})
+                    
+                    sql_second = await llm.generate_sql(question, previous_error=str(first_error))
+                    logger.info("Generated SQL (retry)", extra={"sql_preview": sql_second[:200]})
+                    result = await _run_sql(sql_second)
+                    formatted = {
+                        "question": question,
+                        "sql": result["sql"],
+                        "row_count": result["row_count"],
+                        "data": result["rows"],
+                        "note": "Query was retried due to initial error"
+                    }
+                    formatted = _convert_to_serializable(formatted)
+                    logger.info(
+                        "answer_question succeeded on retry",
+                        extra={"row_count": result["row_count"], "sql_preview": result["sql"][:200]},
+                    )
+                    
+                    span.log(
+                        output=formatted,
+                        metadata={
+                            "sql_generated": sql_second,
+                            "retry_attempted": True,
+                            "success": True
+                        }
+                    )
+                    
+                    return {
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": json.dumps(formatted, indent=2, ensure_ascii=False)
+                            }
+                        ]
+                    }
+
+        else:
+            return JSONResponse(
+                status_code=404,
+                content={"error": f"Tool '{tool_name}' not found"}
+            )
+
+    except Exception as e:
+        logger.exception("Tool execution failed")
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e)}
+        )
+
+
+@app.get("/mcp/v1/resources")
+async def list_resources():
+    """List available MCP resources."""
+    return {
+        "resources": [
+            {
+                "uri": "resource://dicionario-situacao-final",
+                "name": "Dicionário situação final dos alunos",
+                "description": "Descriptor JSON com metadados/campos da situação final dos alunos por período letivo",
+                "mimeType": "application/json",
+            },
+            {
+                "uri": "resource://dicionario-infracoes",
+                "name": "Dicionário infrações de trânsito",
+                "description": "Descriptor JSON com metadados/campos das infrações de trânsito (CTTU)",
+                "mimeType": "application/json",
+            },
+            {
+                "uri": "resource://dicionario-naufragios",
+                "name": "Dicionário naufrágios do Recife",
+                "description": "Descriptor JSON com metadados/campos dos naufrágios do Recife",
+                "mimeType": "application/json",
+            },
+        ]
+    }
+
+
+@app.post("/mcp/v1/resources/read")
+async def read_resource(request: Request):
+    """Read a resource."""
+    body = await request.json()
+    uri = body.get("uri")
+    try:
+        if uri == "resource://dicionario-situacao-final":
+            text = Path("resources/dicionario-situacao-final.json").read_text(encoding="utf-8")
+            return {
+                "contents": [
+                    {
+                        "uri": uri,
+                        "mimeType": "application/json",
+                        "text": text,
+                    }
+                ]
+            }
+        if uri == "resource://dicionario-infracoes":
+            text = Path("resources/dicionario-de-dados-das-infracoes-de-transito.json").read_text(encoding="utf-8")
+            return {
+                "contents": [
+                    {
+                        "uri": uri,
+                        "mimeType": "application/json",
+                        "text": text,
+                    }
+                ]
+            }
+        if uri == "resource://dicionario-naufragios":
+            text = Path("resources/dicionario-naufragios.json").read_text(encoding="utf-8")
+            return {
+                "contents": [
+                    {
+                        "uri": uri,
+                        "mimeType": "application/json",
+                        "text": text,
+                    }
+                ]
+            }
+    except Exception as exc:  # pylint: disable=broad-except
+        logger.exception("read_resource failed")
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+    return JSONResponse(
+        status_code=404,
+        content={"error": f"Resource '{uri}' not found"}
+    )
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(settings.__dict__.get("http_port", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+</file>
+
+<file path="server/main.py">
+import asyncio
+import json
+from fastmcp import FastMCP
+from braintrust import start_span
+from .config import Settings
+from .db import Database
+from .sql_guard import ensure_limit, ensure_read_only
+from .openrouter_client import OpenRouterClient
+
+settings = Settings.load()
+db = Database(settings)
+llm: OpenRouterClient | None = None
+app = FastMCP("recife-open-data-mcp")
+mcp = app  # alias for runtimes expecting 'mcp'
+
+
+def _require_llm() -> OpenRouterClient:
+    """Instantiate the LLM client only when needed and after validating secrets."""
+    global llm
+    if llm is None:
+        settings.require_api_key()
+        llm = OpenRouterClient(settings)
+    return llm
+
+
+async def _run_sql(sql: str):
+    ensure_read_only(sql)
+    limited = ensure_limit(sql, settings.max_result_rows)
+    rows = await db.fetch_rows(limited)
+    return {"sql": limited, "row_count": len(rows), "rows": rows}
+
+
+@app.tool()
+async def execute_sql(sql: str) -> str:
+    """Execute a pre-written SQL query directly.
+    
+    Use this ONLY when:
+    - You already have a complete, valid SQL query
+    - You don't need SQL generation
+    - You're testing or validating a specific query
+    
+    The query will be validated for read-only operations and automatically limited.
+    For questions requiring SQL generation, use answer_question instead.
+    """
+    result = await _run_sql(sql)
+    return str(result)
+
+
+@app.tool()
+async def list_tables() -> str:
+    """List all available tables in the database with their schemas. 
+    
+    Use this when:
+    - User asks what tables exist
+    - User asks what data is available
+    - User wants to know the database structure
+    - Before generating SQL to verify table names
+    
+    Returns a list of tables with their full quoted names for use in queries.
+    """
+    tables = await db.list_tables()
+    import json
+    return json.dumps({"message": f"Found {len(tables)} tables", "tables": tables})
+
+
+@app.tool()
+async def describe_table(table_name: str) -> str:
+    """Get detailed column information for a specific table.
+    
+    Use this when:
+    - You need to know what columns are in a table
+    - You need to know column data types
+    - Before writing queries to ensure correct column names
+    
+    Args:
+        table_name: The table name without schema (e.g., 'situação_final_dos_alunos_por_período_letivo')
+    
+    Returns column names, types, and nullability information.
+    """
+    import json
+    columns = await db.describe_table(table_name)
+    if not columns:
+        return json.dumps({"error": f"Table '{table_name}' not found", "columns": []})
+    return json.dumps({"table": table_name, "column_count": len(columns), "columns": columns})
+
+
+@app.tool()
+async def search_schema(search_term: str) -> str:
+    """Search for tables or columns matching a keyword.
+    
+    Use this when:
+    - Looking for where specific data might be stored
+    - Searching for columns by name or concept
+    - Finding tables related to a topic
+    
+    Args:
+        search_term: Keyword to search for (case-insensitive)
+    
+    Returns matching tables and columns with their full quoted references.
+    """
+    import json
+    results = await db.search_schema(search_term)
+    if not results:
+        return json.dumps({"message": f"No tables or columns found matching '{search_term}'", "results": []})
+    return json.dumps({"message": f"Found {len(results)} matches", "results": results})
+
+
+@app.tool()
+async def list_databases() -> str:
+    """List all database schemas available.
+    
+    Use this to see what schemas exist in the database.
+    Most tables are in the 'public' schema.
+    
+    Returns a list of schema names.
+    """
+    import json
+    schemas = await db.list_databases()
+    return json.dumps({"message": f"Found {len(schemas)} schemas", "schemas": schemas})
+
+
+@app.resource("resource://dicionario-situacao-final")
+async def resource_dicionario_situacao_final():
+    """Descriptor JSON for situação_final_dos_alunos_por_período_letivo (metadata/campos)."""
+    from pathlib import Path
+    path = Path("resources/dicionario-situacao-final.json")
+    return path.read_text(encoding="utf-8")
+
+
+@app.resource("resource://dicionario-infracoes")
+async def resource_dicionario_infracoes():
+    """Descriptor JSON for registro das infrações de trânsito (metadata/campos)."""
+    from pathlib import Path
+    path = Path("resources/dicionario-de-dados-das-infracoes-de-transito.json")
+    return path.read_text(encoding="utf-8")
+
+
+@app.resource("resource://dicionario-naufragios")
+async def resource_dicionario_naufragios():
+    """Descriptor JSON for naufrágios do Recife (metadata/campos)."""
+    from pathlib import Path
+    path = Path("resources/dicionario-naufragios.json")
+    return path.read_text(encoding="utf-8")
+
+
+@app.tool()
+async def answer_question(question: str) -> str:
+    """RECOMMENDED: Answer questions about DATA content by generating and executing SQL.
+    
+    Use this for:
+    - Questions about actual data (counts, statistics, aggregations)
+    - Analytical queries ("quantos", "qual a taxa de", "mostre os top 10")
+    - Filtering and data analysis
+    
+    Do NOT use for:
+    - Asking what tables exist (use list_tables)
+    - Asking what columns a table has (use describe_table)
+    - Searching for schema elements (use search_schema)
+    
+    The system will generate SQL with proper quoting for table/column names,
+    validate it, execute it, and return results. Includes automatic retry on errors.
+    """
+    with start_span(name="answer_question") as span:
+        span.log(input={"question": question})
+        
+        llm_client = _require_llm()
+        sql_first = await llm_client.generate_sql(question)
+        
+        try:
+            result = await _run_sql(sql_first)
+            span.log(
+                output=result,
+                metadata={
+                    "sql_generated": sql_first,
+                    "retry_attempted": False,
+                    "success": True
+                }
+            )
+            return str(result)
+        except Exception as first_error:
+            span.log(metadata={"first_error": str(first_error)})
+            sql_second = await llm_client.generate_sql(question, previous_error=str(first_error))
+            result = await _run_sql(sql_second)
+            span.log(
+                output=result,
+                metadata={
+                    "sql_generated": sql_second,
+                    "retry_attempted": True,
+                    "success": True
+                }
+            )
+            return str(result)
+
+
+if __name__ == "__main__":
+    app.run()
+</file>
+
+</files>

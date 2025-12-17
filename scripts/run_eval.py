@@ -265,6 +265,7 @@ async def evaluate_case(
 def run(
     cases_path: Path = typer.Option(Path("eval_cases.json"), help="Caminho para o arquivo de casos."),
     output_dir: Path = typer.Option(Path("eval_runs"), help="Diretório para salvar relatórios."),
+    run_prefix: str = typer.Option("prod-", help="Prefixo para o run_id (por ex. prod-)"),
 ):
     """Executa os casos de avaliação e gera um relatório em Markdown."""
     settings = Settings.load()
@@ -274,7 +275,8 @@ def run(
 
     # Preparar diretório de saída
     output_dir.mkdir(parents=True, exist_ok=True)
-    run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    run_id = f"{run_prefix}{timestamp}" if run_prefix else timestamp
     run_dir = output_dir / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
 
