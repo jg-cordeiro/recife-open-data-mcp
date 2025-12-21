@@ -3,7 +3,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import duckdb
 import typer
@@ -52,6 +52,38 @@ def _looks_date(value: str) -> bool:
         return False
 
 
+def _map_field_type(raw: str | None, column_name: str | None = None) -> Optional[str]:
+    """Map JSON tipo values to DuckDB types (lenient defaults). Returns None when unknown to trigger inference."""
+    if not raw:
+        return None
+    t = raw.strip().lower()
+    # Time fields in some descriptors come as DATE but contain only clock values; keep them as text.
+    if column_name and "hora" in column_name.lower():
+        return "VARCHAR"
+    if "date" in t:
+        return "VARCHAR"
+    if t.startswith("num"):  # Num, num, numerico, etc.
+        return "DOUBLE"
+    if t in {"int", "integer"}:
+        return "INTEGER"
+    # Default for Char/CHAR and anything unknown
+    if t.startswith("char"):
+        return "VARCHAR"
+    return None
+
+
+def _infer_type_from_values(values: List[str]) -> str:
+    if values and all(_looks_int(v) for v in values):
+        return "INTEGER"
+    if values and all(_looks_float(v) for v in values):
+        return "DOUBLE"
+    if values and all(_looks_bool(v) for v in values):
+        return "BOOLEAN"
+    if values and all(_looks_date(v) for v in values):
+        return "TIMESTAMP"
+    return "VARCHAR"
+
+
 def infer_columns(csv_path: Path, sample_rows: int) -> List[ColumnSpec]:
     with csv_path.open("r", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
@@ -74,6 +106,27 @@ def infer_columns(csv_path: Path, sample_rows: int) -> List[ColumnSpec]:
     return specs
 
 
+def _infer_types_from_sample(csv_path: Path, column_names: List[str], sample_rows: int = 500) -> Dict[str, str]:
+    """Infer types for specific columns from a sample of the CSV (used when descriptor types are unknown)."""
+    delim = _detect_delimiter(csv_path)
+    inferred: Dict[str, str] = {}
+    samples: Dict[str, List[str]] = {c: [] for c in column_names}
+    try:
+        with csv_path.open("r", encoding="utf-8", errors="ignore") as fh:
+            reader = csv.DictReader(fh, delimiter=delim)
+            for _, row in zip(range(sample_rows), reader):
+                for col in column_names:
+                    val = row.get(col)
+                    if val not in ("", None):
+                        samples[col].append(val)
+    except Exception:
+        return inferred
+    for col, vals in samples.items():
+        if vals:
+            inferred[col] = _infer_type_from_values(vals)
+    return inferred
+
+
 def read_descriptor(descriptor: Path) -> tuple[str, Optional[List[ColumnSpec]]]:
     data = json.loads(descriptor.read_text(encoding="utf-8"))
     
@@ -89,7 +142,24 @@ def read_descriptor(descriptor: Path) -> tuple[str, Optional[List[ColumnSpec]]]:
         # Extract columns from "campos" if available
         campos = metadata.get("campos", [])
         if campos:
-            cols = [ColumnSpec(name=c["codigo"], type="VARCHAR") for c in campos]
+            # Map known types; collect unknowns for inference
+            mapped: List[tuple[str, Optional[str]]] = [
+                (c["codigo"], _map_field_type(c.get("tipo"), c.get("codigo"))) for c in campos
+            ]
+            unknown_cols = [name for name, typ in mapped if typ is None]
+            inferred_map: Dict[str, str] = {}
+            if unknown_cols:
+                # Try to infer using the first CSV found alongside the descriptor
+                csv_files = sorted(descriptor.parent.glob("*.csv"))
+                if csv_files:
+                    inferred_map = _infer_types_from_sample(csv_files[0], unknown_cols)
+            cols = [
+                ColumnSpec(
+                    name=name,
+                    type=typ or inferred_map.get(name) or "VARCHAR",
+                )
+                for name, typ in mapped
+            ]
             return table, cols
         return table, None
     
@@ -115,11 +185,47 @@ def create_table(conn: duckdb.DuckDBPyConnection, schema: str, table: str, colum
     conn.execute(create_stmt)
 
 
+def _detect_delimiter(csv_path: Path) -> str:
+    """Pick delimiter between ';' and ',' based on first line."""
+    try:
+        with csv_path.open("r", encoding="utf-8", errors="ignore") as fh:
+            first = fh.readline()
+    except Exception:
+        return ","
+    semi = first.count(";")
+    comma = first.count(",")
+    return ";" if semi > comma else ","
+
+
+def _detect_decimal_separator(csv_path: Path) -> str:
+    """Heuristic: if any data line has digits with ',', assume comma decimal."""
+    import re
+
+    pattern = re.compile(r"\d,\d")
+    try:
+        with csv_path.open("r", encoding="utf-8", errors="ignore") as fh:
+            # skip header
+            fh.readline()
+            for _ in range(10):
+                line = fh.readline()
+                if not line:
+                    break
+                if pattern.search(line):
+                    return ","
+    except Exception:
+        pass
+    return "."
+
+
 def copy_csv(conn: duckdb.DuckDBPyConnection, schema: str, table: str, csv_path: Path) -> None:
     # Use DuckDB's read_csv_auto and insert
     csv_path_str = str(csv_path)
+    delim = _detect_delimiter(csv_path)
+    decimal_sep = _detect_decimal_separator(csv_path)
     try:
-        conn.execute(f'INSERT INTO "{schema}"."{table}" SELECT * FROM read_csv_auto(\'{csv_path_str}\')')
+        conn.execute(
+            f'INSERT INTO "{schema}"."{table}" SELECT * FROM read_csv_auto(\'{csv_path_str}\', delim=\'{delim}\', decimal_separator=\'{decimal_sep}\')'
+        )
     except Exception:
         # Fallback with explicit options
         try:
@@ -128,8 +234,9 @@ def copy_csv(conn: duckdb.DuckDBPyConnection, schema: str, table: str, csv_path:
                     SELECT * FROM read_csv_auto(
                         '{csv_path_str}',
                         header=True,
-                        delim=',',
+                        delim='{delim}',
                         quote='"',
+                        decimal_separator='{decimal_sep}',
                         ignore_errors=True,
                         all_varchar=True,
                         sample_size=-1
@@ -151,8 +258,9 @@ def copy_csv(conn: duckdb.DuckDBPyConnection, schema: str, table: str, csv_path:
                     SELECT * FROM read_csv_auto(
                         '{tmp}',
                         header=True,
-                        delim=',',
+                        delim='{delim}',
                         quote='"',
+                        decimal_separator='{decimal_sep}',
                         ignore_errors=True,
                         all_varchar=True,
                         sample_size=-1
