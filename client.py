@@ -133,7 +133,7 @@ class MCPClient:
                 "type": "function",
                 "function": {
                     "name": "answer_question",
-                    "description": "RECOMMENDED: Use this tool for questions about the actual DATA content - statistics, counts, aggregations, filtering, analysis, etc. This tool will generate SQL automatically and return results. Examples: 'quantos alunos', 'qual a taxa de aprovação', 'quais os top 10', etc. Do NOT use search_schema repeatedly - use answer_question directly for data questions.",
+                    "description": "Use this tool for questions about the actual DATA content - statistics, counts, aggregations, filtering, analysis, etc. This tool will generate SQL automatically and return results. Examples: 'quantos alunos', 'qual a taxa de aprovação', 'quais os top 10', etc. Do NOT use search_schema repeatedly - use answer_question directly for data questions.",
                     "parameters": {
                         "type": "object",
                         "properties": {

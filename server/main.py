@@ -145,7 +145,7 @@ async def resource_dicionario_naufragios():
 
 @app.tool()
 async def answer_question(question: str) -> str:
-    """RECOMMENDED: Answer questions about DATA content by generating and executing SQL.
+    """Answer questions about DATA content by generating and executing SQL.
     
     Use this for:
     - Questions about actual data (counts, statistics, aggregations)
