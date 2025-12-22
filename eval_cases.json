@@ -57,10 +57,10 @@
       "comparison": { "type": "ranking", "key_columns": ["modalidade_ensino"], "value_column": "total", "top_k": 3 }
     },
     {
-      "id": "alunos_sample_2015",
-      "question": "Liste 5 registros de 2015 com ano, escola, situação e turno.",
-      "reference_sql": "SELECT \"ano\", \"escola\", \"situacao_nome\", \"turno\" FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2015' ORDER BY \"matricula\" LIMIT 5;",
-      "comparison": { "type": "list", "sample_columns": ["ano", "escola", "situacao_nome", "turno"], "sample_size": 5 }
+      "id": "alunos_aprovados_2015",
+      "question": "Quantos alunos aprovados existem em 2015?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2015' AND upper(\"situacao_nome\") = 'APROVADO';",
+      "comparison": { "type": "numeric" }
     },
     {
       "id": "transito_total_registros",
@@ -117,10 +117,10 @@
       "comparison": { "type": "ranking", "key_columns": ["agenteequipamento"], "value_column": "total", "top_k": 3 }
     },
     {
-      "id": "transito_sample_2024",
-      "question": "Liste 5 infrações de 2024 com data da infração, hora, código e local.",
-      "reference_sql": "SELECT \"dataInfracao\", \"horainfracao\", \"infracao\", \"localcometimento\" FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" WHERE regexp_extract(\"dataInfracao\", '(20\\d{2})') = '2024' ORDER BY \"dataInfracao\", \"horainfracao\" LIMIT 5;",
-      "comparison": { "type": "list", "sample_columns": ["dataInfracao", "horainfracao", "infracao", "localcometimento"], "sample_size": 5 }
+      "id": "transito_infracoes_2024",
+      "question": "Quantas infrações ocorreram em 2024 (pela data da infração)?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataInfracao\", '(20\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2024';",
+      "comparison": { "type": "numeric" }
     },
     {
       "id": "naufragios_total",
@@ -177,10 +177,10 @@
       "comparison": { "type": "ranking", "key_columns": ["nome"], "value_column": "latitude", "top_k": 3 }
     },
     {
-      "id": "naufragios_ano_2006",
-      "question": "Liste os naufrágios com ano de 2006, com data e profundidade.",
-      "reference_sql": "SELECT \"nome\", \"data_naufragio\", \"profundidade_maxima\" FROM \"public\".\"naufrágios_do_recife\" WHERE regexp_extract(\"data_naufragio\", '(\\d{4})') = '2006' ORDER BY \"nome\";",
-      "comparison": { "type": "list", "sample_columns": ["nome", "data_naufragio", "profundidade_maxima"], "sample_size": 3 }
+      "id": "naufragios_total_2006",
+      "question": "Quantos naufrágios têm ano de naufrágio de 2006?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"naufrágios_do_recife\" WHERE regexp_extract(\"data_naufragio\", '(\\d{4})') = '2006';",
+      "comparison": { "type": "numeric" }
     }
   ]
 }

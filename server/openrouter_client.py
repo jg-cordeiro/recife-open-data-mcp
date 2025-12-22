@@ -19,20 +19,25 @@ class OpenRouterClient:
 
     @traced(type="llm", name="OpenRouter SQL Generation", notrace_io=True)
     async def generate_sql(self, question: str, schema_text: str | None = None, previous_error: str | None = None) -> str:
-        guidance = f"""You are a SQL expert producing safe, read-only DuckDB SQL for Recife open data.
-BEFORE any SQL:
-- Always call list_tables to see exact table names (no guesses). NEVER put tool calls inside SQL.
-- REQUIRED: pick each table and call describe_table to get exact column names; use search_schema only to locate fields. Do this before writing SQL and after any column error.
-- You can consult dataset dictionaries via MCP resources: resource://dicionario-situacao-final, resource://dicionario-infracoes, resource://dicionario-naufragios.
+        guidance = f"""You are simulating a DIN-SQL style multi-agent pipeline to produce safe, read-only DuckDB SQL for Recife open data. Think and reason step by step, then emit only the final SQL.
+
+DIN-SQL mental steps (do not output these):
+1) Schema linking: call list_tables first; for every table you might use, call describe_table; use search_schema only to locate fields. Consult dictionaries via MCP resources (resource://dicionario-situacao-final, resource://dicionario-infracoes, resource://dicionario-naufragios). Collect exact table/column names—no guesses.
+2) Plan: decide intent (aggregation/lookup/join), pick tables/joins, define filters/group/order/limit, ensure each filter uses the right column and operator (use regex or LIKE for substring matches instead of strict = when the question implies containment).
+3) SQL generation: write one SELECT (or WITH + SELECT) honoring the safety rules below, quoting everything.
+4) On errors: if a column/table is missing or a cast fails, re-check with describe_table/search_schema and adjust filters/casts (e.g., filter out blanks before CAST). Regenerate SQL with the corrected names/filters.
+
+Safety/quality rules:
 - Use ONLY names returned by the tools. Do not invent columns (e.g., use "situacao_nome", "escola", "rpa", "dataimplantacao", "dataInfracao", "horainfracao", "infracao", "descricaoinfracao", "agenteequipamento", "amparolegal", "profundidade_maxima", "data_naufragio", "latitude", "longitude", "historia detalhada").
 - Categorical filters must preserve the dataset casing.
-- Year extraction for text dates: use regexp_extract(col, '(\\\\d{{4}})' or '(20\\\\d{{2}})') instead of guessing; group/order on that alias. Filtre resultados vazios (ex.: WHERE ano <> '' AND ano ~ '^[0-9]{{4}}$' quando aplicável).
-- For depth ordering, handle blanks: add WHERE "profundidade_maxima" <> '' and ORDER BY try_cast(regexp_extract("profundidade_maxima", '(\\\\d+)') AS INTEGER) DESC.
-- For rates/percentages, return the fraction unless the question explicitly asks for a percentage; do NOT multiply by 100 unless requested.
+- Year extraction for text dates: use regexp_extract(col, '(\\\\d{{4}})' or '(20\\\\d{{2}})'); filter out blanks (ano <> '' AND ano ~ '^[0-9]{{4}}$') before casting/grouping/ordering.
+- For depth ordering, handle blanks: add WHERE "profundidade_maxima" <> '' and ORDER BY try_cast(regexp_extract("profundidade_maxima", '(\\\\d+)') AS INTEGER).
+- For rates/percentages, return the fraction unless explicitly asked for percent (no *100 unless requested).
 - Treat year fields as text; do not cast unless you extract with regex. Quote schema/table/column with double quotes.
-- In aggregations, always alias counts/sums clearly (e.g., COUNT(*) AS total) so the numeric column is explicit.
-- For text filters, use LOWER + LIKE/regex as needed, but only on existing columns.
-- Never mutate data. Do NOT add LIMIT automatically (only when the question asks for top-k).
+- In aggregations, alias counts/sums clearly (COUNT(*) AS total, etc.).
+- For text filters, use LOWER + LIKE or regex (~) when matching substrings/keywords; avoid exact equals if the question implies containment. Only reference existing columns.
+- When writing CASE expressions on text labels, MUST use regex/LIKE checks against the correct column name unless 100% sure of exact values; do not stack equals with guessed variants. Always include the column in each WHEN condition.
+- Never mutate data. Do NOT add LIMIT automatically (only when the question asks for top-k/samples).
 - When returning sample rows, include all requested columns exactly (e.g., dataInfracao, horainfracao, infracao, descricaoinfracao).
 
 IMPORTANT RULES:
@@ -65,6 +70,16 @@ A: SELECT COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_perí
 
 Q: Top 3 naufrágios mais profundos (profundidade_maxima)
 A: SELECT "nome", "profundidade_maxima" FROM "public"."naufrágios_do_recife" ORDER BY CAST(regexp_extract("profundidade_maxima", '(\\\\d+)') AS INTEGER) DESC LIMIT 3;
+
+# Regex/LIKE with CASE examples
+Q: Quantos aprovados tiveram em 2016
+A: SELECT COUNT(*) AS total FROM "public"."situação_final_dos_alunos_por_período_letivo" WHERE "ano" = '2016' AND CASE WHEN lower("situacao_nome") LIKE 'aprov%' THEN 1 ELSE 0 END = 1;
+
+Q: Taxa de retenção (qualquer RETIDO) por ano
+A: SELECT "ano", CAST(SUM(CASE WHEN upper("situacao_nome") LIKE 'RETIDO%' THEN 1 ELSE 0 END) AS DOUBLE) / COUNT(*) AS taxa_retencao FROM "public"."situação_final_dos_alunos_por_período_letivo" GROUP BY "ano" ORDER BY "ano";
+
+Q: Quantas infrações com descrição contendo VELOCIDADE em 2023
+A: SELECT COUNT(*) AS total FROM "public"."registro_das_infrações_de_trânsito_-_cttu" WHERE regexp_extract("dataInfracao", '(20\\d{2})') = '2023' AND CASE WHEN upper("descricaoinfracao") LIKE '%VELOCIDADE%' THEN 1 ELSE 0 END = 1;
 
 If a column error occurs, STOP and call describe_table (and check resources), then regenerate SQL with the exact names. Do not retry with guessed names."""
         user_content = f"Question: {question}\nReturn ONLY SQL, no markdown fences or commentary."
