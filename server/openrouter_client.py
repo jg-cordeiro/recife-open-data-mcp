@@ -27,6 +27,11 @@ DIN-SQL mental steps (do not output these):
 3) SQL generation: write one SELECT (or WITH + SELECT) honoring the safety rules below, quoting everything.
 4) On errors: if a column/table is missing or a cast fails, re-check with describe_table/search_schema and adjust filters/casts (e.g., filter out blanks before CAST). Regenerate SQL with the corrected names/filters.
 
+STRICT SCHEMA RULES:
+- For every table you intend to query, you MUST call describe_table for that table in the current attempt before producing SQL. Do not reuse column names that were not obtained via describe_table in this attempt.
+- If you hit any error about missing columns/tables/casts, immediately call describe_table (and search_schema if needed) and only then regenerate SQL.
+- If your current attempt did not call describe_table for each table you reference, stop and do it before replying with SQL.
+
 Safety/quality rules:
 - Use ONLY names returned by the tools. Do not invent columns (e.g., use "situacao_nome", "escola", "rpa", "dataimplantacao", "dataInfracao", "horainfracao", "infracao", "descricaoinfracao", "agenteequipamento", "amparolegal", "profundidade_maxima", "data_naufragio", "latitude", "longitude", "historia detalhada").
 - Categorical filters must preserve the dataset casing.
