@@ -27,27 +27,7 @@ BRAINTRUST_API_KEY=sk-your-api-key-here
   - Pergunta original
   - Se houve erro anterior (retry)
 
-### 2. Resposta a Perguntas via MCP (`server/main.py::answer_question`)
-- **Tipo**: Span principal
-- **Input**: Pergunta do usuário
-- **Output**: Resultado da query (SQL + dados)
-- **Metadata**:
-  - SQL gerado
-  - Se houve retry
-  - Se foi bem-sucedido
-  - Erro na primeira tentativa (se houver)
-
-### 3. Resposta a Perguntas via HTTP (`server/http_server.py::answer_question`)
-- **Tipo**: Span principal
-- **Input**: Pergunta do usuário através do endpoint HTTP
-- **Output**: Resultado da query formatado
-- **Metadata**:
-  - SQL gerado
-  - Se houve retry
-  - Número de linhas retornadas
-  - Se foi bem-sucedido
-
-### 4. Geração de Dicionário de Dados (`scripts/consolidate.py::generate_dictionary_with_llm`)
+### 2. Geração de Dicionário de Dados (`scripts/consolidate.py::generate_dictionary_with_llm`)
 - **Tipo**: LLM call
 - **Input**: Prompt com informações do dataset e amostras
 - **Output**: Dicionário de dados JSON
@@ -59,7 +39,7 @@ BRAINTRUST_API_KEY=sk-your-api-key-here
   - Número de arquivos processados
   - Modelo e temperatura
 
-### 5. Cliente MCP Interativo (`client.py::chat`)
+### 3. Cliente MCP Interativo (`client.py::chat`)
 - **Tipo**: LLM call com tool calling
 - **Input**: Mensagem do usuário e ferramentas disponíveis
 - **Output**: Resposta final do assistente
@@ -70,7 +50,7 @@ BRAINTRUST_API_KEY=sk-your-api-key-here
   - Ferramentas utilizadas em cada iteração
   - Finish reason de cada resposta
 
-### 6. Cliente HTTP MCP (`http_client.py::chat`)
+### 4. Cliente HTTP MCP (`http_client.py::chat`)
 - **Tipo**: LLM call com tool calling via HTTP
 - **Input**: Mensagem do usuário
 - **Output**: Resposta final do assistente
@@ -103,12 +83,7 @@ BRAINTRUST_API_KEY=sk-your-api-key-here
 
 ## Exemplo de uso
 
-Quando você faz uma pergunta via MCP:
-```python
-answer_question("Quantos atendimentos teve em 2022?")
-```
-
-O Braintrust registra:
+Quando você faz uma pergunta via MCP, o cliente gera SQL com `generate_sql` e executa via `execute_sql`. O Braintrust registra:
 1. A pergunta original
 2. O prompt completo enviado para a LLM
 3. O SQL gerado

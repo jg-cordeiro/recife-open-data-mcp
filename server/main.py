@@ -40,7 +40,6 @@ async def execute_sql(sql: str) -> str:
     - You're testing or validating a specific query
     
     The query will be validated for read-only operations and automatically limited.
-    For questions requiring SQL generation, use answer_question instead.
     """
     result = await _run_sql(sql)
     return str(result)
@@ -141,55 +140,6 @@ async def resource_dicionario_naufragios():
     from pathlib import Path
     path = Path("resources/dicionario-naufragios.json")
     return path.read_text(encoding="utf-8")
-
-
-@app.tool()
-async def answer_question(question: str) -> str:
-    """Answer questions about DATA content by generating and executing SQL.
-    
-    Use this for:
-    - Questions about actual data (counts, statistics, aggregations)
-    - Analytical queries ("quantos", "qual a taxa de", "mostre os top 10")
-    - Filtering and data analysis
-    
-    Do NOT use for:
-    - Asking what tables exist (use list_tables)
-    - Asking what columns a table has (use describe_table)
-    - Searching for schema elements (use search_schema)
-    
-    The system will generate SQL with proper quoting for table/column names,
-    validate it, execute it, and return results. Includes automatic retry on errors.
-    """
-    with start_span(name="answer_question") as span:
-        span.log(input={"question": question})
-        
-        llm_client = _require_llm()
-        sql_first = await llm_client.generate_sql(question)
-        
-        try:
-            result = await _run_sql(sql_first)
-            span.log(
-                output=result,
-                metadata={
-                    "sql_generated": sql_first,
-                    "retry_attempted": False,
-                    "success": True
-                }
-            )
-            return str(result)
-        except Exception as first_error:
-            span.log(metadata={"first_error": str(first_error)})
-            sql_second = await llm_client.generate_sql(question, previous_error=str(first_error))
-            result = await _run_sql(sql_second)
-            span.log(
-                output=result,
-                metadata={
-                    "sql_generated": sql_second,
-                    "retry_attempted": True,
-                    "success": True
-                }
-            )
-            return str(result)
 
 
 if __name__ == "__main__":

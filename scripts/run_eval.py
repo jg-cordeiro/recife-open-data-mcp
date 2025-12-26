@@ -194,69 +194,169 @@ async def evaluate_case(
     reference_sql_limited = ensure_limit(case.reference_sql, max_rows)
     reference_rows = await db.fetch_rows(reference_sql_limited)
 
-    max_attempts = 3
-    previous_error: Optional[str] = None
-    last_exc: Optional[Exception] = None
-    for attempt in range(1, max_attempts + 1):
-        try:
-            generated_sql = await llm.generate_sql(case.question, schema_text, previous_error=previous_error)
-            # Normaliza regex escapadas em excesso (\\d -> \d)
-            generated_sql = generated_sql.replace("\\\\", "\\")
-            # Bloqueia toolcalls dentro do SQL
-            lowered = generated_sql.lower()
-            if "list_tables" in lowered or "describe_table" in lowered or "search_schema" in lowered:
-                raise ValueError("SQL inválido: não inclua list_tables/describe_table/search_schema dentro do SQL. Gere apenas SELECT/WITH.")
-            if lowered.startswith("the prior sql failed"):
-                raise ValueError("Modelo retornou texto em vez de SQL. Gere apenas o SQL.")
-            ensure_read_only(generated_sql)
-            limited_sql = ensure_limit(generated_sql, max_rows)
-            result["generated_sql"] = limited_sql
-            result["attempts"] = attempt
-            rows = await db.fetch_rows(limited_sql)
-            result.update(
-                {
-                    "rows": rows,
-                    "reference_rows": reference_rows,
-                    "tools_called": [],  # sem toolcalls explícitos nesta via
-                }
+    async def _run_with_tool_calls() -> Tuple[Optional[str], List[Dict[str, Any]], List[str]]:
+        tools_called: List[str] = []
+        last_sql: Optional[str] = None
+        last_rows: List[Dict[str, Any]] = []
+        # Definição das ferramentas alinhadas ao MCP
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "list_tables",
+                    "description": "List all available tables in the database with their schemas.",
+                    "parameters": {"type": "object", "properties": {}, "required": []},
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "describe_table",
+                    "description": "Get detailed column information for a specific table (without schema).",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "table_name": {"type": "string", "description": "Table name without schema"}
+                        },
+                        "required": ["table_name"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "search_schema",
+                    "description": "Search for tables or columns matching a keyword.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"search_term": {"type": "string", "description": "Term to search"}},
+                        "required": ["search_term"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "execute_sql",
+                    "description": "Execute a read-only SQL query with automatic LIMIT.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"sql": {"type": "string", "description": "SQL to execute"}},
+                        "required": ["sql"],
+                    },
+                },
+            },
+        ]
+
+        system_prompt = (
+            "Você é um agente MCP que deve usar ferramentas para descobrir schema e executar SQL em DuckDB.\n"
+            "- SEMPRE chame list_tables e, para cada tabela que pretende usar, chame describe_table antes de qualquer execute_sql.\n"
+            "- Use search_schema se precisar achar um campo.\n"
+            "- Para situacao_nome, use UPPER(...) = 'APROVADO' ou LIKE 'RETIDO%' (case-insensitive).\n"
+            "- Para datas (dataInfracao, dataimplantacao, data_naufragio), use regexp_extract para ano/data; nunca use SUBSTRING; filtre blanks/NULL antes de agrupar/contar.\n"
+            "- Para profundidade_maxima, extraia dígitos com regexp_extract e try_cast; não faça CAST direto do texto.\n"
+            "- Evite COUNT(DISTINCT ...) salvo se a pergunta pedir; prefira COUNT(*).\n"
+            "- Para percentuais, devolva a fração salvo pedido explícito de multiplicar por 100.\n"
+            "- Quando o SQL estiver pronto, chame execute_sql (read-only, com LIMIT automático).\n"
+            "- Responda apenas quando terminar; não invente colunas/tabelas."
+        )
+
+        messages: List[Dict[str, Any]] = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": case.question},
+        ]
+        if schema_text:
+            messages.append({"role": "user", "content": f"Schema snapshot:\n{schema_text}"})
+
+        for _ in range(10):
+            resp = await llm.client.chat.completions.create(
+                model=llm.model,
+                temperature=0,
+                messages=messages,
+                tools=tools,
+                tool_choice="auto",
             )
-            spec = case.comparison
-            if spec.type == "numeric":
-                passed, cmp_msg = compare_numeric(rows, reference_rows, spec)
-            elif spec.type == "ranking":
-                passed, cmp_msg = compare_ranking(rows, reference_rows, spec)
-            elif spec.type == "list":
-                passed, cmp_msg = compare_list(rows, reference_rows, spec)
-            else:
-                passed, cmp_msg = False, f"Tipo de comparação desconhecido: {spec.type}"
-            result["passed"] = passed
-            result["comparison_result"] = cmp_msg
-            if passed:
-                break
-            # se comparação falhou mas SQL é válido, não reitera para evitar loop infinito
-            break
-        except ValueError as exc:
-            # SQL inválido: tenta iterar com feedback
-            last_exc = exc
-            previous_error = str(exc)
-            result["generated_sql"] = generated_sql if "generated_sql" in locals() else None
-            result["attempts"] = attempt
-            if attempt == max_attempts:
-                break
-            continue
-        except Exception as exc:  # pylint: disable=broad-except
-            last_exc = exc
-            result["attempts"] = attempt
+            choice = resp.choices[0]
+            msg = choice.message
+
+            if msg.tool_calls:
+                messages.append(
+                    {
+                        "role": "assistant",
+                        "content": msg.content,
+                        "tool_calls": msg.tool_calls,
+                    }
+                )
+                for tc in msg.tool_calls:
+                    name = tc.function.name
+                    args = json.loads(tc.function.arguments or "{}")
+                    tools_called.append(name)
+                    if name == "list_tables":
+                        payload = await db.list_tables()
+                    elif name == "describe_table":
+                        table_name = args.get("table_name") or ""
+                        payload = await db.describe_table(table_name)
+                    elif name == "search_schema":
+                        term = args.get("search_term") or ""
+                        payload = await db.search_schema(term)
+                    elif name == "execute_sql":
+                        sql_arg = args.get("sql") or ""
+                        try:
+                            ensure_read_only(sql_arg)
+                            limited_sql = ensure_limit(sql_arg, max_rows)
+                            rows = await db.fetch_rows(limited_sql)
+                            last_sql = limited_sql
+                            last_rows = rows
+                            payload = {
+                                "sql": limited_sql,
+                                "row_count": len(rows),
+                                "rows": rows,
+                            }
+                        except Exception as exc:  # pylint: disable=broad-except
+                            payload = {"error": str(exc)}
+                    else:  # pragma: no cover - defensive
+                        payload = {"error": f"Unknown tool {name}"}
+
+                    messages.append(
+                        {
+                            "role": "tool",
+                            "tool_call_id": tc.id,
+                            "content": json.dumps(payload, ensure_ascii=False),
+                        }
+                    )
+                continue
+
+            # final response (no tool calls)
             break
 
-    if not result.get("passed", False):
-        result["passed"] = False
-        if last_exc:
-            result["error"] = str(last_exc)
-        elif "comparison_result" in result:
-            result["error"] = result["comparison_result"]
-        else:
-            result["error"] = "Falha desconhecida após tentativas."
+        return last_sql, last_rows, tools_called
+
+    last_sql, rows, tools_used = await _run_with_tool_calls()
+
+    result["generated_sql"] = last_sql
+    result["attempts"] = len([t for t in tools_used if t == "execute_sql"])
+    result.update(
+        {
+            "rows": rows or [],
+            "reference_rows": reference_rows,
+            "tools_called": tools_used,
+        }
+    )
+
+    spec = case.comparison
+    if spec.type == "numeric":
+        passed, cmp_msg = compare_numeric(rows or [], reference_rows, spec)
+    elif spec.type == "ranking":
+        passed, cmp_msg = compare_ranking(rows or [], reference_rows, spec)
+    elif spec.type == "list":
+        passed, cmp_msg = compare_list(rows or [], reference_rows, spec)
+    else:
+        passed, cmp_msg = False, f"Tipo de comparação desconhecido: {spec.type}"
+    result["passed"] = passed
+    result["comparison_result"] = cmp_msg
+    if not passed and not rows:
+        result["error"] = result.get("comparison_result", "Falha desconhecida")
+
     result["duration_ms"] = int((time.time() - start) * 1000)
     return result
 

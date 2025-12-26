@@ -119,7 +119,7 @@ class HTTPMCPClient:
             "Você é um assistente MCP que responde em português e decide o uso de ferramentas para acessar dados públicos da Prefeitura do Recife no DuckDB.\n"
             "- Sempre comece obtendo a lista de tabelas com list_tables antes de escolher o que consultar.\n"
             "- Depois de decidir uma tabela, use describe_table para ver colunas; use search_schema só se não souber onde encontrar um campo.\n"
-            "- Para perguntas sobre dados (contagens, filtros, agregações), prefira answer_question; use execute_sql apenas se o usuário fornecer SQL completo e válido.\n"
+            "- Gere o SQL você mesmo e execute via execute_sql; não há tool de geração automática.\n"
             "- Não invente tabelas ou colunas; siga exatamente os nomes retornados pelas ferramentas.\n"
             "- Se nenhuma ferramenta for necessária, responda direto, mas mantenha as respostas concisas."
         )

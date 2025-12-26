@@ -129,23 +129,6 @@ class MCPClient:
                     },
                 },
             },
-            {
-                "type": "function",
-                "function": {
-                    "name": "answer_question",
-                    "description": "Use this tool for questions about the actual DATA content - statistics, counts, aggregations, filtering, analysis, etc. This tool will generate SQL automatically and return results. Examples: 'quantos alunos', 'qual a taxa de aprovação', 'quais os top 10', etc. Do NOT use search_schema repeatedly - use answer_question directly for data questions.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "question": {
-                                "type": "string",
-                                "description": "Question about data content that needs SQL query to answer",
-                            }
-                        },
-                        "required": ["question"],
-                    },
-                },
-            },
         ]
 
     async def call_mcp_tool(self, tool_name: str, tool_input: dict) -> str:
@@ -188,27 +171,6 @@ class MCPClient:
                 rows = await db.fetch_rows(limited)
                 result = {"sql": limited, "row_count": len(rows), "rows": rows}
                 return json.dumps(result)
-            elif tool_name == "answer_question":
-                question = tool_input.get("question", "")
-                typer.secho(f"❓ Question: {question}", fg=typer.colors.BLUE)
-                llm = OpenRouterClient(self.settings)
-                sql_first = await llm.generate_sql(question)
-                typer.secho(f"🔍 Generated SQL: {sql_first[:100]}...", fg=typer.colors.YELLOW)
-                try:
-                    ensure_read_only(sql_first)
-                    limited = ensure_limit(sql_first, self.settings.max_result_rows)
-                    rows = await db.fetch_rows(limited)
-                    result = {"sql": limited, "row_count": len(rows), "rows": rows}
-                    return json.dumps(result)
-                except Exception as first_error:
-                    typer.secho(f"⚠️  First SQL attempt failed: {first_error}", fg=typer.colors.YELLOW)
-                    sql_second = await llm.generate_sql(question, previous_error=str(first_error))
-                    typer.secho(f"🔄 Retrying with revised SQL: {sql_second[:100]}...", fg=typer.colors.YELLOW)
-                    ensure_read_only(sql_second)
-                    limited = ensure_limit(sql_second, self.settings.max_result_rows)
-                    rows = await db.fetch_rows(limited)
-                    result = {"sql": limited, "row_count": len(rows), "rows": rows}
-                    return json.dumps(result)
             else:
                 return json.dumps({"error": f"Unknown tool: {tool_name}"})
         finally:
@@ -229,7 +191,7 @@ class MCPClient:
             "- Escolha a tabela e chame describe_table para pegar os nomes exatos de colunas. Não invente colunas ou acentos; use os nomes retornados (ex.: Ano, Ocorrencia, Grau_de_Risco, situacao_nome, ano, escola, sexo).\n"
             "- Use search_schema apenas se precisar achar onde está um campo.\n"
             "- Consulte os dicionários via resources (resource://dicionario-atendimentos e resource://dicionario-situacao-final) quando precisar confirmar nomes/colunas.\n"
-            "- Para perguntas de dados (contagens, filtros, agregações), prefira answer_question; use execute_sql só se o usuário já deu a query.\n"
+            "- Gere o SQL explicitamente (sem tool especializada) e execute usando execute_sql.\n"
             "- Trate campos de ano como texto (sem casts) e mantenha aspas duplas em tabelas/colunas com hífen ou acentuação.\n"
             "- Siga exatamente os nomes retornados pelas ferramentas; se uma coluna faltar, chame describe_table e refaça o SQL."
         )

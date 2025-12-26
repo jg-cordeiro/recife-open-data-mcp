@@ -44,6 +44,12 @@ Safety/quality rules:
 - When writing CASE expressions on text labels, MUST use regex/LIKE checks against the correct column name unless 100% sure of exact values; do not stack equals with guessed variants. Always include the column in each WHEN condition.
 - Never mutate data. Do NOT add LIMIT automatically (only when the question asks for top-k/samples).
 - When returning sample rows, include all requested columns exactly (e.g., dataInfracao, horainfracao, infracao, descricaoinfracao).
+- Avoid COUNT(DISTINCT ...) unless the question asks for uniques; use COUNT(*) otherwise.
+- For approval/retention labels, use exact casing-insensitive matches with UPPER: e.g., UPPER("situacao_nome") = 'APROVADO' or LIKE 'RETIDO%'. Do NOT rely on lowercase/substring without UPPER.
+- For rates/percentages, return the fraction unless the question explicitly asks for percent; do NOT multiply by 100 unless requested.
+- For dates (dataInfracao, dataimplantacao, data_naufragio), always extract year/date via regexp_extract and filter out blanks/NULL before counting/distinct. Do NOT use SUBSTRING positions.
+- For depth/profundidade_maxima with units, extract digits via regexp_extract and try_cast; filter out blanks before casting. Do not cast the raw string directly.
+- Always qualify and quote schema + table + column names; do not use bare table names without schema in the FROM.
 
 IMPORTANT RULES:
 1. Table names with hyphens MUST be quoted with double quotes.

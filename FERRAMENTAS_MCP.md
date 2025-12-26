@@ -1,7 +1,7 @@
 # Servidor MCP, Ferramentas e System Prompt
 
 ## Implementação e abordagem
-O servidor MCP foi implementado a partir de uma instância do FastMCP, com um conjunto enxuto de ferramentas voltadas a duas necessidades: (i) exploração do schema (descobrir tabelas/colunas) e (ii) consulta de dados (executar SQL diretamente ou gerar SQL a partir de linguagem natural). Toda execução de SQL passa por uma rotina central (_run_sql) que valida a query, garante que seja read-only (SELECT/WITH/EXPLAIN) e aplica limites de segurança antes de consultar o banco.
+O servidor MCP foi implementado a partir de uma instância do FastMCP, com um conjunto enxuto de ferramentas voltadas a duas necessidades: (i) exploração do schema (descobrir tabelas/colunas) e (ii) consulta de dados (execução direta de SQL gerado pelo cliente). Toda execução de SQL passa por uma rotina central (_run_sql) que valida a query, garante que seja read-only (SELECT/WITH/EXPLAIN) e aplica limites de segurança antes de consultar o banco.
 
 Em vez de disponibilizar a estrutura completa do banco como recurso de contexto único, a exploração é feita de forma incremental via ferramentas. Essa decisão evita janelas de contexto grandes e prepara o protótipo para cenários com múltiplos bancos ou domínios heterogêneos. O fluxo típico é: listar tabelas → descrever colunas → gerar/executar SQL → obter resultados.
 
@@ -11,7 +11,6 @@ Em vez de disponibilizar a estrutura completa do banco como recurso de contexto 
 - `search_schema(search_term)`: busca tabelas/colunas por termo.
 - `list_databases()`: lista schemas (geralmente apenas `public`).
 - `execute_sql(sql)`: executa SQL read-only com limite automático.
-- `answer_question(question)`: gera SQL via LLM, valida e executa com retry.
 - Resources: dicionários de dados para consulta contextual (`resource://dicionario-situacao-final`, `resource://dicionario-infracoes`, `resource://dicionario-naufragios`).
 
 Guardrails principais: bloqueio de DDL/DML, `LIMIT` aplicado automaticamente, quoting obrigatório para nomes com acentos/hífens e validação de colunas/tabelas via ferramentas.

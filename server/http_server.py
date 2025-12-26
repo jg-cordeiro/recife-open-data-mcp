@@ -11,11 +11,9 @@ from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
 from contextlib import asynccontextmanager
-from braintrust import start_span
 from pathlib import Path
 
 import sys
-from pathlib import Path
 
 # Allow running as module or script in environments without package install
 ROOT = Path(__file__).resolve().parent.parent
@@ -210,20 +208,6 @@ async def list_tools():
                     "required": ["sql"],
                 },
             },
-            {
-                "name": "answer_question",
-                "description": "Convert a natural language question into SQL, run it, and return formatted results.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "question": {
-                            "type": "string",
-                            "description": "Natural language question about the data"
-                        }
-                    },
-                    "required": ["question"],
-                },
-            },
         ]
     }
 
@@ -313,91 +297,6 @@ async def execute_tool(request: Request):
                     }
                 ]
             }
-
-        elif tool_name == "answer_question":
-            question = arguments.get("question")
-            if not question:
-                return JSONResponse(
-                    status_code=400,
-                    content={"error": "Question is required"}
-                )
-            
-            with start_span(name="answer_question_http") as span:
-                span.log(input={"question": question})
-                
-                sql_first = await llm.generate_sql(question)
-                logger.info("Generated SQL (first pass)", extra={"sql_preview": sql_first[:200]})
-                
-                try:
-                    result = await _run_sql(sql_first)
-                    # Format response nicely
-                    formatted = {
-                        "question": question,
-                        "sql": result["sql"],
-                        "row_count": result["row_count"],
-                        "data": result["rows"]
-                    }
-                    formatted = _convert_to_serializable(formatted)
-                    logger.info(
-                        "answer_question succeeded",
-                        extra={"row_count": result["row_count"], "sql_preview": result["sql"][:200]},
-                    )
-                    
-                    span.log(
-                        output=formatted,
-                        metadata={
-                            "sql_generated": sql_first,
-                            "retry_attempted": False,
-                            "success": True
-                        }
-                    )
-                    
-                    return {
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": json.dumps(formatted, indent=2, ensure_ascii=False)
-                            }
-                        ]
-                    }
-                except Exception as first_error:
-                    # Retry with error feedback
-                    logger.warning("answer_question first attempt failed", extra={"error": str(first_error)})
-                    span.log(metadata={"first_error": str(first_error)})
-                    
-                    sql_second = await llm.generate_sql(question, previous_error=str(first_error))
-                    logger.info("Generated SQL (retry)", extra={"sql_preview": sql_second[:200]})
-                    result = await _run_sql(sql_second)
-                    formatted = {
-                        "question": question,
-                        "sql": result["sql"],
-                        "row_count": result["row_count"],
-                        "data": result["rows"],
-                        "note": "Query was retried due to initial error"
-                    }
-                    formatted = _convert_to_serializable(formatted)
-                    logger.info(
-                        "answer_question succeeded on retry",
-                        extra={"row_count": result["row_count"], "sql_preview": result["sql"][:200]},
-                    )
-                    
-                    span.log(
-                        output=formatted,
-                        metadata={
-                            "sql_generated": sql_second,
-                            "retry_attempted": True,
-                            "success": True
-                        }
-                    )
-                    
-                    return {
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": json.dumps(formatted, indent=2, ensure_ascii=False)
-                            }
-                        ]
-                    }
 
         else:
             return JSONResponse(
