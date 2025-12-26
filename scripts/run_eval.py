@@ -246,6 +246,21 @@ async def evaluate_case(
                     },
                 },
             },
+            {
+                "type": "function",
+                "function": {
+                    "name": "create_sql",
+                    "description": "Generate read-only SQL for a natural language question.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "question": {"type": "string"},
+                            "schema_context": {"type": "string"},
+                        },
+                        "required": ["question"],
+                    },
+                },
+            },
         ]
 
         system_prompt = (
@@ -314,6 +329,13 @@ async def evaluate_case(
                             }
                         except Exception as exc:  # pylint: disable=broad-except
                             payload = {"error": str(exc)}
+                    elif name == "create_sql":
+                        question_arg = args.get("question") or case.question
+                        schema_ctx = args.get("schema_context") or schema_text
+                        sql = await llm.generate_sql(question_arg, schema_ctx)
+                        ensure_read_only(sql)
+                        limited_sql = ensure_limit(sql, max_rows)
+                        payload = {"sql": limited_sql}
                     else:  # pragma: no cover - defensive
                         payload = {"error": f"Unknown tool {name}"}
 

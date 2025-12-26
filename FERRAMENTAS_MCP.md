@@ -10,6 +10,7 @@ Em vez de disponibilizar a estrutura completa do banco como recurso de contexto 
 - `describe_table(table_name)`: retorna colunas/tipos de uma tabela específica.
 - `search_schema(search_term)`: busca tabelas/colunas por termo.
 - `list_databases()`: lista schemas (geralmente apenas `public`).
+- `create_sql(question, schema_context=None)`: gera SQL read-only limitado para uma pergunta em linguagem natural (valida read-only e aplica LIMIT).
 - `execute_sql(sql)`: executa SQL read-only com limite automático.
 - Resources: dicionários de dados para consulta contextual (`resource://dicionario-situacao-final`, `resource://dicionario-infracoes`, `resource://dicionario-naufragios`).
 

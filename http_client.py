@@ -115,21 +115,11 @@ class HTTPMCPClient:
         typer.secho(f"\n👤 User: {user_message}", fg=typer.colors.CYAN)
         logger.info("chat start", extra={"user_message": user_message})
 
-        system_prompt = (
-            "Você é um assistente MCP que responde em português e decide o uso de ferramentas para acessar dados públicos da Prefeitura do Recife no DuckDB.\n"
-            "- Sempre comece obtendo a lista de tabelas com list_tables antes de escolher o que consultar.\n"
-            "- Depois de decidir uma tabela, use describe_table para ver colunas; use search_schema só se não souber onde encontrar um campo.\n"
-            "- Gere o SQL você mesmo e execute via execute_sql; não há tool de geração automática.\n"
-            "- Não invente tabelas ou colunas; siga exatamente os nomes retornados pelas ferramentas.\n"
-            "- Se nenhuma ferramenta for necessária, responda direto, mas mantenha as respostas concisas."
-        )
-
         # Fetch available tools from MCP server
         mcp_tools = await self.list_tools()
         tools = self._convert_tools_to_openai_format(mcp_tools)
 
         messages = [
-            {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message},
         ]
 

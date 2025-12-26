@@ -51,7 +51,7 @@ Endpoints HTTP MCP principais: `GET /health`, `GET /mcp/v1/tools`, `POST /mcp/v1
 Os CSVs são mantidos exatamente como vieram do portal, e a carga é feita por descritores JSON que definem tabela/esquema. A agregação por dataset junta múltiplos CSVs homogêneos em uma tabela única para permitir consultas longitudinais sem remodelagens profundas. O script `scripts/ingest.py` suporta ingestão individual ou em lote; detalhes e critérios estão em `INGESTAO_DATASETS.md`.
 
 ## Ferramentas MCP e prompt
-O servidor expõe um conjunto enxuto de ferramentas para explorar schema e consultar dados (`list_tables`, `describe_table`, `search_schema`, `list_databases`, `execute_sql`) e dicionários de dados via resources. O prompt do LLM obriga a explorar tabelas/colunas antes de gerar SQL e aplica regras de segurança/quoting; o racional completo está em `FERRAMENTAS_MCP.md`.
+O servidor expõe um conjunto enxuto de ferramentas para explorar schema e consultar dados (`list_tables`, `describe_table`, `search_schema`, `list_databases`, `create_sql`, `execute_sql`) e dicionários de dados via resources. O prompt do LLM obriga a explorar tabelas/colunas antes de gerar SQL e aplica regras de segurança/quoting; o racional completo está em `FERRAMENTAS_MCP.md`.
 
 ## Testes e evals
 Casos de avaliação em `eval_cases.json` são executados por `python -m scripts.run_eval --help`. Cada caso compara o SQL gerado e as linhas retornadas com uma query de referência, produzindo um relatório Markdown em `eval_runs/`. Use o DuckDB local com os dados já ingeridos antes de rodar os evals.

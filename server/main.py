@@ -34,12 +34,8 @@ async def _run_sql(sql: str):
 async def execute_sql(sql: str) -> str:
     """Execute a pre-written SQL query directly.
     
-    Use this ONLY when:
-    - You already have a complete, valid SQL query
-    - You don't need SQL generation
-    - You're testing or validating a specific query
-    
-    The query will be validated for read-only operations and automatically limited.
+    Use this ONLY when you already have a complete SQL (e.g., from create_sql).
+    The query is validated as read-only and auto-limited before execution.
     """
     result = await _run_sql(sql)
     return str(result)
@@ -116,6 +112,20 @@ async def list_databases() -> str:
     import json
     schemas = await db.list_databases()
     return json.dumps({"message": f"Found {len(schemas)} schemas", "schemas": schemas})
+
+
+@app.tool()
+async def create_sql(question: str, schema_context: str | None = None) -> str:
+    """Generate read-only SQL for a natural language question.
+    
+    Use this after list_tables/describe_table/search_schema to gather schema info.
+    Returns SQL already validated as read-only and limited.
+    """
+    llm_client = _require_llm()
+    sql = await llm_client.generate_sql(question, schema_context)
+    ensure_read_only(sql)
+    limited = ensure_limit(sql, settings.max_result_rows)
+    return limited
 
 
 @app.resource("resource://dicionario-situacao-final")

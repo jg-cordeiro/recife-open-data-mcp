@@ -129,6 +129,27 @@ class MCPClient:
                     },
                 },
             },
+            {
+                "type": "function",
+                "function": {
+                    "name": "create_sql",
+                    "description": "Generate read-only SQL for a natural language question after inspecting schema.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "question": {
+                                "type": "string",
+                                "description": "Question about data content that needs SQL"
+                            },
+                            "schema_context": {
+                                "type": "string",
+                                "description": "Optional schema snapshot/hints"
+                            }
+                        },
+                        "required": ["question"],
+                    },
+                },
+            },
         ]
 
     async def call_mcp_tool(self, tool_name: str, tool_input: dict) -> str:
@@ -171,6 +192,15 @@ class MCPClient:
                 rows = await db.fetch_rows(limited)
                 result = {"sql": limited, "row_count": len(rows), "rows": rows}
                 return json.dumps(result)
+            elif tool_name == "create_sql":
+                question = tool_input.get("question", "")
+                schema_context = tool_input.get("schema_context")
+                typer.secho(f"🧠 Generating SQL for: {question}", fg=typer.colors.BLUE)
+                llm = OpenRouterClient(self.settings)
+                sql = await llm.generate_sql(question, schema_context)
+                ensure_read_only(sql)
+                limited = ensure_limit(sql, self.settings.max_result_rows)
+                return json.dumps({"sql": limited})
             else:
                 return json.dumps({"error": f"Unknown tool: {tool_name}"})
         finally:
@@ -181,41 +211,9 @@ class MCPClient:
         """Send a message to Claude via OpenRouter and process tool calls."""
         typer.secho(f"\n👤 User: {user_message}", fg=typer.colors.CYAN)
 
-        # Pré-busca: obter tabelas e descrições para dar contexto imediato à LLM
-        tables = await self.fetch_tools()
-        messages: list = []
-
-        system_prompt = (
-            "Você é um assistente MCP que responde em português e decide o uso de ferramentas para acessar dados públicos da Prefeitura do Recife no DuckDB.\n"
-            "- SEMPRE comece chamando list_tables. Não gere SQL antes de listar.\n"
-            "- Escolha a tabela e chame describe_table para pegar os nomes exatos de colunas. Não invente colunas ou acentos; use os nomes retornados (ex.: Ano, Ocorrencia, Grau_de_Risco, situacao_nome, ano, escola, sexo).\n"
-            "- Use search_schema apenas se precisar achar onde está um campo.\n"
-            "- Consulte os dicionários via resources (resource://dicionario-atendimentos e resource://dicionario-situacao-final) quando precisar confirmar nomes/colunas.\n"
-            "- Gere o SQL explicitamente (sem tool especializada) e execute usando execute_sql.\n"
-            "- Trate campos de ano como texto (sem casts) e mantenha aspas duplas em tabelas/colunas com hífen ou acentuação.\n"
-            "- Siga exatamente os nomes retornados pelas ferramentas; se uma coluna faltar, chame describe_table e refaça o SQL."
-        )
-
-        messages.extend([
-            {"role": "system", "content": system_prompt},
+        messages = [
             {"role": "user", "content": user_message},
-        ])
-
-        # Adiciona contexto de schema curto (list_tables + describe_table de cada tabela encontrada)
-        try:
-            tables_list = json.loads(await self.call_mcp_tool("list_tables", {"required": True}))
-            table_names = [t.get("table") for t in tables_list.get("tables", []) if t.get("table")]
-            schema_context = {"tables": tables_list.get("tables", [])}
-            for tname in table_names:
-                desc_raw = await self.call_mcp_tool("describe_table", {"table_name": tname, "required": True})
-                try:
-                    desc_json = json.loads(desc_raw)
-                except Exception:
-                    desc_json = {"error": desc_raw}
-                schema_context[tname] = desc_json
-            messages.append({"role": "user", "content": f"Contexto de schema (não invente nada além disto):\n{json.dumps(schema_context, ensure_ascii=False)}"})
-        except Exception as e:  # pylint: disable=broad-except
-            typer.secho(f"⚠️ Falha ao obter contexto de schema: {e}", fg=typer.colors.YELLOW)
+        ]
 
         tools = await self.fetch_tools()
 

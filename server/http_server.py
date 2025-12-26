@@ -196,7 +196,7 @@ async def list_tools():
             },
             {
                 "name": "execute_sql",
-                "description": "Execute a read-only SQL query with timeout and row limit.",
+                "description": "Execute a read-only SQL query (validated and auto-limited). Use only with SQL already generated (e.g., via create_sql).",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -206,6 +206,24 @@ async def list_tools():
                         }
                     },
                     "required": ["sql"],
+                },
+            },
+            {
+                "name": "create_sql",
+                "description": "Generate read-only SQL for a natural language question (validated and limited).",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "question": {
+                            "type": "string",
+                            "description": "Natural language question about the data"
+                        },
+                        "schema_context": {
+                            "type": "string",
+                            "description": "Optional schema snapshot or hints"
+                        }
+                    },
+                    "required": ["question"],
                 },
             },
         ]
@@ -294,6 +312,29 @@ async def execute_tool(request: Request):
                     {
                         "type": "text",
                         "text": json.dumps(result, indent=2, ensure_ascii=False)
+                    }
+                ]
+            }
+
+        if tool_name == "create_sql":
+            question = arguments.get("question")
+            schema_context = arguments.get("schema_context")
+            if not question:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": "Question is required"}
+                )
+            llm = OpenRouterClient(settings)
+            sql = await llm.generate_sql(question, schema_context)
+            ensure_read_only(sql)
+            limited = ensure_limit(sql, settings.max_result_rows)
+            payload = {"sql": limited}
+            payload = _convert_to_serializable(payload)
+            return {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": json.dumps(payload, indent=2, ensure_ascii=False)
                     }
                 ]
             }
