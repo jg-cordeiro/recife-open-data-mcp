@@ -10,7 +10,7 @@
     },
     {
       "id": "alunos_retidos_geral",
-      "question": "Quantos alunos terminaram RETIDOS em todos os períodos?",
+      "question": "Quantos alunos terminaram retidos em todos os períodos?",
       "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE upper(\"situacao_nome\") LIKE 'RETIDO%';",
       "comparison": { "type": "numeric" }
     },
@@ -88,7 +88,7 @@
     },
     {
       "id": "transito_locais_2024",
-      "question": "Quais são os 5 locais de cometimento com mais multas implantadas em 2024?",
+      "question": "Quais são os 5 locais com mais multas implantadas em 2024?",
       "reference_sql": "SELECT \"localcometimento\", COUNT(*) AS total FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" WHERE regexp_extract(\"dataimplantacao\", '(20\\d{2})') = '2024' GROUP BY \"localcometimento\" ORDER BY total DESC LIMIT 5;",
       "comparison": { "type": "ranking", "key_columns": ["localcometimento"], "value_column": "total", "top_k": 5 }
     },
@@ -154,13 +154,13 @@
     },
     {
       "id": "naufragios_mais_antigos",
-      "question": "Quais são os 3 naufrágios mais antigos com ano conhecido?",
+      "question": "Quais são os 3 naufrágios mais antigos?",
       "reference_sql": "SELECT \"nome\", CAST(regexp_extract(\"data_naufragio\", '(\\d{4})') AS INTEGER) AS ano_int FROM \"public\".\"naufrágios_do_recife\" WHERE regexp_extract(\"data_naufragio\", '(\\d{4})') ~ '^(18|19|20)\\d{2}$' ORDER BY ano_int ASC LIMIT 3;",
       "comparison": { "type": "ranking", "key_columns": ["nome"], "value_column": "ano_int", "top_k": 3 }
     },
     {
       "id": "naufragios_profundidade_media",
-      "question": "Qual é a profundidade média (em metros) considerando apenas valores numéricos?",
+      "question": "Qual é a profundidade média dos naufrágios (em metros)?",
       "reference_sql": "SELECT AVG(try_cast(regexp_extract(\"profundidade_maxima\", '(\\d+)') AS DOUBLE)) AS profundidade_media FROM \"public\".\"naufrágios_do_recife\" WHERE regexp_extract(\"profundidade_maxima\", '(\\d+)') <> '';",
       "comparison": { "type": "numeric", "field_name": "profundidade_media", "tolerance": 0.01 }
     },
@@ -172,7 +172,7 @@
     },
     {
       "id": "naufragios_mais_norte",
-      "question": "Quais são os 3 naufrágios mais ao norte (maior latitude)?",
+      "question": "Quais são os 3 naufrágios mais ao norte?",
       "reference_sql": "SELECT \"nome\", CAST(\"latitude\" AS DOUBLE) AS latitude, CAST(\"longitude\" AS DOUBLE) AS longitude FROM \"public\".\"naufrágios_do_recife\" ORDER BY CAST(\"latitude\" AS DOUBLE) DESC LIMIT 3;",
       "comparison": { "type": "ranking", "key_columns": ["nome"], "value_column": "latitude", "top_k": 3 }
     },

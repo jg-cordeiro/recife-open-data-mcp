@@ -5,13 +5,13 @@ Protótipo para consultar dados públicos do Recife em linguagem natural usando 
 ## Arquitetura do protótipo
 - **Dados**: arquivos CSV do portal de dados abertos são carregados em um DuckDB local (`./data/recife.duckdb`), preservando a estrutura original (detalhes em `INGESTAO_DATASETS.md`).
 - **Camada MCP (FastMCP)**: expõe ferramentas para explorar o schema, executar SQL direto e gerar SQL via LLM com guardrails. A versão HTTP usa FastAPI/uvicorn; o mesmo app roda via stdio.
-- **Cliente/LLM**: perguntas em linguagem natural são enviadas ao OpenRouter (`openai/gpt-5.1-codex-max`) com um prompt que força exploração prévia do schema e checagens de segurança.
+- **Cliente/LLM**: perguntas em linguagem natural são enviadas ao OpenRouter (`google/gemini-2.5-flash`) com um prompt que força exploração prévia do schema e checagens de segurança.
 - **Observabilidade**: Braintrust registra chamadas LLM e spans de ingestão/consulta (ver `OBSERVABILITY.md`).
 - **Avaliação**: `scripts/run_eval.py` executa casos de teste (`eval_cases.json`) comparando o SQL gerado com queries de referência.
 
 ## Pré-requisitos e dependências principais
 - Python 3.12+ e Git LFS (para baixar `data/recife.duckdb`): `brew install python@3.12 git-lfs && git lfs install`
-- Chave do OpenRouter (`OPENROUTER_API_KEY`) com acesso ao modelo `openai/gpt-5.1-codex-max` (Preview)
+- Chave do OpenRouter (`OPENROUTER_API_KEY`) com acesso ao modelo `ogoogle/gemini-2.5-flash` (Preview)
 - Bibliotecas centrais: FastMCP/FastAPI, DuckDB, OpenAI SDK, Typer (CLIs), Braintrust (observabilidade)
 
 ## Configuração rápida

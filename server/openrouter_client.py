@@ -1,8 +1,11 @@
 import os
 from typing import Tuple
+from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from braintrust import current_span, init_logger, traced
 from .config import Settings
+
+load_dotenv()
 
 # Initialize Braintrust logger
 logger = init_logger(
