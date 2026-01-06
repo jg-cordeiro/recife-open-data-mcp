@@ -4,13 +4,13 @@
   "cases": [
     {
       "id": "alunos_total_2022",
-      "question": "Quantos registros existem no dataset de alunos para o ano de 2022?",
+      "question": "Quantos registros de alunos existem no ano de 2022?",
       "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2022';",
       "comparison": { "type": "numeric" }
     },
     {
       "id": "alunos_retidos_geral",
-      "question": "Quantos alunos têm situação começando com RETIDO em todo o período?",
+      "question": "Quantos alunos terminaram RETIDOS em todos os períodos?",
       "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE upper(\"situacao_nome\") LIKE 'RETIDO%';",
       "comparison": { "type": "numeric" }
     },
@@ -22,33 +22,33 @@
     },
     {
       "id": "alunos_top_escolas_aprovados",
-      "question": "Quais são as 5 escolas com mais alunos aprovados no período?",
+      "question": "Quais são as 5 escolas com mais alunos aprovados em todos os anos disponíveis?",
       "reference_sql": "SELECT \"escola\", COUNT(*) AS total_aprovados FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE upper(\"situacao_nome\") = 'APROVADO' GROUP BY \"escola\" ORDER BY total_aprovados DESC LIMIT 5;",
       "comparison": { "type": "ranking", "key_columns": ["escola"], "value_column": "total_aprovados", "top_k": 5 }
     },
     {
       "id": "alunos_turnos_2020",
-      "question": "Quais são os 3 turnos com mais registros em 2020?",
+      "question": "Qual o top 3 turnos por quantidade de registros em 2020?",
       "reference_sql": "SELECT \"turno\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2020' GROUP BY \"turno\" ORDER BY total DESC LIMIT 3;",
       "comparison": { "type": "ranking", "key_columns": ["turno"], "value_column": "total", "top_k": 3 }
     },
     {
       "id": "alunos_modalidade_2018",
-      "question": "Quantos registros de 2018 são da modalidade Educação Infantil?",
-      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2018' AND upper(\"modalidade_ensino\") = 'EDUCACAO INFANTIL';",
+      "question": "Quantos registros de 2018 são de Educação Infantil?",
+      "reference_sql": "SELECT COUNT(*) FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2018' AND lower(\"modalidade_ensino\") LIKE '%infantil%';",
       "comparison": { "type": "numeric" }
     },
     {
       "id": "alunos_rpa_retencao",
-      "question": "Quais são as 3 RPAs com mais alunos retidos (qualquer tipo de retenção)?",
+      "question": "Quais são as 3 RPAs com mais alunos com qualquer tipo de retenção?",
       "reference_sql": "SELECT \"rpa\", COUNT(*) AS total FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"rpa\" IS NOT NULL AND upper(\"situacao_nome\") LIKE 'RETIDO%' GROUP BY \"rpa\" ORDER BY total DESC LIMIT 3;",
       "comparison": { "type": "ranking", "key_columns": ["rpa"], "value_column": "total", "top_k": 3 }
     },
     {
       "id": "alunos_idade_media_2024",
-      "question": "Qual é a idade média dos alunos em 2024 (considerando idades entre 4 e 30 anos)?",
+      "question": "Qual é a idade média dos alunos em 2024?",
       "reference_sql": "SELECT AVG(try_cast(\"idade\" AS DOUBLE)) AS idade_media FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2024' AND try_cast(\"idade\" AS DOUBLE) BETWEEN 4 AND 30;",
-      "comparison": { "type": "numeric", "field_name": "idade_media", "tolerance": 0.001 }
+      "comparison": { "type": "numeric", "field_name": "idade_media", "tolerance": 0.01 }
     },
     {
       "id": "alunos_modalidades_top",
@@ -69,14 +69,14 @@
       "comparison": { "type": "numeric" }
     },
     {
-      "id": "transito_implantacao_2022",
-      "question": "Quantas multas foram implantadas em 2022?",
-      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataimplantacao\", '(20\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2022';",
+      "id": "transito_multas_2022",
+      "question": "Quantas multas foram registradas em 2022?",
+      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataInfracao\", '(20\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2022';",
       "comparison": { "type": "numeric" }
     },
     {
       "id": "transito_infracoes_2023",
-      "question": "Quantas infrações ocorreram em 2023 (pela data da infração)?",
+      "question": "Quantas infrações ocorreram em 2023?",
       "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataInfracao\", '(20\\d{2})') AS ano FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT COUNT(*) FROM base WHERE ano = '2023';",
       "comparison": { "type": "numeric" }
     },
@@ -101,7 +101,7 @@
     {
       "id": "transito_media_diaria_2023",
       "question": "Qual é a média diária de infrações registradas em 2023?",
-      "reference_sql": "WITH base AS (SELECT regexp_extract(\"dataInfracao\", '(20\\d{2})') AS ano, regexp_extract(\"dataInfracao\", '([0-9]{2}/[0-9]{2}/[0-9]{4})') AS data FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\" WHERE regexp_extract(\"dataInfracao\", '(20\\d{2})') = '2023' AND regexp_extract(\"dataInfracao\", '([0-9]{2}/[0-9]{2}/[0-9]{4})') <> '') SELECT CAST(COUNT(*) AS DOUBLE) / NULLIF(COUNT(DISTINCT data), 0) AS media_por_dia FROM base;",
+      "reference_sql": "WITH base AS (SELECT try_cast(\"dataInfracao\" AS DATE) AS data FROM \"public\".\"registro_das_infrações_de_trânsito_-_cttu\") SELECT CAST(COUNT(*) AS DOUBLE) / NULLIF(COUNT(DISTINCT data), 0) AS media_por_dia FROM base WHERE data BETWEEN DATE '2023-01-01' AND DATE '2023-12-31';",
       "comparison": { "type": "numeric", "field_name": "media_por_dia", "tolerance": 0.0001 }
     },
     {

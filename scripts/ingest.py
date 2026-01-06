@@ -218,20 +218,51 @@ def _detect_decimal_separator(csv_path: Path) -> str:
 
 
 def copy_csv(conn: duckdb.DuckDBPyConnection, schema: str, table: str, csv_path: Path) -> None:
+    table_ref = f"{schema}.{table}"
+    cols = [row[1] for row in conn.execute(f"PRAGMA table_info('{table_ref}')").fetchall()]
+    quoted_cols = ", ".join(f'"{c}"' for c in cols)
+    delim = _detect_delimiter(csv_path)
+    csv_headers: List[str] = []
+    with csv_path.open("r", encoding="utf-8", errors="ignore", newline="") as fh:
+        reader = csv.reader(fh, delimiter=delim)
+        csv_headers = next(reader, [])
+    header_map = {h: h for h in csv_headers}
+    normalized_map = {h.lower().replace(" ", "_"): h for h in csv_headers}
+    select_cols: List[str] = []
+    for col in cols:
+        if col in header_map:
+            source = header_map[col]
+        else:
+            source = normalized_map.get(col.lower().replace(" ", "_"))
+        if not source:
+            raise ValueError(
+                f"CSV header missing column '{col}' for {table_ref}. "
+                f"Available headers: {csv_headers}"
+            )
+        if source == col:
+            select_cols.append(f'"{source}"')
+        else:
+            select_cols.append(f'"{source}" AS "{col}"')
+    select_exprs = ", ".join(select_cols)
     # Use DuckDB's read_csv_auto and insert
     csv_path_str = str(csv_path)
-    delim = _detect_delimiter(csv_path)
     decimal_sep = _detect_decimal_separator(csv_path)
     try:
         conn.execute(
-            f'INSERT INTO "{schema}"."{table}" SELECT * FROM read_csv_auto(\'{csv_path_str}\', delim=\'{delim}\', decimal_separator=\'{decimal_sep}\')'
+            f'''INSERT INTO "{schema}"."{table}" ({quoted_cols})
+                SELECT {select_exprs} FROM read_csv_auto(
+                    '{csv_path_str}',
+                    header=True,
+                    delim='{delim}',
+                    decimal_separator='{decimal_sep}'
+                )'''
         )
     except Exception:
         # Fallback with explicit options
         try:
             conn.execute(
-                f'''INSERT INTO "{schema}"."{table}"
-                    SELECT * FROM read_csv_auto(
+                f'''INSERT INTO "{schema}"."{table}" ({quoted_cols})
+                    SELECT {select_exprs} FROM read_csv_auto(
                         '{csv_path_str}',
                         header=True,
                         delim='{delim}',
@@ -254,8 +285,8 @@ def copy_csv(conn: duckdb.DuckDBPyConnection, schema: str, table: str, csv_path:
                     stripped = stripped.replace('""', '"')
                     dst.write(stripped + "\n")
             conn.execute(
-                f'''INSERT INTO "{schema}"."{table}"
-                    SELECT * FROM read_csv_auto(
+                f'''INSERT INTO "{schema}"."{table}" ({quoted_cols})
+                    SELECT {select_exprs} FROM read_csv_auto(
                         '{tmp}',
                         header=True,
                         delim='{delim}',
