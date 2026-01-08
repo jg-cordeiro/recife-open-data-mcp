@@ -47,7 +47,7 @@
     {
       "id": "alunos_idade_media_2024",
       "question": "Qual é a idade média dos alunos em 2024?",
-      "reference_sql": "SELECT AVG(try_cast(\"idade\" AS DOUBLE)) AS idade_media FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2024' AND try_cast(\"idade\" AS DOUBLE) BETWEEN 4 AND 30;",
+      "reference_sql": "SELECT AVG(idade) AS idade_media FROM \"public\".\"situação_final_dos_alunos_por_período_letivo\" WHERE \"ano\" = '2024';",
       "comparison": { "type": "numeric", "field_name": "idade_media", "tolerance": 0.01 }
     },
     {

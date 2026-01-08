@@ -43,9 +43,6 @@ Protótipo para consultar dados públicos do Recife em linguagem natural usando 
   ```
 - **Clientes de teste**:
   - MCP interativo (stdio): `python client.py interactive`
-  - MCP via HTTP: `python http_client.py interactive`
-
-Endpoints HTTP MCP principais: `GET /health`, `GET /mcp/v1/tools`, `POST /mcp/v1/tools/execute`, `GET /mcp/v1/resources`.
 
 ## Dados e ingestão
 Os CSVs são mantidos exatamente como vieram do portal, e a carga é feita por descritores JSON que definem tabela/esquema. A agregação por dataset junta múltiplos CSVs homogêneos em uma tabela única para permitir consultas longitudinais sem remodelagens profundas. O script `scripts/ingest.py` suporta ingestão individual ou em lote; detalhes e critérios estão em `INGESTAO_DATASETS.md`.

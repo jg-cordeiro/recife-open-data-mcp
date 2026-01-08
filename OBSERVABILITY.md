@@ -50,17 +50,6 @@ BRAINTRUST_API_KEY=sk-your-api-key-here
   - Ferramentas utilizadas em cada iteração
   - Finish reason de cada resposta
 
-### 4. Cliente HTTP MCP (`http_client.py::chat`)
-- **Tipo**: LLM call com tool calling via HTTP
-- **Input**: Mensagem do usuário
-- **Output**: Resposta final do assistente
-- **Métricas**: 
-  - Tokens de cada chamada
-- **Metadata**:
-  - Iterações de tool calling
-  - Ferramentas executadas
-  - Sucesso da operação
-
 ## Como visualizar os dados
 
 1. Acesse o dashboard do Braintrust em https://www.braintrustdata.com/
