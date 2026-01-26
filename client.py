@@ -208,7 +208,7 @@ class MCPClient:
 
     @traced(type="llm", name="MCP Client Chat", notrace_io=True)
     async def chat(self, user_message: str) -> str:
-        """Send a message to Claude via OpenRouter and process tool calls."""
+        """Send a message to LLM via OpenRouter and process tool calls."""
         typer.secho(f"\n👤 User: {user_message}", fg=typer.colors.CYAN)
 
         messages = [
