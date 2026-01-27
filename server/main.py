@@ -1,7 +1,6 @@
 import asyncio
 import json
 from fastmcp import FastMCP
-from braintrust import start_span
 from .config import Settings
 from .db import Database
 from .sql_guard import ensure_limit, ensure_read_only

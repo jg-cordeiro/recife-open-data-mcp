@@ -19,9 +19,6 @@ node_modules/
 data/*
 !data/recife.duckdb
 
-# Ignore all raw datasets; MCP should not depend on this folder
-datasets/
-
 # Eval outputs
 eval_runs/
 !eval_runs/.gitkeep

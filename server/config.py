@@ -25,7 +25,7 @@ class Settings:
         db_path = str(db_dir / "recife.duckdb")
         return cls(
             openrouter_api_key=os.environ.get("OPENROUTER_API_KEY", ""),
-            openrouter_model=os.environ.get("OPENROUTER_MODEL", "openai/gpt-5.1-codex-max"),
+            openrouter_model=os.environ.get("OPENROUTER_MODEL", "google/gemini-2.5-flash"),
             db_path=db_path,
             max_result_rows=int(os.environ.get("MAX_RESULT_ROWS", "200")),
             http_port=int(os.environ.get("HTTP_PORT", "8000")),

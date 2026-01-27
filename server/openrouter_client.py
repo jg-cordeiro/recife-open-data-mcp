@@ -1,17 +1,8 @@
-import os
-from typing import Tuple
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
-from braintrust import current_span, init_logger, traced
 from .config import Settings
 
 load_dotenv()
-
-# Initialize Braintrust logger
-logger = init_logger(
-    project="Recife Open Data MCP",
-    api_key=os.getenv("BRAINTRUST_API_KEY")
-)
 
 
 class OpenRouterClient:
@@ -26,7 +17,6 @@ class OpenRouterClient:
         lowered = sql_text.strip().lower()
         return lowered.startswith("select") or lowered.startswith("with")
 
-    @traced(type="llm", name="OpenRouter SQL Generation", notrace_io=True)
     async def generate_sql(self, question: str, schema_text: str | None = None, previous_error: str | None = None) -> str:
         guidance = f"""You are an specialist that produces safe, read-only DuckDB SQL for Recife open data. Think and reason step by step, then emit only the final SQL.
 
@@ -126,25 +116,6 @@ If a column error occurs, STOP and call describe_table (and check resources), th
             content = resp.choices[0].message.content or ""
             sql_output = content.strip().strip("` ")
             last_sql = sql_output
-
-            # Log to Braintrust with structured input/output
-            usage = resp.usage or None
-            current_span().log(
-                input=messages,
-                output=sql_output,
-                metrics={
-                    "prompt_tokens": usage.prompt_tokens if usage else 0,
-                    "completion_tokens": usage.completion_tokens if usage else 0,
-                    "total_tokens": usage.total_tokens if usage else 0,
-                },
-                metadata={
-                    "model": self.model,
-                    "temperature": 0,
-                    "question": question,
-                    "has_previous_error": previous_error is not None,
-                    "sql_attempt": attempt,
-                }
-            )
 
             if sql_output and self._looks_like_sql(sql_output):
                 return sql_output

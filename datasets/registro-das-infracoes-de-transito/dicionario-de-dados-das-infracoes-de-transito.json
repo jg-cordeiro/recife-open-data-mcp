@@ -1,0 +1,91 @@
+{
+    "metadados": {
+        "cabecalho": {
+            "titulo": "Registro das infrações de trânsito - CTTU",
+            "descricao": "Relação das multas de trânsito registradas pela CTTU",
+            "categoria_vcge": "http://vocab.e.gov.br/2011/03/vcge#multas-/-infracoes",
+            "fonte_dados": "http://dados.recife.pe.gov.br",
+            "licenca": "Open Database License (ODbL)",
+            "responsavel_dados": "CTTU",
+            "responsavel_disponibilizar": "Emprel",
+            "frequencia_atualizacao": "semestral",
+            "endereco_dataset": "http://dados.recife.pe.gov.br/dataset/registro-das-infracoes-de-transito",
+            "status": "ativo",
+            "endereco_dataset_substituto": "",
+            "granularidade": "Por registro de infração realizado",
+            "etiquetas": "multas, infrações, trânsito, cttu"
+        },
+        "recursos": [
+            {
+                "identificador": "http://dados.recife.pe.gov.br/dataset/registro-das-infracoes-de-transito/resource/7fce4368-6b53-44cc-89e7-1799a4600935",
+                "titulo": "Registro das Infrações de Trânsito - 2014",
+                "formato": "csv",
+                "descricao": "Registro de todas as infrações de trânsito realizadas pela CTTU no ano de 2014"
+            },
+            {
+                "identificador": "http://dados.recife.pe.gov.br/dataset/registro-das-infracoes-de-transito/resource/bcc8d322-efd2-44ed-84c2-4fa13d667498",
+                "titulo": "Registro das Infrações de Trânsito - 2015",
+                "formato": "csv",
+                "descricao": "Registro das infrações de trânsito realizadas pela CTTU no ano de 2015"
+            }
+        ],
+        "campos": [
+            {
+                "codigo": "dataInfracao",
+                "descricao": "Data em que ocorreu a infração",
+                "tipo": "DATE",
+                "tamanho": 10,
+                "valores_permitidos": ""
+            },
+            {
+                "codigo": "horainfracao",
+                "descricao": "Hora de registro da infração",
+                "tipo": "DATE",
+                "tamanho": 10,
+                "valores_permitidos": ""
+            },
+            {
+                "codigo": "dataimplantacao",
+                "descricao": "Data de implantação da multa",
+                "tipo": "DATE",
+                "tamanho": 10,
+                "valores_permitidos": ""
+            },
+            {
+                "codigo": "agenteequipamento",
+                "descricao": "Forma de autuação",
+                "tipo": "CHAR",
+                "tamanho": 50,
+                "valores_permitidos": ""
+            },
+            {
+                "codigo": "infracao",
+                "descricao": "Código da Infração",
+                "tipo": "NUMER",
+                "tamanho": 10,
+                "valores_permitidos": ""
+            },
+            {
+                "codigo": "descricaoinfracao",
+                "descricao": "Descrição da infração",
+                "tipo": "CHAR",
+                "tamanho": 200,
+                "valores_permitidos": ""
+            },
+            {
+                "codigo": "localcometimento",
+                "descricao": "Local onde ocorreu a infração",
+                "tipo": "CHAR",
+                "tamanho": 200,
+                "valores_permitidos": ""
+            },
+            {
+                "codigo": "amparolegal",
+                "descricao": "Amparo legal para registro da infração",
+                "tipo": "CHAR",
+                "tamanho": 50,
+                "valores_permitidos": ""
+            }
+        ]
+    }
+}

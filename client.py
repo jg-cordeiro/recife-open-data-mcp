@@ -1,14 +1,11 @@
 import json
-import os
 import subprocess
 import sys
-from pathlib import Path
 
 from openai import AsyncOpenAI
 import asyncio
 import typer
 from dotenv import load_dotenv
-from braintrust import current_span, init_logger, traced
 from server.config import Settings
 
 load_dotenv()
@@ -28,12 +25,6 @@ class MCPClient:
         self.model = settings.openrouter_model
         self.tools = None
         self.schema_snapshot = None
-        
-        # Initialize Braintrust logger
-        init_logger(
-            project="Recife Open Data MCP",
-            api_key=os.getenv("BRAINTRUST_API_KEY")
-        )
 
     async def start_server(self) -> None:
         """Start the MCP server."""
@@ -206,7 +197,6 @@ class MCPClient:
         finally:
             await db.close()
 
-    @traced(type="llm", name="MCP Client Chat", notrace_io=True)
     async def chat(self, user_message: str) -> str:
         """Send a message to LLM via OpenRouter and process tool calls."""
         typer.secho(f"\n👤 User: {user_message}", fg=typer.colors.CYAN)
@@ -225,22 +215,6 @@ class MCPClient:
             tool_choice="auto",
         )
         
-        # Log initial LLM call
-        usage = response.usage or None
-        current_span().log(
-            input={"user_message": user_message, "tools_available": len(tools)},
-            metrics={
-                "prompt_tokens": usage.prompt_tokens if usage else 0,
-                "completion_tokens": usage.completion_tokens if usage else 0,
-                "total_tokens": usage.total_tokens if usage else 0,
-            },
-            metadata={
-                "model": self.model,
-                "finish_reason": response.choices[0].finish_reason,
-                "has_tool_calls": response.choices[0].finish_reason == "tool_calls"
-            }
-        )
-
         # Tool use loop with max iterations
         tool_call_count = 0
         MAX_TOOL_ITERATIONS = 10
@@ -297,21 +271,6 @@ class MCPClient:
                 tool_choice="auto",
             )
             
-            # Log follow-up LLM call
-            usage = response.usage or None
-            current_span().log(
-                metrics={
-                    "prompt_tokens": usage.prompt_tokens if usage else 0,
-                    "completion_tokens": usage.completion_tokens if usage else 0,
-                    "total_tokens": usage.total_tokens if usage else 0,
-                },
-                metadata={
-                    "tool_call_iteration": tool_call_count,
-                    "tools_called": [tc.function.name for tc in tool_calls],
-                    "finish_reason": response.choices[0].finish_reason,
-                }
-            )
-
         # Check if we hit max iterations
         if tool_call_count >= MAX_TOOL_ITERATIONS:
             typer.secho(f"\n⚠️  Reached max tool iterations ({MAX_TOOL_ITERATIONS})", fg=typer.colors.YELLOW)
@@ -324,16 +283,6 @@ class MCPClient:
         if not final_response or final_response.strip() == "":
             final_response = "Desculpe, não consegui gerar uma resposta. Por favor, tente reformular sua pergunta."
             typer.secho("⚠️  Empty response from LLM", fg=typer.colors.YELLOW)
-        
-        # Log final output
-        current_span().log(
-            output={"final_response": final_response},
-            metadata={
-                "total_tool_calls": tool_call_count,
-                "success": bool(final_response),
-                "hit_max_iterations": tool_call_count >= MAX_TOOL_ITERATIONS
-            }
-        )
         
         typer.secho(f"\n🤖 Assistant: {final_response}", fg=typer.colors.GREEN)
         return final_response
