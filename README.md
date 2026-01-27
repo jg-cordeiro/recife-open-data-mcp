@@ -211,8 +211,6 @@ Cada caso:
 
 ## Documentacao complementar
 
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) -- guia de contribuicao
-
 Este projeto e o resultado de um **Trabalho de Conclusao de Curso (TCC)** do bacharelado em **Sistemas de Informacao** na **Universidade Federal de Pernambuco (UFPE)**.
 
 ### Resumo
