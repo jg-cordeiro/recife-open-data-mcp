@@ -136,12 +136,12 @@ def format_markdown(run_id: str, model: str, results: List[Dict[str, Any]]) -> s
         f"- Data/Hora: {datetime.now(timezone.utc).isoformat()}",
         f"- Casos: {len(results)}",
         "",
-        "| Caso | Status | Pergunta | SQL Referência | SQL Gerado | Comparação | Duração (ms) | Linhas retornadas | Detalhes |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| Caso | Status | Pergunta | SQL Referência | SQL Gerado | Comparação | Duração (ms) | Linhas retornadas | Input Tokens | Output Tokens | Total Tokens | Detalhes |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for r in results:
         lines.append(
-            "| {id} | {status} | {question} | `{reference}` | `{sql}` | {cmp} | {duration} | {row_count} | {details} |".format(
+            "| {id} | {status} | {question} | `{reference}` | `{sql}` | {cmp} | {duration} | {row_count} | {input_tokens} | {output_tokens} | {total_tokens} | {details} |".format(
                 id=r["id"],
                 status="✅" if r["passed"] else "❌",
                 question=r["question"].replace("|", "\\|"),
@@ -150,6 +150,9 @@ def format_markdown(run_id: str, model: str, results: List[Dict[str, Any]]) -> s
                 cmp=r.get("comparison_result", "").replace("|", "\\|"),
                 duration=int(r.get("duration_ms", 0)),
                 row_count=len(r.get("rows", [])),
+                input_tokens=r.get("input_tokens", 0),
+                output_tokens=r.get("output_tokens", 0),
+                total_tokens=r.get("total_tokens", 0),
                 details=(r.get("error") or "").replace("|", "\\|"),
             )
         )
@@ -164,6 +167,9 @@ def format_markdown(run_id: str, model: str, results: List[Dict[str, Any]]) -> s
         lines.append(f"- Linhas retornadas: {len(r.get('rows', []))}")
         lines.append(f"- Ferramentas chamadas: {', '.join(r.get('tools_called', [])) if r.get('tools_called') else 'N/A'}")
         lines.append(f"- Duração (ms): {int(r.get('duration_ms', 0))}")
+        lines.append(f"- Input Tokens: {r.get('input_tokens', 0)}")
+        lines.append(f"- Output Tokens: {r.get('output_tokens', 0)}")
+        lines.append(f"- Total Tokens: {r.get('total_tokens', 0)}")
         if r.get("error"):
             lines.append(f"- Erro: {r['error']}")
         sample_rows = r.get("rows", [])[:3]
@@ -173,6 +179,24 @@ def format_markdown(run_id: str, model: str, results: List[Dict[str, Any]]) -> s
             lines.append(json.dumps(sample_rows, ensure_ascii=False, indent=2))
             lines.append("```")
         lines.append("")
+
+    # Totais e médias
+    total_duration = sum(int(r.get("duration_ms", 0)) for r in results)
+    total_input = sum(r.get("input_tokens", 0) for r in results)
+    total_output = sum(r.get("output_tokens", 0) for r in results)
+    total_all = total_input + total_output
+    n = len(results) or 1
+    passed_count = sum(1 for r in results if r.get("passed"))
+    lines.append("## Resumo")
+    lines.append("")
+    lines.append(f"- Casos aprovados: {passed_count}/{len(results)}")
+    lines.append(f"- Duração total (ms): {total_duration}")
+    lines.append(f"- Duração média (ms): {total_duration // n}")
+    lines.append(f"- Input Tokens total: {total_input}")
+    lines.append(f"- Output Tokens total: {total_output}")
+    lines.append(f"- Total Tokens: {total_all}")
+    lines.append(f"- Média de tokens por caso: {total_all // n}")
+    lines.append("")
     return "\n".join(lines)
 
 
@@ -194,10 +218,12 @@ async def evaluate_case(
     reference_sql_limited = ensure_limit(case.reference_sql, max_rows)
     reference_rows = await db.fetch_rows(reference_sql_limited)
 
-    async def _run_with_tool_calls() -> Tuple[Optional[str], List[Dict[str, Any]], List[str]]:
+    async def _run_with_tool_calls() -> Tuple[Optional[str], List[Dict[str, Any]], List[str], int, int]:
         tools_called: List[str] = []
         last_sql: Optional[str] = None
         last_rows: List[Dict[str, Any]] = []
+        total_input_tokens = 0
+        total_output_tokens = 0
         # Definição das ferramentas alinhadas ao MCP
         tools = [
             {
@@ -291,6 +317,9 @@ async def evaluate_case(
                 tools=tools,
                 tool_choice="auto",
             )
+            if resp.usage:
+                total_input_tokens += resp.usage.prompt_tokens or 0
+                total_output_tokens += resp.usage.completion_tokens or 0
             choice = resp.choices[0]
             msg = choice.message
 
@@ -332,7 +361,10 @@ async def evaluate_case(
                     elif name == "create_sql":
                         question_arg = args.get("question") or case.question
                         schema_ctx = args.get("schema_context") or schema_text
-                        sql = await llm.generate_sql(question_arg, schema_ctx)
+                        sql, usage_list = await llm.generate_sql(question_arg, schema_ctx)
+                        for u in usage_list:
+                            total_input_tokens += u.get("prompt_tokens", 0)
+                            total_output_tokens += u.get("completion_tokens", 0)
                         ensure_read_only(sql)
                         limited_sql = ensure_limit(sql, max_rows)
                         payload = {"sql": limited_sql}
@@ -351,9 +383,9 @@ async def evaluate_case(
             # final response (no tool calls)
             break
 
-        return last_sql, last_rows, tools_called
+        return last_sql, last_rows, tools_called, total_input_tokens, total_output_tokens
 
-    last_sql, rows, tools_used = await _run_with_tool_calls()
+    last_sql, rows, tools_used, input_tokens, output_tokens = await _run_with_tool_calls()
 
     result["generated_sql"] = last_sql
     result["attempts"] = len([t for t in tools_used if t == "execute_sql"])
@@ -362,6 +394,9 @@ async def evaluate_case(
             "rows": rows or [],
             "reference_rows": reference_rows,
             "tools_called": tools_used,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "total_tokens": input_tokens + output_tokens,
         }
     )
 
@@ -413,6 +448,7 @@ def run(
             res = await evaluate_case(db, llm, schema_text, case, settings.max_result_rows)
             status = "✅" if res.get("passed") else "❌"
             typer.secho(f"   {status} {res.get('comparison_result', res.get('error', ''))}", fg=typer.colors.GREEN if res.get("passed") else typer.colors.RED)
+            typer.secho(f"   Tokens: input={res.get('input_tokens', 0)} output={res.get('output_tokens', 0)} total={res.get('total_tokens', 0)}", fg=typer.colors.YELLOW)
             results.append(res)
         await db.close()
         return results

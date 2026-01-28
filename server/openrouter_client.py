@@ -1,5 +1,8 @@
+from typing import List, Tuple
+
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
+
 from .config import Settings
 
 load_dotenv()
@@ -17,7 +20,7 @@ class OpenRouterClient:
         lowered = sql_text.strip().lower()
         return lowered.startswith("select") or lowered.startswith("with")
 
-    async def generate_sql(self, question: str, schema_text: str | None = None, previous_error: str | None = None) -> str:
+    async def generate_sql(self, question: str, schema_text: str | None = None, previous_error: str | None = None) -> Tuple[str, List[dict]]:
         guidance = f"""You are an specialist that produces safe, read-only DuckDB SQL for Recife open data. Think and reason step by step, then emit only the final SQL.
 
 MENTAL STEPS (do not output these):
@@ -107,18 +110,25 @@ If a column error occurs, STOP and call describe_table (and check resources), th
             })
             messages.append({"role": "user", "content": f"Error: {previous_error}"})
         last_sql = ""
+        usage_list: List[dict] = []
         for attempt in range(1, self.max_sql_attempts + 1):
             resp = await self.client.chat.completions.create(
                 model=self.model,
                 temperature=0,
                 messages=messages,
             )
+            if resp.usage:
+                usage_list.append({
+                    "prompt_tokens": resp.usage.prompt_tokens,
+                    "completion_tokens": resp.usage.completion_tokens,
+                    "total_tokens": resp.usage.total_tokens,
+                })
             content = resp.choices[0].message.content or ""
             sql_output = content.strip().strip("` ")
             last_sql = sql_output
 
             if sql_output and self._looks_like_sql(sql_output):
-                return sql_output
+                return sql_output, usage_list
 
             messages.append(
                 {
@@ -127,4 +137,4 @@ If a column error occurs, STOP and call describe_table (and check resources), th
                 }
             )
 
-        return last_sql
+        return last_sql, usage_list

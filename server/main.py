@@ -121,7 +121,7 @@ async def create_sql(question: str, schema_context: str | None = None) -> str:
     Returns SQL already validated as read-only and limited.
     """
     llm_client = _require_llm()
-    sql = await llm_client.generate_sql(question, schema_context)
+    sql, _ = await llm_client.generate_sql(question, schema_context)
     ensure_read_only(sql)
     limited = ensure_limit(sql, settings.max_result_rows)
     return limited
